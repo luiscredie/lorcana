@@ -1,172 +1,184 @@
-function corsHeaders(env) {
+// Ranger Atlas save server — Cloudflare Worker.
+// Holds your GitHub token as a SECRET so no browser ever sees it.
+
+const CFG = (env) => ({
+  owner: env.GH_OWNER || "luiscredie",
+  repo: env.GH_REPO || "lorcana",
+  branch: env.GH_BRANCH || "main",
+  path: env.GH_PATH || "atlas-data.json",
+});
+
+const ALLOW = "https://luiscredie.github.io";
+
+function cors(origin) {
   return {
-    "Access-Control-Allow-Origin": env.ALLOWED_ORIGIN || "https://luiscredie.github.io",
-    "Access-Control-Allow-Methods": "GET, POST, PUT, OPTIONS",
+    "Access-Control-Allow-Origin": ALLOW === "*" ? (origin || "*") : ALLOW,
+    "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
     "Access-Control-Allow-Headers": "Content-Type",
-    "Content-Type": "application/json"
+    "Access-Control-Max-Age": "86400",
   };
 }
 
-function toBase64(text) {
-  const bytes = new TextEncoder().encode(text);
-  let binary = "";
-  const chunkSize = 0x8000;
-
-  for (let i = 0; i < bytes.length; i += chunkSize) {
-    binary += String.fromCharCode(...bytes.subarray(i, i + chunkSize));
-  }
-
-  return btoa(binary);
-}
-
-function fromBase64(base64) {
-  const binary = atob(base64.replace(/\n/g, ""));
-  const bytes = Uint8Array.from(binary, c => c.charCodeAt(0));
-  return new TextDecoder().decode(bytes);
-}
-
-async function githubRead(env) {
-  const owner = env.GITHUB_OWNER;
-  const repo = env.GITHUB_REPO;
-  const branch = env.GITHUB_BRANCH || "main";
-  const path = env.GITHUB_PATH || "atlas-data.json";
-
-  const url =
-    `https://api.github.com/repos/${owner}/${repo}/contents/${path}?ref=${branch}`;
-
-  return fetch(url, {
-    method: "GET",
+function json(obj, status, origin) {
+  return new Response(JSON.stringify(obj), {
+    status: status || 200,
     headers: {
-      "Authorization": `Bearer ${env.GITHUB_TOKEN}`,
-      "Accept": "application/vnd.github+json",
-      "X-GitHub-Api-Version": "2022-11-28",
-      "User-Agent": "lorcana-cloud-sync"
-    }
-  });
-}
-
-async function githubWrite(env, bodyText) {
-  const owner = env.GITHUB_OWNER;
-  const repo = env.GITHUB_REPO;
-  const branch = env.GITHUB_BRANCH || "main";
-  const path = env.GITHUB_PATH || "atlas-data.json";
-
-  const readResponse = await githubRead(env);
-
-  let sha = null;
-
-  if (readResponse.ok) {
-    const current = await readResponse.json();
-    sha = current.sha;
-  } else if (readResponse.status !== 404) {
-    throw new Error(`GitHub read failed: ${readResponse.status} ${await readResponse.text()}`);
-  }
-
-  const payload = {
-    message: `Update Lorcana atlas data ${new Date().toISOString()}`,
-    content: toBase64(bodyText),
-    branch
-  };
-
-  if (sha) {
-    payload.sha = sha;
-  }
-
-  const url =
-    `https://api.github.com/repos/${owner}/${repo}/contents/${path}`;
-
-  return fetch(url, {
-    method: "PUT",
-    headers: {
-      "Authorization": `Bearer ${env.GITHUB_TOKEN}`,
-      "Accept": "application/vnd.github+json",
-      "X-GitHub-Api-Version": "2022-11-28",
-      "User-Agent": "lorcana-cloud-sync",
-      "Content-Type": "application/json"
+      "Content-Type": "application/json",
+      "Cache-Control": "no-store",
+      ...cors(origin),
     },
-    body: JSON.stringify(payload)
   });
+}
+
+function decodeGithubBase64(content) {
+  const clean = String(content || "").replace(/\s/g, "");
+  return decodeURIComponent(escape(atob(clean)));
+}
+
+function encodeGithubBase64(text) {
+  return btoa(unescape(encodeURIComponent(text)));
 }
 
 export default {
   async fetch(request, env) {
-    const headers = corsHeaders(env);
+    const origin = request.headers.get("Origin") || "";
 
     if (request.method === "OPTIONS") {
-      return new Response(null, { headers });
+      return new Response(null, {
+        status: 204,
+        headers: cors(origin),
+      });
     }
+
+    const c = CFG(env);
+
+    const api =
+      "https://api.github.com/repos/" +
+      c.owner +
+      "/" +
+      c.repo +
+      "/contents/" +
+      c.path;
+
+    const ghHeaders = (extra) => ({
+      Authorization: "Bearer " + env.GH_TOKEN,
+      Accept: "application/vnd.github+json",
+      "User-Agent": "ranger-atlas-worker",
+      ...(extra || {}),
+    });
 
     try {
       if (request.method === "GET") {
-        const gh = await githubRead(env);
-
-        if (!gh.ok) {
-          return new Response(
-            JSON.stringify({
-              ok: false,
-              error: await gh.text()
-            }),
-            {
-              status: gh.status,
-              headers
-            }
+        if (!env.GH_TOKEN) {
+          return json(
+            { error: "server missing GH_TOKEN secret" },
+            500,
+            origin
           );
         }
 
-        const data = await gh.json();
-        const text = fromBase64(data.content || "");
+        const r = await fetch(api + "?ref=" + c.branch + "&t=" + Date.now(), {
+          headers: ghHeaders(),
+        });
 
-        return new Response(text, { headers });
+        if (r.status === 404) {
+          return json({ doc: null, sha: null }, 200, origin);
+        }
+
+        if (!r.ok) {
+          return json({ error: "read " + r.status }, 502, origin);
+        }
+
+        const j = await r.json();
+
+        let doc = null;
+        try {
+          doc = JSON.parse(decodeGithubBase64(j.content));
+        } catch (e) {
+          return json(
+            { error: "could not parse atlas-data.json as JSON" },
+            500,
+            origin
+          );
+        }
+
+        return json({ doc, sha: j.sha }, 200, origin);
       }
 
-      if (request.method === "POST" || request.method === "PUT") {
-        const bodyText = await request.text();
-
-        // Make sure the saved file is valid JSON before writing to GitHub.
-        JSON.parse(bodyText);
-
-        const gh = await githubWrite(env, bodyText);
-
-        if (!gh.ok) {
-          return new Response(
-            JSON.stringify({
-              ok: false,
-              error: await gh.text()
-            }),
-            {
-              status: gh.status,
-              headers
-            }
+      if (request.method === "POST") {
+        if (!env.GH_TOKEN) {
+          return json(
+            { error: "server missing GH_TOKEN secret" },
+            500,
+            origin
           );
         }
 
-        return new Response(
-          JSON.stringify({ ok: true }),
-          { headers }
+        const body = await request.json().catch(() => ({}));
+
+        if (typeof body.content !== "string") {
+          return json({ error: "no content" }, 400, origin);
+        }
+
+        // Validate before writing.
+        try {
+          JSON.parse(body.content);
+        } catch (e) {
+          return json({ error: "content is not valid JSON" }, 400, origin);
+        }
+
+        const put = {
+          message: "Ranger Atlas sync " + new Date().toISOString(),
+          content: encodeGithubBase64(body.content),
+          branch: c.branch,
+        };
+
+        if (body.sha) {
+          put.sha = body.sha;
+        }
+
+        const r = await fetch(api, {
+          method: "PUT",
+          headers: ghHeaders({
+            "Content-Type": "application/json",
+          }),
+          body: JSON.stringify(put),
+        });
+
+        if (r.status === 409 || r.status === 422) {
+          return json({ error: "conflict" }, 409, origin);
+        }
+
+        if (!r.ok) {
+          const t = await r.text();
+          return json(
+            { error: "write " + r.status + " " + t.slice(0, 300) },
+            502,
+            origin
+          );
+        }
+
+        const j = await r.json();
+
+        return json(
+          {
+            ok: true,
+            sha: j.content && j.content.sha,
+          },
+          200,
+          origin
         );
       }
 
-      return new Response(
-        JSON.stringify({
-          ok: false,
-          error: "Method not allowed"
-        }),
+      return json({ error: "method" }, 405, origin);
+    } catch (e) {
+      return json(
         {
-          status: 405,
-          headers
-        }
-      );
-    } catch (err) {
-      return new Response(
-        JSON.stringify({
-          ok: false,
-          error: String(err.message || err)
-        }),
-        {
-          status: 500,
-          headers
-        }
+          error: String((e && e.message) || e),
+        },
+        500,
+        origin
       );
     }
-  }
+  },
 };

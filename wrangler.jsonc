@@ -7,10 +7,9 @@
     "enabled": true
   },
   "vars": {
-    "GITHUB_OWNER": "luiscredie",
-    "GITHUB_REPO": "lorcana",
-    "GITHUB_BRANCH": "main",
-    "GITHUB_PATH": "atlas-data.json",
-    "ALLOWED_ORIGIN": "https://luiscredie.github.io"
+    "GH_OWNER": "luiscredie",
+    "GH_REPO": "lorcana",
+    "GH_BRANCH": "main",
+    "GH_PATH": "atlas-data.json"
   }
 }
