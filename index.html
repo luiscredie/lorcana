@@ -528,20 +528,17 @@
   <sc-if value="{{ sync.open }}" hint-placeholder-val="{{ false }}">
   <div onClick="{{ sync.onClose }}" style="position:fixed;inset:0;z-index:85;background:rgba(37,29,20,.45);backdrop-filter:blur(3px);display:flex;align-items:center;justify-content:center;padding:20px">
     <div onClick="{{ stopClick }}" style="background:#FFFDF8;border:1px solid #d9b45a;border-radius:20px;box-shadow:0 30px 60px -20px rgba(40,25,10,.5), inset 0 0 0 3px rgba(200,146,15,.12);max-width:560px;width:100%;max-height:84vh;overflow:auto;padding:24px">
-      <h3 style="font-family:'Newsreader',serif;font-weight:600;font-size:1.25rem;margin:0 0 4px;letter-spacing:-.01em">Cloud sync — GitHub</h3>
+      <h3 style="font-family:'Newsreader',serif;font-weight:600;font-size:1.25rem;margin:0 0 4px;letter-spacing:-.01em">Cloud sync</h3>
       <div style="font-family:'Space Mono',monospace;font-size:.68rem;letter-spacing:.06em;color:#6F604A;margin-bottom:12px">Status: {{ sync.statusLine }}</div>
-      <p style="color:#8B7A63;font-size:.84rem;margin:0 0 14px;line-height:1.55">Everything — games, decks, collection, card art picks — is saved to <b>lorcana/atlas-data.json</b> in the <b>luiscredie.github.io</b> repo, so every device sees the same atlas. Reading needs nothing; <b>saving needs a GitHub token</b> with <b>Contents: read &amp; write</b> on that repo (github.com → Settings → Developer settings → Fine-grained personal access tokens).</p>
+      <p style="color:#8B7A63;font-size:.84rem;margin:0 0 14px;line-height:1.55">Everything — games, decks, collection, card-art picks — lives in <b>lorcana/atlas-data.json</b> in your repo, so every device shows the same atlas. <b>Reading is automatic and needs nothing.</b> To <b>save</b> changes without putting a token in the browser, paste the URL of your save server (a free Cloudflare Worker that holds the token) below — see the setup notes shipped alongside the site.</p>
       <div style="display:flex;gap:9px;flex-wrap:wrap">
-        <input type="password" value="{{ sync.token }}" onchange="{{ sync.onToken }}" placeholder="github_pat_…" style="flex:1;min-width:220px;border:1px solid #E0D3B8;border-radius:11px;padding:10px 12px;font-family:'Space Mono',monospace;font-size:.8rem;background:#fff;color:#251D14">
-        <button onclick="{{ sync.onSaveToken }}" style="border:0;border-radius:12px;padding:10px 18px;font-family:inherit;font-weight:700;font-size:.85rem;cursor:pointer;background:#CC785C;color:#fff">Save token</button>
+        <input type="text" value="{{ sync.url }}" onchange="{{ sync.onUrl }}" placeholder="https://your-worker.workers.dev" style="flex:1;min-width:220px;border:1px solid #E0D3B8;border-radius:11px;padding:10px 12px;font-family:'Space Mono',monospace;font-size:.8rem;background:#fff;color:#251D14">
+        <button onclick="{{ sync.onSaveUrl }}" style="border:0;border-radius:12px;padding:10px 18px;font-family:inherit;font-weight:700;font-size:.85rem;cursor:pointer;background:#CC785C;color:#fff">Save</button>
       </div>
       <div style="display:flex;gap:9px;flex-wrap:wrap;margin-top:12px">
         <button onclick="{{ sync.onSyncNow }}" style="border:1px solid #9cb3a3;border-radius:12px;padding:9px 16px;font-family:inherit;font-weight:700;font-size:.82rem;cursor:pointer;background:rgba(46,139,74,.08);color:#2F6B44">Sync now</button>
-        <sc-if value="{{ sync.hasToken }}" hint-placeholder-val="{{ false }}">
-          <button onclick="{{ sync.onForget }}" style="border:1px solid #d88a90;border-radius:12px;padding:9px 16px;font-family:inherit;font-weight:700;font-size:.82rem;cursor:pointer;background:rgba(179,35,44,.07);color:#9F2731">Forget token</button>
-        </sc-if>
       </div>
-      <p style="color:#8B7A63;font-size:.76rem;margin:14px 0 0;line-height:1.5">The token itself stays in this browser only — enter it once per device. Game lists merge by id, so two devices can't wipe each other's games; deletions are remembered too.</p>
+      <p style="color:#8B7A63;font-size:.76rem;margin:14px 0 0;line-height:1.5">The URL isn't a secret — the GitHub token stays on the server. Game lists merge by id, so two devices can't wipe each other's games; deletions are remembered too.</p>
     </div>
   </div>
   </sc-if>
@@ -606,8 +603,13 @@ class Component extends DCLogic {
 
   componentDidMount(){
     this.KEY='lorcanaAtlas_games_v1'; this.DKEY='lorcanaAtlas_deck_v1'; this.TKEY='lorcanaAtlas_tab_v1'; this.LKEY='lorcanaAtlas_decks_v1'; this.CKEY='lorcanaAtlas_collection_v1'; this.CSEED='lorcanaAtlas_colSeed_v1';
-    this.GKEY='lorcanaAtlas_gh_token_v1'; this.TOMB='lorcanaAtlas_tombs_v1';
+    this.GKEY='lorcanaAtlas_gh_token_v1'; this.TOMB='lorcanaAtlas_tombs_v1'; this.SURL='lorcanaAtlas_syncurl_v1';
     this.GH={owner:'luiscredie', repo:'luiscredie.github.io', branch:'main', path:'lorcana/atlas-data.json'};
+    // Public read path (same origin as the site) — every device reads the shared atlas with zero config.
+    this.READ_URL='atlas-data.json';
+    // Write endpoint (Cloudflare Worker that holds the GitHub token). Hardcode once known;
+    // until then it can be set per-device in the Sync panel. Reads never need it.
+    this.SYNC_URL='';
     this.IMG_BASE='https://luiscredie.github.io/lorcana/Lorcana%20Cards%20Named/';
     this.DECKS={
       dale:{ id:'dale', title:"Dale's Growing Pressure", inks:['amber','ruby'], arch:'Combat-control midrange',
@@ -696,6 +698,8 @@ class Component extends DCLogic {
       // Fully replaces any stored catalogue — fixes bad merges from earlier seeds.
       fetch((typeof window!=='undefined'&&window.__resources&&window.__resources.collectionJson)||'collection.json').then(r=>r.json()).then(file=>{
         if(!file||typeof file!=='object'||Array.isArray(file)) return;
+        let cur=''; try{ cur=localStorage.getItem(this.CSEED); }catch(e){}
+        if(cur==='user') return; // a server collection was adopted meanwhile — don't overwrite it
         this.persistCol(file);
         try{ localStorage.setItem(this.CSEED,'3'); }catch(e){}
         this.setState({collection:file});
@@ -703,6 +707,12 @@ class Component extends DCLogic {
     }
     this.setState({ ready:true, store, deck, tab, lib, collection });
     setTimeout(()=>this.doSync(), 400);
+    // Re-pull the shared atlas whenever the tab regains focus so every browser converges.
+    if(typeof window!=='undefined' && !this._focusHook){
+      this._focusHook=()=>{ if(document.visibilityState==='visible') this.doSync(); };
+      window.addEventListener('focus', this._focusHook);
+      document.addEventListener('visibilitychange', this._focusHook);
+    }
   }
   imgEl(src,alt,extra){
     if(!src) return null;
@@ -737,9 +747,11 @@ class Component extends DCLogic {
     this.setState({lib, heroPick:null});
     this.toast(name?('Framed: '+name):'Frame cleared');
   }
-  // ---------- GitHub cloud sync ----------
-  ghToken(){ try{ return localStorage.getItem(this.GKEY)||''; }catch(e){ return ''; } }
-  setGhToken(t){ try{ if(t) localStorage.setItem(this.GKEY,t); else localStorage.removeItem(this.GKEY); }catch(e){} }
+  // ---------- Cloud sync (tokenless) ----------
+  // Reads: the public atlas file in the repo (no credential). Writes: a Cloudflare Worker
+  // that holds the GitHub token server-side; the browser only ever knows the Worker URL.
+  syncUrl(){ try{ return (localStorage.getItem(this.SURL)||this.SYNC_URL||'').trim().replace(/\/$/,''); }catch(e){ return (this.SYNC_URL||'').trim(); } }
+  setSyncUrl(u){ try{ if(u) localStorage.setItem(this.SURL,u); else localStorage.removeItem(this.SURL); }catch(e){} }
   tombs(){ try{ const t=JSON.parse(localStorage.getItem(this.TOMB)); if(t&&Array.isArray(t.games)&&Array.isArray(t.decks)) return t; }catch(e){} return {games:[],decks:[]}; }
   saveTombs(t){ try{ localStorage.setItem(this.TOMB, JSON.stringify(t)); }catch(e){} }
   addTomb(kind,id){ const t=this.tombs(); if(!t[kind].includes(id)) t[kind].push(id); this.saveTombs(t); }
@@ -747,16 +759,21 @@ class Component extends DCLogic {
   stampCol(){ try{ localStorage.setItem(this.CKEY+'_stamp', new Date().toISOString()); }catch(e){} }
   b64e(s){ return btoa(unescape(encodeURIComponent(s))); }
   b64d(s){ return decodeURIComponent(escape(atob(String(s).replace(/\s/g,'')))); }
-  ghApi(){ return 'https://api.github.com/repos/'+this.GH.owner+'/'+this.GH.repo+'/contents/'+encodeURIComponent(this.GH.path).replace(/%2F/g,'/'); }
   async ghGet(){
-    const h={'Accept':'application/vnd.github+json'};
-    const t=this.ghToken(); if(t) h['Authorization']='Bearer '+t;
-    const r=await fetch(this.ghApi()+'?ref='+this.GH.branch+'&_='+Date.now(), {headers:h});
-    if(r.status===404) return null;
-    if(!r.ok) throw new Error('GitHub read failed ('+r.status+')');
-    const j=await r.json();
-    let doc=null; try{ doc=JSON.parse(this.b64d(j.content)); }catch(e){}
-    return {doc, sha:j.sha};
+    const w=this.syncUrl();
+    if(w){
+      // Worker read → { doc, sha } (fresh via GitHub API, needed for the write sha)
+      const r=await fetch(w+(w.includes('?')?'&':'?')+'_='+Date.now(), {headers:{'Accept':'application/json'}, cache:'no-store'});
+      if(r.status===404) return {doc:null, sha:null};
+      if(!r.ok) throw new Error('sync server read failed ('+r.status+')');
+      const j=await r.json().catch(()=>({}));
+      return {doc:(j&&j.doc)||null, sha:(j&&j.sha)||null};
+    }
+    // Read-only fallback: public atlas file in the repo (same origin as the site)
+    const r=await fetch(this.READ_URL+'?_='+Date.now(), {cache:'no-store'});
+    if(!r.ok) return {doc:null, sha:null};
+    const doc=await r.json().catch(()=>null);
+    return {doc, sha:null};
   }
   queueSync(){ if(this._merging) return; clearTimeout(this._st); this._st=setTimeout(()=>this.doSync(), 2200); }
   mergeAll(rd){
@@ -772,16 +789,29 @@ class Component extends DCLogic {
         store[k]=[...loc, ...((rd.store[k]||[]).filter(g=>g&&!ids.has(g.id)))];
       });
       Object.keys(store).forEach(k=>{ if(delD.has(k)) delete store[k]; else store[k]=store[k].filter(g=>!delG.has(g.id)); });
-      let lib=(s.lib||[]).map(d=>({...d}));
-      if(rd&&Array.isArray(rd.lib)) rd.lib.forEach(rdd=>{
-        if(!rdd||!rdd.id||delD.has(rdd.id)) return;
-        const i=lib.findIndex(x=>x.id===rdd.id);
-        if(i<0) lib.push(rdd);
-        else if((rdd.mtime||'')>(lib[i].mtime||'')) lib[i]=rdd;
-      });
-      lib=lib.filter(d=>!delD.has(d.id));
+      // Deck library: the GitHub file is authoritative. When a remote file exists we
+      // start from ITS library and only fold in LOCAL decks the user actually created
+      // or edited (those carry an mtime). Untouched default seeds without an mtime are
+      // NOT re-added — so once a deck is removed on the server it never resurrects on
+      // another browser, and every device converges on the same shared library.
+      let lib;
+      const remoteHasLib = rd && Array.isArray(rd.lib);
+      if(remoteHasLib){
+        const byId={};
+        rd.lib.forEach(d=>{ if(d&&d.id&&!delD.has(d.id)) byId[d.id]=d; });
+        (s.lib||[]).forEach(ld=>{
+          if(!ld||!ld.id||delD.has(ld.id)||!ld.mtime) return; // skip seeds / untouched
+          const r=byId[ld.id];
+          if(!r || (ld.mtime||'')>(r.mtime||'')) byId[ld.id]=ld;
+        });
+        lib=Object.values(byId);
+      } else {
+        lib=(s.lib||[]).filter(d=>d&&d.id&&!delD.has(d.id)).map(d=>({...d}));
+      }
       if(!lib.length) lib=Object.values(this.DECKS).map(d=>({id:d.id,title:d.title,inks:d.inks.slice(),arch:d.arch,tagline:d.tagline,cards:d.cards?d.cards.slice():null}));
       lib.forEach(d=>{ if(store[d.id]==null) store[d.id]=[]; });
+      // Drop games belonging to decks no longer in the shared library
+      Object.keys(store).forEach(k=>{ if(!lib.find(d=>d.id===k)) delete store[k]; });
       let collection=s.collection||{}, colUpdated=this.colStamp();
       if(rd&&rd.collection&&typeof rd.collection==='object'&&!Array.isArray(rd.collection)&&(rd.colUpdated||'')>(colUpdated||'')){
         collection=rd.collection; colUpdated=rd.colUpdated;
@@ -799,27 +829,25 @@ class Component extends DCLogic {
     if(this._syncing){ this._again=true; return; }
     this._syncing=true;
     this.setState({sync:'busy'});
-    const t=this.ghToken();
+    const w=this.syncUrl();
     try{
       let remote=null;
-      try{ remote=await this.ghGet(); }catch(e){ if(t) throw e; }
+      try{ remote=await this.ghGet(); }catch(e){ if(w) throw e; }
       const doc=this.mergeAll(remote&&remote.doc);
       const sig=(o)=>{ try{ return JSON.stringify({s:o.store,l:o.lib,c:o.collection,cu:o.colUpdated,dg:(o.deletedGames||[]).slice().sort(),dd:(o.deletedDecks||[]).slice().sort()}); }catch(e){ return Math.random()+''; } };
       const same=!!(remote&&remote.doc)&&sig(remote.doc)===sig(doc);
-      if(t&&!same){
-        const body={message:'Ranger Atlas sync', content:this.b64e(JSON.stringify(doc)), branch:this.GH.branch};
-        if(remote&&remote.sha) body.sha=remote.sha;
-        const r=await fetch(this.ghApi(), {method:'PUT', headers:{'Accept':'application/vnd.github+json','Authorization':'Bearer '+t,'Content-Type':'application/json'}, body:JSON.stringify(body)});
+      if(w&&!same){
+        const r=await fetch(w, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({content:JSON.stringify(doc), sha:remote&&remote.sha})});
         if(r.status===409||r.status===422){
           this._retry=(this._retry||0)+1;
           if(this._retry<=2){ this._syncing=false; return this.doSync(); }
           throw new Error('write conflict — try Sync now again');
         }
-        if(!r.ok){ const j=await r.json().catch(()=>({})); throw new Error('GitHub write failed ('+r.status+')'+(j.message?(' — '+j.message):'')); }
+        if(!r.ok){ const j=await r.json().catch(()=>({})); throw new Error('save failed ('+r.status+')'+(j&&j.error?(' — '+j.error):'')); }
         this._retry=0;
         this.setState({sync:'ok', syncTime:Date.now(), syncErr:''});
       } else {
-        this.setState({sync:t?'ok':'offline', syncTime:t?Date.now():(this.state.syncTime||null), syncErr:''});
+        this.setState({sync:w?'ok':'offline', syncTime:w?Date.now():(this.state.syncTime||null), syncErr:''});
       }
     }catch(e){
       this.setState({sync:'error', syncErr:(e&&e.message)||'sync failed'});
@@ -1047,7 +1075,9 @@ class Component extends DCLogic {
     const chips=[
       {label:D.arch, style:"font-family:'Space Mono',monospace;font-size:.66rem;letter-spacing:.08em;text-transform:uppercase;border:1px solid #E0D3B8;color:#6F604A;padding:7px 12px;border-radius:999px"},
       ...D.inks.map(k=>{ const I=this.INKS[k]; return {label:I.name, style:`font-family:'Space Mono',monospace;font-size:.66rem;letter-spacing:.08em;text-transform:uppercase;border:1px solid ${I.border};color:${I.text};padding:7px 12px;border-radius:999px;background:${I.bg}`}; }),
-      {label:'Filed to this device', style:"font-family:'Space Mono',monospace;font-size:.66rem;letter-spacing:.08em;text-transform:uppercase;border:1px solid #E0D3B8;color:#6F604A;padding:7px 12px;border-radius:999px"}
+      this.syncUrl()
+        ? {label:'Shared atlas', style:"font-family:'Space Mono',monospace;font-size:.66rem;letter-spacing:.08em;text-transform:uppercase;border:1px solid #9cb3a3;color:#2F6B44;padding:7px 12px;border-radius:999px;background:rgba(46,139,74,.08)"}
+        : {label:'Read-only — no save server', style:"font-family:'Space Mono',monospace;font-size:.66rem;letter-spacing:.08em;text-transform:uppercase;border:1px solid #d9b45a55;color:#9a6c0f;padding:7px 12px;border-radius:999px;background:rgba(200,146,15,.08)"}
     ];
     const circ=2*Math.PI*80;
     const ring={ color:a.n? (a.wr>=50?'#4E9D6B':D.accent):'#ECE2CE', circ, off:circ*(1-(a.n?a.wr:0)/100),
@@ -1282,17 +1312,16 @@ class Component extends DCLogic {
     const sst=s.sync||'idle';
     const chipMap={ busy:['◌ Syncing…','#8B7A63'], ok:['● Synced','#356B4E'], error:['● Sync error','#9F2731'], offline:['○ Read-only','#9a6c0f'], idle:['○ Sync','#8B7A63'] };
     const chipPair=chipMap[sst]||chipMap.idle;
-    const hasToken=!!this.ghToken();
+    const hasUrl=!!this.syncUrl();
     const sync={
       open:!!s.syncOpen,
       chip:chipPair[0],
       chipStyle:`border:1px solid ${chipPair[1]}55;background:#F3F2E6;color:${chipPair[1]};border-radius:7px;padding:5px 10px;font-family:'Space Mono',monospace;font-size:.58rem;letter-spacing:.14em;text-transform:uppercase;cursor:pointer;white-space:nowrap`,
-      statusLine: sst==='error'?('Error — '+(s.syncErr||'unknown')):sst==='busy'?'Syncing…':sst==='ok'?('Synced'+(s.syncTime?(' · '+new Date(s.syncTime).toLocaleTimeString()):'')):hasToken?'Idle':'No token — reading only; changes stay on this device',
-      hasToken,
-      token:s.tokenDraft!=null?s.tokenDraft:'',
-      onToken:(e)=>this.setState({tokenDraft:e.target.value}),
-      onSaveToken:()=>{ const t=(this.state.tokenDraft||'').trim(); if(!t){ this.toast('Paste a token first'); return; } this.setGhToken(t); this.setState({tokenDraft:''}); this.toast('Token saved — syncing'); this.doSync(); },
-      onForget:()=>{ this.setGhToken(''); this.setState({sync:'offline'}); this.toast('Token removed'); },
+      statusLine: sst==='error'?('Error — '+(s.syncErr||'unknown')):sst==='busy'?'Syncing…':sst==='ok'?('Saved'+(s.syncTime?(' · '+new Date(s.syncTime).toLocaleTimeString()):'')):hasUrl?'Idle':'Read-only — showing the shared atlas; add a save server to edit from this device',
+      hasUrl,
+      url:s.urlDraft!=null?s.urlDraft:this.syncUrl(),
+      onUrl:(e)=>this.setState({urlDraft:e.target.value}),
+      onSaveUrl:()=>{ const u=(this.state.urlDraft!=null?this.state.urlDraft:'').trim(); this.setSyncUrl(u); this.setState({urlDraft:null}); this.toast(u?'Save server set — syncing':'Save server cleared'); this.doSync(); },
       onSyncNow:()=>this.doSync(),
       onOpen:()=>this.setState({syncOpen:true}),
       onClose:()=>this.setState({syncOpen:false})
