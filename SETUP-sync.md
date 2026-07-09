@@ -6,7 +6,7 @@ Reading works on every device with NO setup. This is only needed to SAVE changes
 ## Steps
 1. **GitHub token** — github.com → Settings → Developer settings → *Fine-grained
    personal access tokens* → **Generate new token**.
-   - Repository access → *Only select repositories* → **luiscredie/luiscredie.github.io**
+   - Repository access → *Only select repositories* → **luiscredie/lorcana**
    - Permissions → **Contents: Read and write**
    - Generate and copy the token.
 2. **Cloudflare Worker** — dash.cloudflare.com (free account) → *Workers & Pages* →

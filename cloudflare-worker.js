@@ -4,7 +4,7 @@
 // SETUP (one time, ~4 min):
 // 1. Make a fine-grained GitHub token: github.com -> Settings -> Developer settings ->
 //    Fine-grained personal access tokens -> Generate. Repository access: only
-//    luiscredie/luiscredie.github.io. Permissions: Contents = Read and write. Copy it.
+//    luiscredie/lorcana. Permissions: Contents = Read and write. Copy it.
 // 2. dash.cloudflare.com -> Workers & Pages -> Create -> Create Worker -> name it
 //    (e.g. "lorcana-atlas") -> Deploy. Then "Edit code", paste THIS whole file, Deploy.
 // 3. Worker -> Settings -> Variables and Secrets -> Add a SECRET named GH_TOKEN =
@@ -15,9 +15,9 @@
 
 const CFG = (env) => ({
   owner:  env.GH_OWNER  || "luiscredie",
-  repo:   env.GH_REPO   || "luiscredie.github.io",
+  repo:   env.GH_REPO   || "lorcana",
   branch: env.GH_BRANCH || "main",
-  path:   env.GH_PATH   || "lorcana/atlas-data.json",
+  path:   env.GH_PATH   || "atlas-data.json",
 });
 const ALLOW = "https://luiscredie.github.io"; // set to "*" to allow any origin
 
