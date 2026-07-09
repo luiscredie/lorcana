@@ -795,14 +795,15 @@ class Component extends DCLogic {
   async ghGet(){
     const w=this.syncUrl();
     if(w){
-      // Worker read → the raw atlas document (this project's deployed Worker returns
-      // the GitHub file's parsed JSON directly, not wrapped in {doc,sha}).
+      // Worker read — auto-detect the deployed contract: some builds return {doc,sha},
+      // others return the raw atlas document directly. Remember which, so the write
+      // below mirrors the same shape.
       const r=await fetch(w+(w.includes('?')?'&':'?')+'_='+Date.now(), {headers:{'Accept':'application/json'}, cache:'no-store'});
-      if(r.status===404) return {doc:null, sha:null};
+      if(r.status===404){ return {doc:null, sha:null}; }
       if(!r.ok) throw new Error('sync server read failed ('+r.status+')');
       const j=await r.json().catch(()=>null);
-      // Back-compat: if some deployment still wraps it as {doc,sha}, unwrap that too.
-      if(j&&typeof j==='object'&&('doc' in j)&&('sha' in j)) return {doc:j.doc, sha:j.sha};
+      if(j&&typeof j==='object'&&('doc' in j)&&('sha' in j)){ this._wrapFmt=true; return {doc:j.doc, sha:j.sha}; }
+      this._wrapFmt=false;
       return {doc:j, sha:null};
     }
     // Read-only fallback: public atlas file in the repo (same origin as the site)
@@ -873,7 +874,9 @@ class Component extends DCLogic {
       const sig=(o)=>{ try{ return JSON.stringify({s:o.store,l:o.lib,c:o.collection,cu:o.colUpdated,dg:(o.deletedGames||[]).slice().sort(),dd:(o.deletedDecks||[]).slice().sort()}); }catch(e){ return Math.random()+''; } };
       const same=!!(remote&&remote.doc)&&sig(remote.doc)===sig(doc);
       if(w&&!same){
-        const r=await fetch(w, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(doc)});
+        const wrapped=this._wrapFmt!==false; // unknown (e.g. file didn't exist yet) defaults to the wrapped contract
+        const body=wrapped?JSON.stringify({content:JSON.stringify(doc), sha:remote&&remote.sha}):JSON.stringify(doc);
+        const r=await fetch(w, {method:'POST', headers:{'Content-Type':'application/json'}, body});
         if(r.status===409||r.status===422){
           this._retry=(this._retry||0)+1;
           if(this._retry<=2){ this._syncing=false; return this.doSync(); }
