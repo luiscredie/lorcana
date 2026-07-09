@@ -1018,7 +1018,7 @@ class Component extends DCLogic {
     try{ localStorage.setItem(this.DKEY,deck); }catch(e){}
     this.toast('Deck removed');
   }
-  colKey(n){ return String(n||'').toLowerCase().replace(/\s+/g,' ').trim(); }
+  colKey(n){ return String(n||'').toLowerCase().replace(/[\u2018\u2019\u02BC]/g,"'").replace(/\s+/g,' ').trim(); }
   oppInks(g){
     if(Array.isArray(g.oppInks)&&g.oppInks.length) return g.oppInks;
     if(!Array.isArray(g.oppCards)||!g.oppCards.length) return [];
