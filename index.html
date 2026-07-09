@@ -263,9 +263,16 @@
       <div style="background:linear-gradient(var(--panel),var(--panel)) padding-box, linear-gradient(135deg, rgba(204,120,92,.55), rgba(167,139,250,.4) 35%, rgba(74,222,128,.3) 65%, rgba(204,120,92,.55)) border-box;background-size:100% 100%, 300% 300%;border:1px solid transparent;border-radius:22px;box-shadow:var(--shadow);backdrop-filter:blur(24px);animation:borderFlow 10s linear infinite;padding:24px;margin-top:16px">
         <div style="display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap">
           <div style="font-family:'Space Mono',monospace;font-size:.66rem;font-weight:700;letter-spacing:.15em;text-transform:uppercase;color:var(--text3)">Your lore curve, by game-turn</div>
-          <select onchange="{{ ck.onSelect }}" value="{{ ck.selIndex }}" style="color-scheme:{{ colorScheme }};border:1px solid var(--border);border-radius:10px;padding:7px 10px;font-family:inherit;font-size:.78rem;color:var(--text);background:var(--panel2);color:var(--text);max-width:260px">
-            <sc-for list="{{ ck.games }}" as="o" hint-placeholder-count="4"><option value="{{ o.i }}" style="background:var(--panel2);color:var(--text)">{{ o.label }}</option></sc-for>
-          </select>
+          <div style="position:relative;display:inline-block">
+            <button onclick="{{ ck.dd.onToggle }}" style="border:1px solid var(--border);border-radius:10px;padding:7px 10px;font-family:inherit;font-size:.78rem;background:var(--panel2);color:var(--text);cursor:pointer;display:flex;align-items:center;gap:6px;max-width:260px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ ck.dd.label }} <span style="font-size:.65rem;opacity:.7">▾</span></button>
+            <sc-if value="{{ ck.dd.open }}" hint-placeholder-val="{{ false }}">
+              <div style="position:absolute;top:100%;right:0;margin-top:4px;background:var(--panel2);border:1px solid var(--border);border-radius:10px;box-shadow:0 12px 24px -8px rgba(0,0,0,.5);z-index:46;max-height:240px;overflow-y:auto;min-width:240px">
+                <sc-for list="{{ ck.dd.items }}" as="it" hint-placeholder-count="4">
+                  <div onClick="{{ it.onClick }}" style="{{ it.rowStyle }}">{{ it.label }}</div>
+                </sc-for>
+              </div>
+            </sc-if>
+          </div>
         </div>
         <div style="display:flex;align-items:flex-end;gap:6px;height:150px;padding-top:14px">
           <sc-for list="{{ ck.curve }}" as="c" hint-placeholder-count="6">
@@ -499,8 +506,30 @@
             <sc-for list="{{ parsedView.chips }}" as="ch" hint-placeholder-count="2"><span style="font-size:.72rem;font-weight:600;padding:4px 9px;border-radius:999px;background:#F4E8CC;color:#9a6c0f">{{ ch }}</span></sc-for>
           </div>
           <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;margin-top:13px">
-            <label style="display:flex;flex-direction:column;gap:5px;font-size:.72rem;color:var(--text2);font-weight:600">Opponent<select onchange="{{ onParsedArch }}" value="{{ parsedView.archetype }}" style="color-scheme:{{ colorScheme }};border:1px solid var(--border);border-radius:10px;padding:7px 10px;font-family:inherit;font-size:.78rem;background:var(--panel2);color:var(--text)"><sc-for list="{{ parsedView.archOptions }}" as="o" hint-placeholder-count="5"><option value="{{ o }}" style="background:var(--panel2);color:var(--text)">{{ o }}</option></sc-for></select></label>
-            <label style="display:flex;flex-direction:column;gap:5px;font-size:.72rem;color:var(--text2);font-weight:600">{{ parsedView.catLabel }}<select onchange="{{ onParsedCat }}" value="{{ parsedView.catValue }}" style="color-scheme:{{ colorScheme }};border:1px solid var(--border);border-radius:10px;padding:7px 10px;font-family:inherit;font-size:.78rem;background:var(--panel2);color:var(--text)"><sc-for list="{{ parsedView.catOptions }}" as="o" hint-placeholder-count="5"><option value="{{ o }}" style="background:var(--panel2);color:var(--text)">{{ o }}</option></sc-for></select></label>
+            <label style="display:flex;flex-direction:column;gap:5px;font-size:.72rem;color:var(--text2);font-weight:600">Opponent
+              <div style="position:relative;display:inline-block">
+                <button onclick="{{ parsedView.archDD.onToggle }}" style="border:1px solid var(--border);border-radius:10px;padding:7px 10px;font-family:inherit;font-size:.78rem;background:var(--panel2);color:var(--text);cursor:pointer;display:flex;align-items:center;gap:6px;min-width:160px;justify-content:space-between">{{ parsedView.archDD.label }} <span style="font-size:.65rem;opacity:.7">▾</span></button>
+                <sc-if value="{{ parsedView.archDD.open }}" hint-placeholder-val="{{ false }}">
+                  <div style="position:absolute;top:100%;left:0;margin-top:4px;background:var(--panel2);border:1px solid var(--border);border-radius:10px;box-shadow:0 12px 24px -8px rgba(0,0,0,.5);z-index:46;max-height:240px;overflow-y:auto;min-width:220px">
+                    <sc-for list="{{ parsedView.archDD.items }}" as="it" hint-placeholder-count="5">
+                      <div onClick="{{ it.onClick }}" style="{{ it.rowStyle }}">{{ it.label }}</div>
+                    </sc-for>
+                  </div>
+                </sc-if>
+              </div>
+            </label>
+            <label style="display:flex;flex-direction:column;gap:5px;font-size:.72rem;color:var(--text2);font-weight:600">{{ parsedView.catLabel }}
+              <div style="position:relative;display:inline-block">
+                <button onclick="{{ parsedView.catDD.onToggle }}" style="border:1px solid var(--border);border-radius:10px;padding:7px 10px;font-family:inherit;font-size:.78rem;background:var(--panel2);color:var(--text);cursor:pointer;display:flex;align-items:center;gap:6px;min-width:160px;justify-content:space-between">{{ parsedView.catDD.label }} <span style="font-size:.65rem;opacity:.7">▾</span></button>
+                <sc-if value="{{ parsedView.catDD.open }}" hint-placeholder-val="{{ false }}">
+                  <div style="position:absolute;top:100%;left:0;margin-top:4px;background:var(--panel2);border:1px solid var(--border);border-radius:10px;box-shadow:0 12px 24px -8px rgba(0,0,0,.5);z-index:46;max-height:240px;overflow-y:auto;min-width:220px">
+                    <sc-for list="{{ parsedView.catDD.items }}" as="it" hint-placeholder-count="5">
+                      <div onClick="{{ it.onClick }}" style="{{ it.rowStyle }}">{{ it.label }}</div>
+                    </sc-for>
+                  </div>
+                </sc-if>
+              </div>
+            </label>
             <label style="display:flex;flex-direction:column;gap:5px;font-size:.72rem;color:var(--text2);font-weight:600">Venue<input type="text" onchange="{{ onPvVenue }}" placeholder="Online ladder" style="border:1px solid var(--border);border-radius:10px;padding:7px 10px;font-family:inherit;font-size:.78rem;background:var(--panel2);color:var(--text)"></label>
           </div>
           <label style="display:flex;flex-direction:column;gap:5px;font-size:.72rem;color:var(--text2);font-weight:600;margin-top:10px">Notes<input type="text" onchange="{{ onPvNotes }}" placeholder="What decided it?" style="border:1px solid var(--border);border-radius:10px;padding:7px 10px;font-family:inherit;font-size:.78rem;background:var(--panel2);color:var(--text)"></label>
@@ -574,8 +603,26 @@
                 <sc-for list="{{ g.chips }}" as="ch" hint-placeholder-count="2"><span style="font-size:.71rem;font-weight:600;padding:3px 9px;border-radius:999px;background:{{ ch.bg }};color:{{ ch.color }}">{{ ch.label }}</span></sc-for>
               </div>
               <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:10px">
-                <select onchange="{{ g.onArch }}" value="{{ g.archetype }}" style="color-scheme:{{ colorScheme }};border:1px solid var(--border);border-radius:10px;padding:6px 9px;font-family:inherit;font-size:.76rem;background:var(--panel2);color:var(--text)"><sc-for list="{{ g.archOptions }}" as="o" hint-placeholder-count="5"><option value="{{ o }}" style="background:var(--panel2);color:var(--text)">{{ o }}</option></sc-for></select>
-                <select onchange="{{ g.onCat }}" value="{{ g.catValue }}" style="color-scheme:{{ colorScheme }};border:1px solid var(--border);border-radius:10px;padding:6px 9px;font-family:inherit;font-size:.76rem;background:var(--panel2);color:var(--text)"><sc-for list="{{ g.catOptions }}" as="o" hint-placeholder-count="5"><option value="{{ o }}" style="background:var(--panel2);color:var(--text)">{{ o }}</option></sc-for></select>
+                <div style="position:relative;display:inline-block">
+                  <button onclick="{{ g.archDD.onToggle }}" style="border:1px solid var(--border);border-radius:10px;padding:6px 9px;font-family:inherit;font-size:.76rem;background:var(--panel2);color:var(--text);cursor:pointer;display:flex;align-items:center;gap:6px">{{ g.archDD.label }} <span style="font-size:.6rem;opacity:.7">▾</span></button>
+                  <sc-if value="{{ g.archDD.open }}" hint-placeholder-val="{{ false }}">
+                    <div style="position:absolute;top:100%;left:0;margin-top:4px;background:var(--panel2);border:1px solid var(--border);border-radius:10px;box-shadow:0 12px 24px -8px rgba(0,0,0,.5);z-index:46;max-height:220px;overflow-y:auto;min-width:200px">
+                      <sc-for list="{{ g.archDD.items }}" as="it" hint-placeholder-count="5">
+                        <div onClick="{{ it.onClick }}" style="{{ it.rowStyle }}">{{ it.label }}</div>
+                      </sc-for>
+                    </div>
+                  </sc-if>
+                </div>
+                <div style="position:relative;display:inline-block">
+                  <button onclick="{{ g.catDD.onToggle }}" style="border:1px solid var(--border);border-radius:10px;padding:6px 9px;font-family:inherit;font-size:.76rem;background:var(--panel2);color:var(--text);cursor:pointer;display:flex;align-items:center;gap:6px">{{ g.catDD.label }} <span style="font-size:.6rem;opacity:.7">▾</span></button>
+                  <sc-if value="{{ g.catDD.open }}" hint-placeholder-val="{{ false }}">
+                    <div style="position:absolute;top:100%;left:0;margin-top:4px;background:var(--panel2);border:1px solid var(--border);border-radius:10px;box-shadow:0 12px 24px -8px rgba(0,0,0,.5);z-index:46;max-height:220px;overflow-y:auto;min-width:200px">
+                      <sc-for list="{{ g.catDD.items }}" as="it" hint-placeholder-count="5">
+                        <div onClick="{{ it.onClick }}" style="{{ it.rowStyle }}">{{ it.label }}</div>
+                      </sc-for>
+                    </div>
+                  </sc-if>
+                </div>
                 <button onclick="{{ g.onDelete }}" style="border:0;background:transparent;color:#B3232C;font-family:inherit;font-weight:600;font-size:.76rem;padding:5px 6px;cursor:pointer">Delete</button>
               </div>
             </div>
@@ -670,14 +717,28 @@
         </label>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
           <label style="display:flex;flex-direction:column;gap:6px;font-size:.74rem;color:var(--text2);font-weight:600">First ink
-            <select value="{{ ed.ink1 }}" onchange="{{ ed.onInk1 }}" style="color-scheme:{{ colorScheme }};border:1px solid var(--border);border-radius:11px;padding:10px 12px;font-family:inherit;font-size:.88rem;background:var(--panel2);color:var(--text)">
-              <sc-for list="{{ ed.inkOptions }}" as="o" hint-placeholder-count="6"><option value="{{ o.v }}" style="background:var(--panel2);color:var(--text)">{{ o.label }}</option></sc-for>
-            </select>
+            <div style="position:relative;display:inline-block">
+              <button onclick="{{ ed.ink1DD.onToggle }}" style="border:1px solid var(--border);border-radius:11px;padding:10px 12px;font-family:inherit;font-size:.88rem;background:var(--panel2);color:var(--text);cursor:pointer;display:flex;align-items:center;justify-content:space-between;width:100%;box-sizing:border-box">{{ ed.ink1DD.label }} <span style="font-size:.7rem;opacity:.7">▾</span></button>
+              <sc-if value="{{ ed.ink1DD.open }}" hint-placeholder-val="{{ false }}">
+                <div style="position:absolute;top:100%;left:0;margin-top:4px;background:var(--panel2);border:1px solid var(--border);border-radius:10px;box-shadow:0 12px 24px -8px rgba(0,0,0,.5);z-index:46;max-height:240px;overflow-y:auto;min-width:100%">
+                  <sc-for list="{{ ed.ink1DD.items }}" as="it" hint-placeholder-count="6">
+                    <div onClick="{{ it.onClick }}" style="{{ it.rowStyle }}">{{ it.label }}</div>
+                  </sc-for>
+                </div>
+              </sc-if>
+            </div>
           </label>
           <label style="display:flex;flex-direction:column;gap:6px;font-size:.74rem;color:var(--text2);font-weight:600">Second ink
-            <select value="{{ ed.ink2 }}" onchange="{{ ed.onInk2 }}" style="color-scheme:{{ colorScheme }};border:1px solid var(--border);border-radius:11px;padding:10px 12px;font-family:inherit;font-size:.88rem;background:var(--panel2);color:var(--text)">
-              <sc-for list="{{ ed.inkOptions }}" as="o" hint-placeholder-count="6"><option value="{{ o.v }}" style="background:var(--panel2);color:var(--text)">{{ o.label }}</option></sc-for>
-            </select>
+            <div style="position:relative;display:inline-block">
+              <button onclick="{{ ed.ink2DD.onToggle }}" style="border:1px solid var(--border);border-radius:11px;padding:10px 12px;font-family:inherit;font-size:.88rem;background:var(--panel2);color:var(--text);cursor:pointer;display:flex;align-items:center;justify-content:space-between;width:100%;box-sizing:border-box">{{ ed.ink2DD.label }} <span style="font-size:.7rem;opacity:.7">▾</span></button>
+              <sc-if value="{{ ed.ink2DD.open }}" hint-placeholder-val="{{ false }}">
+                <div style="position:absolute;top:100%;left:0;margin-top:4px;background:var(--panel2);border:1px solid var(--border);border-radius:10px;box-shadow:0 12px 24px -8px rgba(0,0,0,.5);z-index:46;max-height:240px;overflow-y:auto;min-width:100%">
+                  <sc-for list="{{ ed.ink2DD.items }}" as="it" hint-placeholder-count="6">
+                    <div onClick="{{ it.onClick }}" style="{{ it.rowStyle }}">{{ it.label }}</div>
+                  </sc-for>
+                </div>
+              </sc-if>
+            </div>
           </label>
         </div>
         <label style="display:flex;flex-direction:column;gap:6px;font-size:.74rem;color:var(--text2);font-weight:600">Archetype / plan
@@ -710,6 +771,10 @@
 
   <sc-if value="{{ toast }}" hint-placeholder-val="{{ false }}">
     <div style="position:fixed;bottom:22px;left:50%;transform:translateX(-50%);background:var(--text);color:#fff;padding:11px 20px;border-radius:13px;font-size:.85rem;font-weight:600;z-index:60;box-shadow:0 14px 30px -12px rgba(0,0,0,.4)">{{ toast }}</div>
+  </sc-if>
+
+  <sc-if value="{{ ddOpen }}" hint-placeholder-val="{{ false }}">
+    <div onclick="{{ onCloseDD }}" style="position:fixed;inset:0;z-index:44;background:transparent"></div>
   </sc-if>
 
   <sc-if value="{{ adminOpen }}" hint-placeholder-val="{{ false }}">
@@ -749,7 +814,7 @@
 </x-dc>
 <script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1060,&quot;height&quot;:920},&quot;defaultDeck&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;default&quot;:&quot;dale&quot;,&quot;options&quot;:[&quot;dale&quot;,&quot;woody&quot;,&quot;sid&quot;],&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Behavior&quot;}}">
 class Component extends DCLogic {
-  state = { ready:false, deck:'dale', tab:'overview', store:null, logText:'', parsed:null, clockSel:null, toast:'', pv:{venue:'',notes:''}, theme:'dark' };
+  state = { ready:false, deck:'dale', tab:'overview', store:null, logText:'', parsed:null, clockSel:null, toast:'', pv:{venue:'',notes:''}, theme:'dark', openDD:null };
   THEMES={
     dark:"--bg:#0B0D10;--panel:rgba(17,18,22,.86);--panel2:rgba(255,255,255,.075);--border:rgba(255,255,255,.09);--border-soft:rgba(255,255,255,.15);--text:#F3F1ED;--text2:#ABA59B;--text3:#847E72;--nav-bg:rgba(255,255,255,.05);--chip-bg:rgba(255,255,255,.08);--shadow:0 1px 0 rgba(255,255,255,.04) inset, 0 24px 48px -24px rgba(0,0,0,.65);--sticky-bg:rgba(11,13,16,.78);--hero-glow:radial-gradient(940px 420px at 50% -160px, rgba(204,120,92,.18), transparent 70%), radial-gradient(760px 360px at 88% -120px, rgba(200,146,15,.09), transparent 66%);",
     light:"--bg:#F3F1EC;--panel:#FFFFFF;--panel2:#FAF9F6;--border:#E6E2D8;--border-soft:#EDE9DE;--text:#1B1712;--text2:#5C5648;--text3:#8B8579;--nav-bg:#ECE7DA;--chip-bg:#EFEBDF;--shadow:0 1px 2px rgba(20,15,5,.04),0 18px 38px -24px rgba(20,15,5,.14);--sticky-bg:rgba(243,241,236,.82);--hero-glow:radial-gradient(940px 420px at 50% -160px, rgba(204,120,92,.14), transparent 70%), radial-gradient(760px 360px at 88% -120px, rgba(200,146,15,.11), transparent 66%);"
@@ -785,6 +850,26 @@ class Component extends DCLogic {
   }
 
   componentWillUnmount(){ if(this._rainTimer) clearInterval(this._rainTimer); }
+  // Custom themed dropdown — native <select>/<option> popups ignore our dark styling on
+  // some Windows/Chrome builds, so these render fully in our own markup instead.
+  buildDD(id, value, options, onChange, triggerStyle){
+    const s=this.state;
+    const items=(options||[]).map(o=>{
+      const v=(o&&typeof o==='object')?o.v:o;
+      const label=(o&&typeof o==='object')?o.label:o;
+      return { value:v, label, selected:v===value,
+        rowStyle:`padding:8px 12px;font-size:.8rem;cursor:pointer;color:var(--text);white-space:nowrap;background:${v===value?'var(--chip-bg)':'transparent'}`,
+        onClick:()=>{ this.setState({openDD:null}); onChange({target:{value:v}}); } };
+    });
+    const cur=items.find(it=>it.selected);
+    return {
+      open: s.openDD===id,
+      label: cur?cur.label:(value||'—'),
+      items,
+      triggerStyle: triggerStyle||'',
+      onToggle:()=>this.setState({openDD: s.openDD===id?null:id})
+    };
+  }
   componentDidMount(){
     let theme='dark'; try{ theme=localStorage.getItem('lorcanaAtlas_theme_v1')||'dark'; }catch(e){}
     this.setState({theme});
@@ -1352,6 +1437,7 @@ class Component extends DCLogic {
   renderVals(){
     const s=this.state;
     if(!s.ready) return { ready:false, tabs:[], deckCards:[], toast:s.toast||'', deck:{}, ring:{}, heroPrefix:'rr', editorOpen:false, ed:{}, onAddDeck:()=>{}, themeVars:this.THEMES[s.theme==='light'?'light':'dark'], dotGrid:this.dotGrid(s.theme), themeIcon:s.theme==='light'?'\u25d1':'\u25cf', onToggleTheme:()=>{}, colorScheme:s.theme==='light'?'light':'dark', rainCols:this.buildRainCols(s.rainTick),
+      ddOpen:false, onCloseDD:()=>{},
       adminOpen:!!s.adminOpen, isAdminNow:false, showLoginForm:true, loginUser:'', loginPass:'', loginErr:'', loginBusy:false, loginBtnLabel:'Log in',
       onLoginUser:()=>{}, onLoginPass:()=>{}, onDoLogin:()=>{}, onCloseAdmin:()=>{}, onLogout:()=>{}, onAdminClick:()=>{}, adminIcon:'\u25cb', adminColor:'var(--text2)', adminTitle:'Admin login',
       h1:{}, h2:{}, h3:{}, hp:{open:false,cards:[]}, sync:{open:false,chip:'○ Sync',chipStyle:"border:1px solid #8B7A6355;background:#F3F2E6;color:#8B7A63;border-radius:7px;padding:5px 10px;font-family:'Space Mono',monospace;font-size:.58rem;letter-spacing:.14em;text-transform:uppercase;cursor:pointer;white-space:nowrap"}, vp:{open:false,options:[]}, hideImg:()=>{} };
@@ -1472,6 +1558,7 @@ class Component extends DCLogic {
       games:G.map((g,i)=>({i,label:`vs ${this.archLabel(g)} · ${g.result} ${g.myLore}-${g.oppLore}`})),
       curve:curveOf(sel), note:D.clockNote
     };
+    ck.dd = this.buildDD('clockSel', defIdx, ck.games.map(g=>({v:g.i,label:g.label})), (e)=>this.setState({clockSel:+e.target.value}));
 
     // COMBOS (Dale only)
     let cb={rows:[],note:''};
@@ -1500,6 +1587,8 @@ class Component extends DCLogic {
         archetype:g.archetype||'Other / Unknown', archOptions:ARCH,
         catValue:(g.result==='W'?g.winCat:g.lossCat)||'', catOptions:(g.result==='W'?WIN:LOSS),
         onArch:this.requireAdmin((e)=>this.setArch(idx,e.target.value)), onCat:this.requireAdmin((e)=>this.setCat(idx,e.target.value)), onDelete:this.requireAdmin(()=>this.delGame(g.id)),
+        archDD:this.buildDD('gameArch'+g.id, g.archetype||'Other / Unknown', ARCH, this.requireAdmin((e)=>this.setArch(idx,e.target.value))),
+        catDD:this.buildDD('gameCat'+g.id, (g.result==='W'?g.winCat:g.lossCat)||'', (g.result==='W'?WIN:LOSS), this.requireAdmin((e)=>this.setCat(idx,e.target.value))),
         hasCoach:!!coach, coachHeadline:coach?coach.headline:'',
         planScoreVal:planScore?planScore.score:null,
         planScoreColor:planScore?(planScore.score>=80?'#4ADE80':planScore.score>=50?'#F5C542':'#F87171'):'var(--text2)'
@@ -1520,6 +1609,8 @@ class Component extends DCLogic {
         archetype:p.archetype, archOptions:ARCH,
         catLabel:p.result==='W'?'Win reason':'Loss reason',
         catValue:p.result==='W'?p.winCat:p.lossCat, catOptions:p.result==='W'?WIN:LOSS,
+        archDD:this.buildDD('parsedArch', p.archetype, ARCH, (e)=>{ const q={...s.parsed,archetype:e.target.value}; this.setState({parsed:q}); }),
+        catDD:this.buildDD('parsedCat', p.result==='W'?p.winCat:p.lossCat, p.result==='W'?WIN:LOSS, (e)=>{ const q={...s.parsed}; if(q.result==='W')q.winCat=e.target.value; else q.lossCat=e.target.value; this.setState({parsed:q}); }),
         isDuplicate:!!p.isDuplicateOfId, confirmDuplicate:!!s.confirmDuplicate,
         saveLabel:(p.isDuplicateOfId&&!s.confirmDuplicate)?'Looks like a duplicate — save anyway?':'Save game',
         hasCoach:!!planScore,
@@ -1690,6 +1781,8 @@ class Component extends DCLogic {
       dotGrid: this.dotGrid(s.theme),
       colorScheme: s.theme==='light'?'light':'dark',
       rainCols: this.buildRainCols(s.rainTick),
+      ddOpen: !!s.openDD,
+      onCloseDD: ()=>this.setState({openDD:null}),
       adminOpen: !!s.adminOpen,
       isAdminNow: this.isAdmin(),
       showLoginForm: !this.isAdmin(),
@@ -1730,7 +1823,9 @@ class Component extends DCLogic {
         onCards:(e)=>this.edField('cards',e.target.value),
         onStrategy:(e)=>this.edField('strategy',e.target.value),
         onInk1:(e)=>this.edField('ink1',e.target.value),
-        onInk2:(e)=>this.edField('ink2',e.target.value)
+        onInk2:(e)=>this.edField('ink2',e.target.value),
+        ink1DD:this.buildDD('edInk1', s.editor.ink1, ['amber','ruby','emerald','sapphire','steel','amethyst'].map(v=>({v,label:this.INKS[v].name})), (e)=>this.edField('ink1',e.target.value)),
+        ink2DD:this.buildDD('edInk2', s.editor.ink2, ['amber','ruby','emerald','sapphire','steel','amethyst'].map(v=>({v,label:this.INKS[v].name})), (e)=>this.edField('ink2',e.target.value))
       }:{},
       onAddDeck:this.requireAdmin(()=>this.openEditor(null)),
       onEditorSave:this.requireAdmin(()=>this.saveEditor()),
