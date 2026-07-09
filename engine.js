@@ -1,6 +1,10 @@
 /* Lorcana engine — log parser + seed data.
    Classic script. Defines globalThis.LORCANA and globalThis.LORCANA_SEED.
-   Parser ported verbatim from the original dashboard. */
+   Parser ported verbatim from the original dashboard, plus a deterministic
+   rule-based "match coach" layer (parserVersion 2) that reads each deck's
+   saved strategy text and turns a parsed game into win/loss reasoning,
+   turning points, a plan-adherence score, and practical next-game advice.
+   No external AI/API — everything here is plain JS pattern matching. */
 (function (root) {
   const DECK = ["Dale - Ready for His Shot","Mulan - Elite Archer","Mulan - Injured Soldier",
   "This Growing Pressure","Ohana Means Family","Reuben - Sandwich Expert","Bambi - Ethereal Fawn",
@@ -32,10 +36,14 @@
   const CONTROL = ["The Headless Horseman","Demona","Yzma","Hades","Cheshire Cat","Isis Vanderchill","Be King Undisputed","Elsa - The Fifth Spirit","Maui - Half-Shark","Olaf - Helping Hand"];
   const DETECTIVE = ["Basil","Magica","Clarice"];
   const PRINCESS = ["Cinderella","Aurora","Ariel","Belle","Tiana","Rapunzel","Moana","Fauna - Good-Natured Fairy","Tod"];
+  const AGGRO_ARCH = {"Toys":1,"Dwarves":1,"Amber/Emerald Aggro":1,"Amber/Ruby Toys":1};
+  const EVASIVE_ARCH = {"Amethyst/Sapphire Evasive":1,"Amber/Amethyst Evasive":1};
+  const CONTROL_ARCH = {"Sapphire/Steel Control":1,"Emerald/Sapphire Control":1};
 
   function firstName(c){ return c.split(" - ")[0].trim(); }
 
-  function parseLog(raw, deckList){
+  function parseLog(raw, deckList, options){
+    options = options || {};
     const lines = raw.replace(/\r/g,"").split("\n").map(l=>l.trim()).filter(Boolean);
     const cards = {1:new Set(),2:new Set()};
     const playedBy = {1:new Set(),2:new Set()};
@@ -186,7 +194,7 @@
       else lossCat="Never built a clock";
     }
 
-    return {
+    const game = {
       id:"g"+Math.random().toString(36).slice(2,9),
       dateAdded:new Date().toISOString().slice(0,10),
       me, onPlay: firstTurnPlayer===me, mulligan: mull[me],
@@ -201,9 +209,529 @@
       oppCards: [...oppCards].sort(),
       archetype: arch, winCat, lossCat, venue:"", notes:""
     };
+
+    // ---- Match coach layer (parserVersion 2) — deterministic, no external AI ----
+    attachCoachLayer(game, raw, options);
+    return game;
   }
 
-  root.LORCANA = { parseLog, DECK, ARCHETYPES, WIN_CATS, LOSS_CATS, COMBO_DEFS };
+  // ---------- rawHash: deterministic, non-crypto, used only for dup detection ----------
+  function rawHash(raw){
+    const s = String(raw||"").replace(/\s+/g," ").trim();
+    let h1=0x811c9dc5, h2=0x9e3779b9;
+    for(let i=0;i<s.length;i++){
+      const c=s.charCodeAt(i);
+      h1 = (h1 ^ c); h1 = (h1 * 0x01000193) >>> 0;
+      h2 = (h2 + c) >>> 0; h2 = ((h2<<5) ^ (h2>>>2) ^ c) >>> 0;
+    }
+    return (h1>>>0).toString(16).padStart(8,"0") + (h2>>>0).toString(16).padStart(8,"0") + s.length.toString(16);
+  }
+
+  // ---------- Strategy text -> structured hints ----------
+  function parseStrategyHints(text, deckList){
+    const hints = { archetypeHint:null, targetFirstQuestTurn:null, targetCross10Turn:null, targetCloseTurn:null,
+      keyCards:[], winHint:'', lossHint:'', warnings:[] };
+    const original = String(text||'');
+    if(!original.trim()) return hints;
+    const t = original.toLowerCase();
+
+    const archs = ['aggro','tempo','control','midrange','combo','grind','locations','evasive'];
+    for(const a of archs){ if(t.includes(a)){ hints.archetypeHint=a; break; } }
+
+    let m = t.match(/cross(?:es|ing)?\s*(?:10|ten)[^\d]{0,18}(?:turn|t)\s*(\d+)/) || t.match(/(?:turn|t)\s*(\d+)[^\d]{0,12}cross(?:es|ing)?\s*(?:10|ten)/);
+    if(m) hints.targetCross10Turn = +m[1];
+    m = t.match(/first\s*quest[^\d]{0,18}(?:turn|t)\s*(\d+)/) || t.match(/quest(?:ing)?\s*from\s*(?:turn|t)\s*(\d+)/);
+    if(m) hints.targetFirstQuestTurn = +m[1];
+    m = t.match(/close(?:s|ing)?[^\d]{0,22}(?:by\s*)?(?:turn|t)\s*(\d+)/) || t.match(/(?:by\s*)?(?:turn|t)\s*(\d+)[^\d]{0,12}(?:close|win)/);
+    if(m) hints.targetCloseTurn = +m[1];
+
+    // key cards named in the strategy — match against this deck's card list
+    if(deckList && deckList.length){
+      const seen=new Set();
+      deckList.forEach(full=>{
+        const name = firstName(full||'');
+        if(name && name.length>2 && original.toLowerCase().includes(name.toLowerCase()) && !seen.has(name)){
+          seen.add(name); hints.keyCards.push(name);
+        }
+      });
+    }
+
+    m = original.match(/[^.]*\bwins?\b[^.]*\./i);
+    if(m) hints.winHint = m[0].trim();
+    m = original.match(/[^.]*\bloses?\b[^.]*\./i);
+    if(m) hints.lossHint = m[0].trim();
+
+    const warnPhrases = ['do not overcommit',"don't overcommit",'preserve a second wave','preserve second wave',
+      'race before removal stabilizes','do not overextend',"don't overextend",'save your removal','play around',
+      'do not durdle',"don't durdle",'bait removal'];
+    warnPhrases.forEach(p=>{ if(t.includes(p)) hints.warnings.push(original.substring(t.indexOf(p), t.indexOf(p)+p.length)); });
+
+    return hints;
+  }
+
+  // ---------- Win condition classifier ----------
+  function classifyWinCondition(game, hints){
+    hints = hints || {};
+    const ev=[];
+    if(game.result!=="W") return { primary:"", secondary:"", evidence:[], confidence:0 };
+
+    if(game.method==="concession"){
+      ev.push(`Opponent conceded at ${game.oppLore} lore while you were at ${game.myLore}.`);
+      return { primary:"Opponent conceded behind", secondary:"", evidence:ev, confidence:0.85 };
+    }
+
+    const comboHit = game.combos && Object.keys(game.combos).find(k=>game.combos[k] && ["tripleShot","sword","pressure","gastonLock"].includes(k));
+    if(comboHit){
+      ev.push(`Combo flag "${comboHit}" fired and you closed the game.`);
+      return { primary:"Combo payoff", secondary:"Board control into lore", evidence:ev, confidence:0.7 };
+    }
+
+    if(game.removedByMe>=4 && game.margin>0){
+      ev.push(`Removed ${game.removedByMe} opposing bodies while keeping a lore lead of ${game.margin}.`);
+      return { primary:"Board control into lore", secondary:"Removal lock", evidence:ev, confidence:0.65 };
+    }
+
+    if(game.firstQuestMyTurn && game.firstQuestMyTurn<=3 && game.cross10MyTurn && game.cross10MyTurn<=6){
+      ev.push(`First quest on your turn ${game.firstQuestMyTurn}, crossed 10 lore by your turn ${game.cross10MyTurn}.`);
+      return { primary:"Fast lore race", secondary:"", evidence:ev, confidence:0.7 };
+    }
+
+    if(game.cross10MyTurn){
+      ev.push(`Crossed 10 lore by your turn ${game.cross10MyTurn} and closed from there.`);
+      return { primary:"Steady lore clock", secondary:"", evidence:ev, confidence:0.6 };
+    }
+
+    if(game.removedByMe>=2){
+      ev.push(`Removed ${game.removedByMe} bodies to deny the opponent's clock.`);
+      return { primary:"Removal lock", secondary:"", evidence:ev, confidence:0.5 };
+    }
+
+    if(Object.keys(game.questers||{}).length<=1 && game.myLore>=10){
+      ev.push("Lore climbed with barely any tracked quests — likely a location or passive source.");
+      return { primary:"Location/passive lore", secondary:"", evidence:ev, confidence:0.4 };
+    }
+
+    if(game.gameTurns>=24){
+      ev.push(`Game ran ${game.gameTurns} turns — a long grind to close it out.`);
+      return { primary:"Resource grind", secondary:"", evidence:ev, confidence:0.45 };
+    }
+
+    ev.push("No single dominant signal in the log — worth a manual look.");
+    return { primary:"Unknown / manual review", secondary:"", evidence:ev, confidence:0.25 };
+  }
+
+  // ---------- Loss condition classifier ----------
+  function classifyLossCondition(game, hints){
+    hints = hints || {};
+    const ev=[];
+    if(game.result!=="L") return { primary:"", secondary:"", evidence:[], confidence:0 };
+
+    if(game.myLore<5){
+      ev.push(`Finished at only ${game.myLore} lore — the clock never really started.`);
+      if(hints.targetCross10Turn) ev.push(`Strategy targets crossing 10 by turn ${hints.targetCross10Turn}; you never crossed 10.`);
+      return { primary:"Never built a lore clock", secondary:"", evidence:ev, confidence:0.75 };
+    }
+
+    if(game.removedByMe>=4 && game.myLore<12){
+      ev.push(`Removed ${game.removedByMe} bodies but only reached ${game.myLore} lore — winning combat, not the race.`);
+      return { primary:"Too much control, not enough questing", secondary:"", evidence:ev, confidence:0.65 };
+    }
+
+    if(AGGRO_ARCH[game.archetype]){
+      ev.push(`Opponent read as ${game.archetype} — a fast board that likely out-turned you.`);
+      return { primary:"Out-raced by aggro", secondary:"", evidence:ev, confidence:0.55 };
+    }
+    if(EVASIVE_ARCH[game.archetype]){
+      ev.push(`Opponent read as ${game.archetype} — evasive bodies are hard to block/challenge.`);
+      return { primary:"Out-raced by evasives", secondary:"", evidence:ev, confidence:0.55 };
+    }
+    if(CONTROL_ARCH[game.archetype]){
+      ev.push(`Opponent read as ${game.archetype} — likely removed your board piece by piece.`);
+      return { primary:"Out-removed by control", secondary:"", evidence:ev, confidence:0.55 };
+    }
+    if(game.archetype==="Locations"){
+      ev.push("Opponent read as Locations — passive lore that doesn't trade in combat.");
+      return { primary:"Locations ticked me out", secondary:"", evidence:ev, confidence:0.55 };
+    }
+
+    if(hints.keyCards && hints.keyCards.length && game.combos){
+      const missing = !Object.keys(game.combos).some(k=>game.combos[k]);
+      if(missing){
+        ev.push(`Strategy names ${hints.keyCards.slice(0,3).join(', ')} but no combo flags fired this game.`);
+        return { primary:"Combo never came online", secondary:"", evidence:ev, confidence:0.45 };
+      }
+    }
+
+    if(game.mulligan>=4 && game.firstQuestMyTurn && game.firstQuestMyTurn>=5){
+      ev.push(`Mulliganed ${game.mulligan} cards and didn't quest until your turn ${game.firstQuestMyTurn}.`);
+      return { primary:"Bad mulligan / slow start", secondary:"", evidence:ev, confidence:0.5 };
+    }
+
+    if(game.myLore>=15){
+      ev.push(`Reached ${game.myLore} lore before losing — the plan mostly worked, the close didn't.`);
+      return { primary:"Could not close after stabilizing", secondary:"", evidence:ev, confidence:0.55 };
+    }
+
+    if(Object.keys(game.questers||{}).length===0){
+      ev.push("No tracked quests at all — likely flooded or missing threats in hand.");
+      return { primary:"Flooded / drew no threats", secondary:"", evidence:ev, confidence:0.5 };
+    }
+
+    if(hints.targetFirstQuestTurn && game.firstQuestMyTurn && game.firstQuestMyTurn>hints.targetFirstQuestTurn){
+      ev.push(`Strategy targets first quest by turn ${hints.targetFirstQuestTurn}; first quest landed on turn ${game.firstQuestMyTurn}.`);
+      return { primary:"Too much control, not enough questing", secondary:"", evidence:ev, confidence:0.4 };
+    }
+
+    ev.push("No single dominant signal in the log — worth a manual look.");
+    return { primary:"Unknown / manual review", secondary:"", evidence:ev, confidence:0.25 };
+  }
+
+  // ---------- Plan score (0-100) ----------
+  function computePlanScore(game, hints){
+    hints = hints || {};
+    let score = 70;
+    const reasons = [];
+    let hadTarget = false;
+
+    if(hints.targetCross10Turn){
+      hadTarget = true;
+      if(game.cross10MyTurn!=null){
+        const diff = game.cross10MyTurn - hints.targetCross10Turn;
+        if(diff<=0){ score+=10; reasons.push(`Crossed 10 lore on turn ${game.cross10MyTurn}, at or ahead of your turn-${hints.targetCross10Turn} target.`); }
+        else { score-=Math.min(22, diff*4); reasons.push(`Crossed 10 lore on turn ${game.cross10MyTurn}, ${diff} turn(s) behind your turn-${hints.targetCross10Turn} target.`); }
+      } else {
+        score-=25; reasons.push(`Never crossed 10 lore — target was turn ${hints.targetCross10Turn}.`);
+      }
+    }
+    if(hints.targetFirstQuestTurn){
+      hadTarget = true;
+      if(game.firstQuestMyTurn!=null){
+        const diff = game.firstQuestMyTurn - hints.targetFirstQuestTurn;
+        if(diff<=0){ score+=8; reasons.push(`First quest landed on turn ${game.firstQuestMyTurn}, on schedule.`); }
+        else { score-=Math.min(18, diff*3); reasons.push(`First quest landed on turn ${game.firstQuestMyTurn}, ${diff} turn(s) late.`); }
+      } else {
+        score-=15; reasons.push("Never recorded a quest.");
+      }
+    }
+    if(hints.targetCloseTurn && game.result==="W"){
+      const myCloseTurn = game.cross20MyTurn || (game.myTurns||null);
+      if(myCloseTurn && myCloseTurn<=hints.targetCloseTurn){ score+=8; reasons.push(`Closed by your turn ${myCloseTurn}, inside the turn-${hints.targetCloseTurn} target.`); }
+    }
+
+    if(game.result==="W"){
+      if(game.margin!=null && game.margin<3){ score-=5; reasons.push("Won, but by a thin margin — plan execution could be tighter."); }
+    } else {
+      if(!hadTarget){
+        // no explicit targets in the strategy — judge on general clock health
+        if(game.myLore>=10){ score+=5; reasons.push("Lost, but the lore clock was actually running (10+ lore) — a matchup/cards loss, not a plan failure."); }
+        else { score-=10; reasons.push("Lost with a clock that never got going."); }
+      }
+    }
+
+    score = Math.max(0, Math.min(100, Math.round(score)));
+    const label = score>=80?"On plan":score>=50?"Partly on plan":"Off plan";
+    return { score, label, reasons };
+  }
+
+  // ---------- Key turning points ----------
+  function keyTurningPoints(game){
+    const pts=[];
+    if(game.firstQuest!=null){
+      pts.push({ turn:game.firstQuest, label:"First quest", evidence:`Your first quest landed on turn ${game.firstQuest} (your turn ${game.firstQuestMyTurn}).`, impact:"positive" });
+    }
+    if(game.cross10!=null){
+      pts.push({ turn:game.cross10, label:"Crossed 10 lore", evidence:`Reached 10 lore on turn ${game.cross10} (your turn ${game.cross10MyTurn}).`, impact:"positive" });
+    }
+    const myLBT=game.loreByTurn||{}, oppLBT=game.oppLoreByTurn||{};
+    const bigJump=(byTurn,label,impact)=>{
+      let prev=0;
+      Object.keys(byTurn).map(Number).sort((a,b)=>a-b).forEach(turn=>{
+        const v=byTurn[turn], delta=v-prev;
+        if(delta>=5) pts.push({ turn, label, evidence:`+${delta} lore in one step (turn ${turn}), reaching ${v}.`, impact });
+        prev=v;
+      });
+    };
+    bigJump(myLBT, "Big lore swing (you)", "positive");
+    bigJump(oppLBT, "Big lore swing (opponent)", "negative");
+    if(game.combos){
+      Object.keys(game.combos).forEach(k=>{ if(game.combos[k]) pts.push({ turn:null, label:"Combo: "+k, evidence:`Combo flag "${k}" fired.`, impact:"positive" }); });
+    }
+    if(game.removedByMe>=3) pts.push({ turn:null, label:"Heavy removal", evidence:`Removed ${game.removedByMe} opposing bodies.`, impact:"positive" });
+    if(game.myLost>=4) pts.push({ turn:null, label:"Heavy losses", evidence:`Lost ${game.myLost} of your own bodies.`, impact:"negative" });
+    // sort by turn (nulls last), cap at 6
+    pts.sort((a,b)=>(a.turn==null)-(b.turn==null) || (a.turn||0)-(b.turn||0));
+    return pts.slice(0,6);
+  }
+
+  // ---------- Coach report ----------
+  const MATCHUP_TIPS = {
+    "Toys":"Against go-wide Toys, stabilize first — don't trade one-for-one into a wider board, then wipe with your best combat turn.",
+    "Dwarves":"Against Dwarves, don't durdle early; they can curve out fast. Lock their best enabler before clearing.",
+    "Sapphire/Steel Control":"Against control, bait removal with mid-value bodies before committing your best threats; preserve a second wave.",
+    "Emerald/Sapphire Control":"Against control, play around a wipe — don't overcommit your whole hand in one turn.",
+    "Locations":"Against Locations, pressure the location-support characters early or race harder — locations don't trade in combat.",
+    "Princesses":"Against Princesses, save your best removal for their evasive or Ward-protected threats.",
+    "Amethyst/Sapphire Evasive":"Against evasive decks, race with your own clock — ground removal often can't reach them.",
+    "Amber/Amethyst Evasive":"Against evasive decks, prioritize removing their support pieces since the evasive bodies dodge blocks.",
+    "Amber/Emerald Aggro":"Against aggro, stabilize the board before turn 4-5, then take over with your own plan.",
+    "Detective":"Against value/Detective decks, apply pressure so they're forced to answer instead of developing."
+  };
+
+  function buildCoachReport(game, hints, winCond, lossCond, planScore, options){
+    hints = hints||{}; options = options||{};
+    const whatWorked=[], whatFailed=[], nextGameFocus=[], deckImprovementIdeas=[];
+    let headline='', summary='', mulliganAdvice='', matchupAdvice='';
+
+    if(game.result==="W"){
+      headline = `Win via ${winCond.primary||'unclear conditions'}`;
+      summary = `You beat ${game.archetype} at ${game.myLore}-${game.oppLore}. ${(winCond.evidence||[])[0]||''}`.trim();
+      whatWorked.push(...(winCond.evidence||[]));
+      if(planScore.score<70) whatFailed.push("Won, but off the plan's own targets — see plan score reasons.");
+      nextGameFocus.push(planScore.score<70 ? "Tighten execution toward your saved strategy's turn targets next game." : "Keep repeating this line — it matched your saved strategy.");
+    } else {
+      headline = `Loss via ${lossCond.primary||'unclear conditions'}`;
+      summary = `You lost to ${game.archetype} at ${game.myLore}-${game.oppLore}. ${(lossCond.evidence||[])[0]||''}`.trim();
+      whatFailed.push(...(lossCond.evidence||[]));
+      if(game.removedByMe>=2) whatWorked.push(`Still removed ${game.removedByMe} opposing bodies before losing.`);
+      if(game.cross10MyTurn) whatWorked.push(`Did cross 10 lore (your turn ${game.cross10MyTurn}) before losing.`);
+      if(lossCond.primary==="Never built a lore clock") nextGameFocus.push("Prioritize your first quest over board answers in the opening turns.");
+      else if(lossCond.primary==="Too much control, not enough questing") nextGameFocus.push("Once the board is safe, redirect removal-holding characters into questing.");
+      else if(lossCond.primary==="Could not close after stabilizing") nextGameFocus.push("Once ahead on lore, prioritize closing over grinding extra value.");
+      else nextGameFocus.push("Re-tag this game's loss reason by hand if the guess looks off, then watch for the pattern repeating.");
+    }
+
+    mulliganAdvice = game.mulligan>=4
+      ? "You mulliganed heavily this game — consider keeping slightly looser hands if this keeps happening."
+      : (game.mulligan===0 && game.firstQuestMyTurn && game.firstQuestMyTurn>=5)
+        ? "Kept the opening hand with no mulligan but still had a slow start — worth mulliganing more aggressively for early plays."
+        : "Mulligan count looked reasonable for this game.";
+
+    matchupAdvice = MATCHUP_TIPS[game.archetype] || "Log a few more games against this archetype to build a specific read.";
+
+    if(hints.warnings && hints.warnings.length){
+      nextGameFocus.push("Strategy reminder: "+hints.warnings[0]+".");
+    }
+
+    // repeated-pattern deck-improvement ideas, using prior games if provided
+    const prior = (options.existingGames||[]).filter(g=>g && g.result);
+    if(prior.length>=4){
+      const losses = prior.filter(g=>g.result==="L");
+      if(losses.length>=3){
+        const sameLossCount = losses.filter(g=>(g.lossCondition&&g.lossCondition.primary)===lossCond.primary && lossCond.primary).length;
+        if(lossCond.primary && sameLossCount>=2){
+          deckImprovementIdeas.push(`"${lossCond.primary}" has shown up in ${sameLossCount+1} losses now — consider a tech change or sideboard plan for it.`);
+        }
+        const neverClock = losses.filter(g=>(g.myLore||0)<5).length;
+        if(neverClock>=3) deckImprovementIdeas.push(`${neverClock} losses ended under 5 lore — the deck may want a faster or more resilient opening.`);
+      }
+    }
+
+    const confidence = Math.round((((winCond.confidence||0)+(lossCond.confidence||0)) * (game.result==="W"?1:1) + (planScore.score/100)) / 2 * 100) / 100;
+
+    return {
+      headline, summary,
+      whatWorked, whatFailed, nextGameFocus,
+      mulliganAdvice, matchupAdvice, deckImprovementIdeas,
+      confidence: Math.max(0, Math.min(1, confidence))
+    };
+  }
+
+  // ---------- Attach the whole coach layer onto a freshly parsed game ----------
+  function attachCoachLayer(game, raw, options){
+    options = options || {};
+    const deckList = options.deckList || null;
+    const hints = parseStrategyHints(options.deckStrategy||'', deckList);
+    const winCondition = classifyWinCondition(game, hints);
+    const lossCondition = classifyLossCondition(game, hints);
+    const planScore = computePlanScore(game, hints);
+    const turningPoints = keyTurningPoints(game);
+    const coach = buildCoachReport(game, hints, winCondition, lossCondition, planScore, options);
+
+    game.parserVersion = 2;
+    game.rawHash = rawHash(raw);
+    game.planScore = planScore;
+    game.winCondition = winCondition;
+    game.lossCondition = lossCondition;
+    game.keyTurningPoints = turningPoints;
+    game.coach = coach;
+
+    if(options.existingGames && options.existingGames.length){
+      const dup = options.existingGames.find(g=>g && g.rawHash && g.rawHash===game.rawHash);
+      game.isDuplicateOfId = dup ? dup.id : null;
+    } else {
+      game.isDuplicateOfId = null;
+    }
+    return game;
+  }
+
+  // ---------- Batch parsing (low-risk helper) ----------
+  function parseManyLogs(rawText, deckList, options){
+    options = options || {};
+    const out = { games:[], errors:[], duplicates:[] };
+    const chunks = String(rawText||"").split(/\n{3,}/).map(c=>c.trim()).filter(Boolean);
+    const existing = (options.existingGames||[]).slice();
+    chunks.forEach((chunk, idx)=>{
+      try{
+        const g = parseLog(chunk, deckList, {...options, existingGames: existing.concat(out.games)});
+        if(g.isDuplicateOfId){ out.duplicates.push(g); }
+        else { out.games.push(g); }
+      }catch(e){
+        out.errors.push({ index:idx, message:(e&&e.message)||String(e) });
+      }
+    });
+    return out;
+  }
+
+  // ---------- Self-test ----------
+  function runParserSelfTest(){
+    const results=[];
+    const assert=(name, cond, detail)=>results.push({name, pass:!!cond, detail:detail||''});
+    const L=(...lines)=>lines.join("\n");
+
+    // 1. Win by concession
+    try{
+      const raw1 = L(
+        "Player 1's starting hand: Dale - Ready for His Shot",
+        "Player 2's starting hand: Woody",
+        "--- Turn 1 ---","Player 1's turn begins",
+        "Player 1 played Dale - Ready for His Shot (cost 3)",
+        "--- Turn 2 ---","Player 2's turn begins",
+        "--- Turn 3 ---","Player 1's turn begins",
+        "Player 1 quested with Dale - Ready for His Shot (+5 [LORE], 0 -> 5)",
+        "--- Turn 4 ---","Player 2's turn begins",
+        "Player 2 conceded","Player 1 won"
+      );
+      const g1 = parseLog(raw1, DECK, { deckStrategy:'' });
+      assert("1. win by concession", g1.result==="W" && g1.winCondition.primary==="Opponent conceded behind", JSON.stringify({result:g1.result, win:g1.winCondition.primary}));
+    }catch(e){ assert("1. win by concession", false, String(e)); }
+
+    // 2. Win by 20 lore
+    try{
+      const raw2 = L(
+        "Player 1's starting hand: Dale - Ready for His Shot",
+        "Player 2's starting hand: Woody",
+        "--- Turn 1 ---","Player 1's turn begins",
+        "--- Turn 2 ---","Player 2's turn begins",
+        "--- Turn 3 ---","Player 1's turn begins",
+        "Player 1 quested with Dale - Ready for His Shot (+10 [LORE], 0 -> 10)",
+        "--- Turn 4 ---","Player 2's turn begins",
+        "--- Turn 5 ---","Player 1's turn begins",
+        "Player 1 quested with Dale - Ready for His Shot (+10 [LORE], 10 -> 20)",
+        "Player 1 won with 20 [LORE]"
+      );
+      const g2 = parseLog(raw2, DECK, { deckStrategy:'' });
+      assert("2. win by 20 lore", g2.result==="W" && !!g2.winCondition.primary, JSON.stringify({result:g2.result, win:g2.winCondition.primary}));
+    }catch(e){ assert("2. win by 20 lore", false, String(e)); }
+
+    // 3. Loss with late first quest / low final lore
+    try{
+      const raw3 = L(
+        "Player 1's starting hand: Dale - Ready for His Shot",
+        "Player 2's starting hand: Woody",
+        "--- Turn 1 ---","Player 1's turn begins",
+        "--- Turn 2 ---","Player 2's turn begins",
+        "Player 2 quested with Woody (+5 [LORE], 0 -> 5)",
+        "--- Turn 3 ---","Player 1's turn begins",
+        "--- Turn 4 ---","Player 2's turn begins",
+        "Player 2 quested with Woody (+5 [LORE], 5 -> 10)",
+        "--- Turn 5 ---","Player 1's turn begins",
+        "Player 1 quested with Dale - Ready for His Shot (+2 [LORE], 0 -> 2)",
+        "--- Turn 6 ---","Player 2's turn begins",
+        "Player 2 won with 20 [LORE]"
+      );
+      const g3 = parseLog(raw3, DECK, { deckStrategy:'' });
+      assert("3. loss, late/low clock", g3.result==="L" && g3.lossCondition.primary==="Never built a lore clock", JSON.stringify({result:g3.result, loss:g3.lossCondition.primary, myLore:g3.myLore}));
+    }catch(e){ assert("3. loss, late/low clock", false, String(e)); }
+
+    // 4. High removal / low lore loss
+    try{
+      const raw4 = L(
+        "Player 1's starting hand: Dale - Ready for His Shot",
+        "Player 2's starting hand: Woody",
+        "--- Turn 1 ---","Player 1's turn begins",
+        "Player 1 activated SOMETHING and banishes Woody","Woody was banished",
+        "--- Turn 2 ---","Player 2's turn begins",
+        "--- Turn 3 ---","Player 1's turn begins",
+        "Player 1 activated SOMETHING and banishes Jessie","Jessie was banished",
+        "--- Turn 4 ---","Player 2's turn begins",
+        "--- Turn 5 ---","Player 1's turn begins",
+        "Player 1 activated SOMETHING and banishes Bullseye","Bullseye was banished",
+        "Player 1 quested with Dale - Ready for His Shot (+8 [LORE], 0 -> 8)",
+        "--- Turn 6 ---","Player 2's turn begins",
+        "--- Turn 7 ---","Player 1's turn begins",
+        "Player 1 activated SOMETHING and banishes Hamm","Hamm was banished",
+        "--- Turn 8 ---","Player 2's turn begins",
+        "Player 2 won with 20 [LORE]"
+      );
+      const g4 = parseLog(raw4, DECK, { deckStrategy:'' });
+      assert("4. high removal / low lore loss", g4.result==="L" && g4.removedByMe>=4 && g4.lossCondition.primary==="Too much control, not enough questing", JSON.stringify({removedByMe:g4.removedByMe, loss:g4.lossCondition.primary, myLore:g4.myLore}));
+    }catch(e){ assert("4. high removal / low lore loss", false, String(e)); }
+
+    // 5. Strategy target missed (reuse raw3's shape — never crosses 10)
+    try{
+      const raw5 = L(
+        "Player 1's starting hand: Dale - Ready for His Shot",
+        "Player 2's starting hand: Woody",
+        "--- Turn 1 ---","Player 1's turn begins",
+        "--- Turn 2 ---","Player 2's turn begins",
+        "Player 2 quested with Woody (+5 [LORE], 0 -> 5)",
+        "--- Turn 3 ---","Player 1's turn begins",
+        "--- Turn 4 ---","Player 2's turn begins",
+        "Player 2 quested with Woody (+5 [LORE], 5 -> 10)",
+        "--- Turn 5 ---","Player 1's turn begins",
+        "Player 1 quested with Dale - Ready for His Shot (+2 [LORE], 0 -> 2)",
+        "--- Turn 6 ---","Player 2's turn begins",
+        "Player 2 won with 20 [LORE]"
+      );
+      const g5 = parseLog(raw5, DECK, { deckStrategy:'Cross 10 lore by turn 6.' });
+      assert("5. strategy target missed", g5.planScore.label==="Off plan" || g5.planScore.score<50, JSON.stringify({planScore:g5.planScore}));
+    }catch(e){ assert("5. strategy target missed", false, String(e)); }
+
+    // 6. Strategy target achieved (reuse raw2's shape — crosses 10 turn 3)
+    try{
+      const raw6 = L(
+        "Player 1's starting hand: Dale - Ready for His Shot",
+        "Player 2's starting hand: Woody",
+        "--- Turn 1 ---","Player 1's turn begins",
+        "--- Turn 2 ---","Player 2's turn begins",
+        "--- Turn 3 ---","Player 1's turn begins",
+        "Player 1 quested with Dale - Ready for His Shot (+10 [LORE], 0 -> 10)",
+        "--- Turn 4 ---","Player 2's turn begins",
+        "--- Turn 5 ---","Player 1's turn begins",
+        "Player 1 quested with Dale - Ready for His Shot (+10 [LORE], 10 -> 20)",
+        "Player 1 won with 20 [LORE]"
+      );
+      const g6 = parseLog(raw6, DECK, { deckStrategy:'Cross 10 lore by turn 6.' });
+      assert("6. strategy target achieved", g6.planScore.label==="On plan" || g6.planScore.score>=80, JSON.stringify({planScore:g6.planScore}));
+    }catch(e){ assert("6. strategy target achieved", false, String(e)); }
+
+    // 7. Old 2-arg call still works
+    try{
+      const raw7 = L(
+        "Player 1's starting hand: Dale - Ready for His Shot",
+        "Player 2's starting hand: Woody",
+        "--- Turn 1 ---","Player 1's turn begins",
+        "Player 1 played Dale - Ready for His Shot (cost 3)",
+        "--- Turn 2 ---","Player 2's turn begins",
+        "--- Turn 3 ---","Player 1's turn begins",
+        "Player 1 quested with Dale - Ready for His Shot (+5 [LORE], 0 -> 5)",
+        "--- Turn 4 ---","Player 2's turn begins",
+        "Player 2 conceded","Player 1 won"
+      );
+      const g7 = parseLog(raw7, DECK); // no options arg at all
+      assert("7. old 2-arg call still works", typeof g7.result==="string" && g7.parserVersion===2, JSON.stringify({result:g7.result, parserVersion:g7.parserVersion}));
+    }catch(e){ assert("7. old 2-arg call still works", false, String(e)); }
+
+    const pass = results.every(r=>r.pass);
+    if(typeof console!=="undefined" && console.log){
+      console.log("[LORCANA self-test]", pass?"ALL PASS":"FAILURES", results);
+    }
+    return { pass, results };
+  }
+
+  root.LORCANA = { parseLog, parseManyLogs, DECK, ARCHETYPES, WIN_CATS, LOSS_CATS, COMBO_DEFS,
+    parseStrategyHints, classifyWinCondition, classifyLossCondition, computePlanScore, buildCoachReport,
+    keyTurningPoints, rawHash, runParserSelfTest };
   if (typeof module!=="undefined" && module.exports) module.exports = root.LORCANA;
 })(typeof globalThis!=="undefined"?globalThis:this);
 ;(function(root){ root.LORCANA_SEED = [

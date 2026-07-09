@@ -207,6 +207,18 @@
           </sc-for>
         </div>
       </div>
+
+      <sc-if value="{{ ov.coachPatterns.length }}" hint-placeholder-val="{{ false }}">
+        <div style="background:linear-gradient(var(--panel),var(--panel)) padding-box, linear-gradient(135deg, rgba(204,120,92,.55), rgba(167,139,250,.4) 35%, rgba(74,222,128,.3) 65%, rgba(204,120,92,.55)) border-box;background-size:100% 100%, 300% 300%;border:1px solid transparent;border-radius:22px;box-shadow:var(--shadow);backdrop-filter:blur(24px);animation:borderFlow 10s linear infinite;padding:24px;margin-top:14px">
+          <div style="font-family:'Space Mono',monospace;font-size:.66rem;font-weight:700;letter-spacing:.15em;text-transform:uppercase;color:var(--text3);margin-bottom:10px">Coach patterns</div>
+          <sc-for list="{{ ov.coachPatterns }}" as="cp" hint-placeholder-count="2">
+            <div style="padding:10px 0;border-bottom:1px dashed var(--border-soft)">
+              <div style="font-weight:700;font-size:.9rem">{{ cp.label }}</div>
+              <div style="font-size:.82rem;color:var(--text2);margin-top:2px">{{ cp.detail }}</div>
+            </div>
+          </sc-for>
+        </div>
+      </sc-if>
     </section>
     </sc-if>
 
@@ -252,7 +264,7 @@
         <div style="display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap">
           <div style="font-family:'Space Mono',monospace;font-size:.66rem;font-weight:700;letter-spacing:.15em;text-transform:uppercase;color:var(--text3)">Your lore curve, by game-turn</div>
           <select onchange="{{ ck.onSelect }}" value="{{ ck.selIndex }}" style="color-scheme:{{ colorScheme }};border:1px solid var(--border);border-radius:10px;padding:7px 10px;font-family:inherit;font-size:.78rem;color:var(--text);background:var(--panel2);color:var(--text);max-width:260px">
-            <sc-for list="{{ ck.games }}" as="o" hint-placeholder-count="4"><option value="{{ o.i }}">{{ o.label }}</option></sc-for>
+            <sc-for list="{{ ck.games }}" as="o" hint-placeholder-count="4"><option value="{{ o.i }}" style="background:var(--panel2);color:var(--text)">{{ o.label }}</option></sc-for>
           </select>
         </div>
         <div style="display:flex;align-items:flex-end;gap:6px;height:150px;padding-top:14px">
@@ -460,6 +472,12 @@
       <div style="background:linear-gradient(var(--panel),var(--panel)) padding-box, linear-gradient(135deg, rgba(204,120,92,.55), rgba(167,139,250,.4) 35%, rgba(74,222,128,.3) 65%, rgba(204,120,92,.55)) border-box;background-size:100% 100%, 300% 300%;border:1px solid transparent;border-radius:22px;box-shadow:var(--shadow);backdrop-filter:blur(24px);animation:borderFlow 10s linear infinite;padding:24px">
         <h3 style="font-family:'Chakra Petch',sans-serif;font-weight:600;font-size:1.25rem;margin:0 0 4px;letter-spacing:-.01em">Add a game · {{ deck.title }}</h3>
         <p style="color:var(--text2);font-size:.86rem;margin:0 0 12px">Paste a raw game log. It auto-detects which player is you, the clock, board trades, and combos. Tag the opponent before saving — it files under the open deck.</p>
+        <sc-if value="{{ deck.strategy }}" hint-placeholder-val="{{ false }}">
+          <div style="background:var(--panel2);border:1px solid var(--border-soft);border-radius:12px;padding:12px 14px;margin-bottom:12px">
+            <div style="font-family:'Space Mono',monospace;font-size:.6rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--text3);margin-bottom:5px">Deck strategy — reference while you tag this game</div>
+            <div style="font-size:.84rem;line-height:1.5;color:var(--text2);white-space:pre-wrap">{{ deck.strategy }}</div>
+          </div>
+        </sc-if>
         <textarea onchange="{{ onLogInput }}" value="{{ gm.logText }}" placeholder="Player 1's starting hand: ...
 --- Turn 1 ---
 ..." style="width:100%;min-height:150px;border:1px solid var(--border);border-radius:14px;padding:13px;font-family:'Space Mono',monospace;font-size:.74rem;line-height:1.5;resize:vertical;background:var(--panel2);color:var(--text)"></textarea>
@@ -481,12 +499,62 @@
             <sc-for list="{{ parsedView.chips }}" as="ch" hint-placeholder-count="2"><span style="font-size:.72rem;font-weight:600;padding:4px 9px;border-radius:999px;background:#F4E8CC;color:#9a6c0f">{{ ch }}</span></sc-for>
           </div>
           <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;margin-top:13px">
-            <label style="display:flex;flex-direction:column;gap:5px;font-size:.72rem;color:var(--text2);font-weight:600">Opponent<select onchange="{{ onParsedArch }}" value="{{ parsedView.archetype }}" style="color-scheme:{{ colorScheme }};border:1px solid var(--border);border-radius:10px;padding:7px 10px;font-family:inherit;font-size:.78rem;background:var(--panel2);color:var(--text)"><sc-for list="{{ parsedView.archOptions }}" as="o" hint-placeholder-count="5"><option value="{{ o }}">{{ o }}</option></sc-for></select></label>
-            <label style="display:flex;flex-direction:column;gap:5px;font-size:.72rem;color:var(--text2);font-weight:600">{{ parsedView.catLabel }}<select onchange="{{ onParsedCat }}" value="{{ parsedView.catValue }}" style="color-scheme:{{ colorScheme }};border:1px solid var(--border);border-radius:10px;padding:7px 10px;font-family:inherit;font-size:.78rem;background:var(--panel2);color:var(--text)"><sc-for list="{{ parsedView.catOptions }}" as="o" hint-placeholder-count="5"><option value="{{ o }}">{{ o }}</option></sc-for></select></label>
+            <label style="display:flex;flex-direction:column;gap:5px;font-size:.72rem;color:var(--text2);font-weight:600">Opponent<select onchange="{{ onParsedArch }}" value="{{ parsedView.archetype }}" style="color-scheme:{{ colorScheme }};border:1px solid var(--border);border-radius:10px;padding:7px 10px;font-family:inherit;font-size:.78rem;background:var(--panel2);color:var(--text)"><sc-for list="{{ parsedView.archOptions }}" as="o" hint-placeholder-count="5"><option value="{{ o }}" style="background:var(--panel2);color:var(--text)">{{ o }}</option></sc-for></select></label>
+            <label style="display:flex;flex-direction:column;gap:5px;font-size:.72rem;color:var(--text2);font-weight:600">{{ parsedView.catLabel }}<select onchange="{{ onParsedCat }}" value="{{ parsedView.catValue }}" style="color-scheme:{{ colorScheme }};border:1px solid var(--border);border-radius:10px;padding:7px 10px;font-family:inherit;font-size:.78rem;background:var(--panel2);color:var(--text)"><sc-for list="{{ parsedView.catOptions }}" as="o" hint-placeholder-count="5"><option value="{{ o }}" style="background:var(--panel2);color:var(--text)">{{ o }}</option></sc-for></select></label>
             <label style="display:flex;flex-direction:column;gap:5px;font-size:.72rem;color:var(--text2);font-weight:600">Venue<input type="text" onchange="{{ onPvVenue }}" placeholder="Online ladder" style="border:1px solid var(--border);border-radius:10px;padding:7px 10px;font-family:inherit;font-size:.78rem;background:var(--panel2);color:var(--text)"></label>
           </div>
           <label style="display:flex;flex-direction:column;gap:5px;font-size:.72rem;color:var(--text2);font-weight:600;margin-top:10px">Notes<input type="text" onchange="{{ onPvNotes }}" placeholder="What decided it?" style="border:1px solid var(--border);border-radius:10px;padding:7px 10px;font-family:inherit;font-size:.78rem;background:var(--panel2);color:var(--text)"></label>
-          <div style="margin-top:13px"><button onclick="{{ onSaveParsed }}" style="border:0;border-radius:12px;padding:11px 18px;font-family:inherit;font-weight:700;font-size:.85rem;cursor:pointer;background:#CC785C;color:#fff">Save game</button></div>
+
+          <sc-if value="{{ parsedView.hasCoach }}" hint-placeholder-val="{{ false }}">
+            <div style="background:var(--panel2);border:1px solid var(--border-soft);border-radius:14px;padding:14px 16px;margin-top:14px">
+              <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">
+                <div>
+                  <div style="font-family:'Space Mono',monospace;font-size:.6rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--text3)">{{ parsedView.conditionLabel }}</div>
+                  <div style="font-family:'Chakra Petch',sans-serif;font-weight:600;font-size:1.02rem;margin-top:3px">{{ parsedView.conditionPrimary }}</div>
+                </div>
+                <div style="text-align:right">
+                  <div style="font-family:'Space Mono',monospace;font-size:.6rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--text3)">Plan score</div>
+                  <div style="font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:1.3rem;color:{{ parsedView.planScoreColor }}">{{ parsedView.planScoreVal }} · {{ parsedView.planScoreLabel }}</div>
+                </div>
+              </div>
+              <div style="font-weight:700;margin-top:12px">{{ parsedView.coachHeadline }}</div>
+              <div style="font-size:.84rem;color:var(--text2);margin-top:4px;line-height:1.5">{{ parsedView.coachSummary }}</div>
+              <sc-if value="{{ parsedView.evidence.length }}" hint-placeholder-val="{{ false }}">
+                <div style="margin-top:10px">
+                  <sc-for list="{{ parsedView.evidence }}" as="ev" hint-placeholder-count="2">
+                    <div style="font-size:.8rem;color:var(--text2);padding:3px 0">• {{ ev.text }}</div>
+                  </sc-for>
+                </div>
+              </sc-if>
+              <sc-if value="{{ parsedView.turningPoints.length }}" hint-placeholder-val="{{ false }}">
+                <div style="margin-top:10px">
+                  <div style="font-family:'Space Mono',monospace;font-size:.58rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--text3);margin-bottom:5px">Key turning points</div>
+                  <sc-for list="{{ parsedView.turningPoints }}" as="tp" hint-placeholder-count="3">
+                    <div style="display:flex;gap:8px;align-items:flex-start;padding:3px 0">
+                      <span style="width:6px;height:6px;border-radius:50%;background:{{ tp.color }};flex:0 0 auto;margin-top:6px"></span>
+                      <div style="font-size:.8rem"><b>{{ tp.label }}</b> — <span style="color:var(--text2)">{{ tp.evidence }}</span></div>
+                    </div>
+                  </sc-for>
+                </div>
+              </sc-if>
+              <sc-if value="{{ parsedView.nextGameFocus.length }}" hint-placeholder-val="{{ false }}">
+                <div style="margin-top:10px">
+                  <div style="font-family:'Space Mono',monospace;font-size:.58rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--text3);margin-bottom:5px">Next game, try this</div>
+                  <sc-for list="{{ parsedView.nextGameFocus }}" as="nf" hint-placeholder-count="2">
+                    <div style="font-size:.8rem;color:var(--text2);padding:3px 0">→ {{ nf.text }}</div>
+                  </sc-for>
+                </div>
+              </sc-if>
+              <div style="font-size:.78rem;color:var(--text2);margin-top:10px"><b style="color:var(--text)">Mulligan:</b> {{ parsedView.mulliganAdvice }}</div>
+              <div style="font-size:.78rem;color:var(--text2);margin-top:4px"><b style="color:var(--text)">Matchup:</b> {{ parsedView.matchupAdvice }}</div>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{ parsedView.isDuplicate }}" hint-placeholder-val="{{ false }}">
+            <div style="background:rgba(245,197,66,.14);border:1px solid #F5C542;border-radius:12px;padding:10px 14px;margin-top:12px;font-size:.8rem;color:var(--text)">This log matches a game already saved for this deck. Click save again to save it anyway.</div>
+          </sc-if>
+
+          <div style="margin-top:13px"><button onclick="{{ onSaveParsed }}" style="border:0;border-radius:12px;padding:11px 18px;font-family:inherit;font-weight:700;font-size:.85rem;cursor:pointer;background:#CC785C;color:#fff">{{ parsedView.saveLabel }}</button></div>
         </div>
         </sc-if>
       </div>
@@ -499,12 +567,15 @@
             <div style="min-width:0">
               <div style="font-weight:700;font-size:.94rem">{{ g.title }} <span style="color:var(--text2);font-weight:500">({{ g.margin }})</span></div>
               <div style="color:var(--text2);font-size:.78rem;margin-top:2px">{{ g.meta }} · {{ g.reason }}</div>
+              <sc-if value="{{ g.hasCoach }}" hint-placeholder-val="{{ false }}">
+                <div style="font-size:.78rem;margin-top:5px;color:var(--text2)"><span style="color:{{ g.planScoreColor }};font-weight:700">{{ g.planScoreVal }}</span> plan score · {{ g.coachHeadline }}</div>
+              </sc-if>
               <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:7px">
                 <sc-for list="{{ g.chips }}" as="ch" hint-placeholder-count="2"><span style="font-size:.71rem;font-weight:600;padding:3px 9px;border-radius:999px;background:{{ ch.bg }};color:{{ ch.color }}">{{ ch.label }}</span></sc-for>
               </div>
               <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:10px">
-                <select onchange="{{ g.onArch }}" value="{{ g.archetype }}" style="color-scheme:{{ colorScheme }};border:1px solid var(--border);border-radius:10px;padding:6px 9px;font-family:inherit;font-size:.76rem;background:var(--panel2);color:var(--text)"><sc-for list="{{ g.archOptions }}" as="o" hint-placeholder-count="5"><option value="{{ o }}">{{ o }}</option></sc-for></select>
-                <select onchange="{{ g.onCat }}" value="{{ g.catValue }}" style="color-scheme:{{ colorScheme }};border:1px solid var(--border);border-radius:10px;padding:6px 9px;font-family:inherit;font-size:.76rem;background:var(--panel2);color:var(--text)"><sc-for list="{{ g.catOptions }}" as="o" hint-placeholder-count="5"><option value="{{ o }}">{{ o }}</option></sc-for></select>
+                <select onchange="{{ g.onArch }}" value="{{ g.archetype }}" style="color-scheme:{{ colorScheme }};border:1px solid var(--border);border-radius:10px;padding:6px 9px;font-family:inherit;font-size:.76rem;background:var(--panel2);color:var(--text)"><sc-for list="{{ g.archOptions }}" as="o" hint-placeholder-count="5"><option value="{{ o }}" style="background:var(--panel2);color:var(--text)">{{ o }}</option></sc-for></select>
+                <select onchange="{{ g.onCat }}" value="{{ g.catValue }}" style="color-scheme:{{ colorScheme }};border:1px solid var(--border);border-radius:10px;padding:6px 9px;font-family:inherit;font-size:.76rem;background:var(--panel2);color:var(--text)"><sc-for list="{{ g.catOptions }}" as="o" hint-placeholder-count="5"><option value="{{ o }}" style="background:var(--panel2);color:var(--text)">{{ o }}</option></sc-for></select>
                 <button onclick="{{ g.onDelete }}" style="border:0;background:transparent;color:#B3232C;font-family:inherit;font-weight:600;font-size:.76rem;padding:5px 6px;cursor:pointer">Delete</button>
               </div>
             </div>
@@ -600,12 +671,12 @@
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
           <label style="display:flex;flex-direction:column;gap:6px;font-size:.74rem;color:var(--text2);font-weight:600">First ink
             <select value="{{ ed.ink1 }}" onchange="{{ ed.onInk1 }}" style="color-scheme:{{ colorScheme }};border:1px solid var(--border);border-radius:11px;padding:10px 12px;font-family:inherit;font-size:.88rem;background:var(--panel2);color:var(--text)">
-              <sc-for list="{{ ed.inkOptions }}" as="o" hint-placeholder-count="6"><option value="{{ o.v }}">{{ o.label }}</option></sc-for>
+              <sc-for list="{{ ed.inkOptions }}" as="o" hint-placeholder-count="6"><option value="{{ o.v }}" style="background:var(--panel2);color:var(--text)">{{ o.label }}</option></sc-for>
             </select>
           </label>
           <label style="display:flex;flex-direction:column;gap:6px;font-size:.74rem;color:var(--text2);font-weight:600">Second ink
             <select value="{{ ed.ink2 }}" onchange="{{ ed.onInk2 }}" style="color-scheme:{{ colorScheme }};border:1px solid var(--border);border-radius:11px;padding:10px 12px;font-family:inherit;font-size:.88rem;background:var(--panel2);color:var(--text)">
-              <sc-for list="{{ ed.inkOptions }}" as="o" hint-placeholder-count="6"><option value="{{ o.v }}">{{ o.label }}</option></sc-for>
+              <sc-for list="{{ ed.inkOptions }}" as="o" hint-placeholder-count="6"><option value="{{ o.v }}" style="background:var(--panel2);color:var(--text)">{{ o.label }}</option></sc-for>
             </select>
           </label>
         </div>
@@ -614,6 +685,9 @@
         </label>
         <label style="display:flex;flex-direction:column;gap:6px;font-size:.74rem;color:var(--text2);font-weight:600">Tagline — the italic line under the deck name
           <input type="text" value="{{ ed.tagline }}" onchange="{{ ed.onTagline }}" placeholder="One line of flavor for the dossier" style="border:1px solid var(--border);border-radius:11px;padding:10px 12px;font-family:inherit;font-size:.92rem;background:var(--panel2);color:var(--text)">
+        </label>
+        <label style="display:flex;flex-direction:column;gap:6px;font-size:.74rem;color:var(--text2);font-weight:600">Deck strategy — your win/loss conditions, shown as a reminder while you log games
+          <textarea value="{{ ed.strategy }}" onchange="{{ ed.onStrategy }}" placeholder="e.g. Win by grinding board trades then racing lore in the last 2 turns. Losses usually come from flooding out or falling behind on the clock early." style="width:100%;min-height:90px;border:1px solid var(--border);border-radius:11px;padding:10px 12px;font-family:inherit;font-size:.86rem;line-height:1.5;resize:vertical;background:var(--panel2);color:var(--text)"></textarea>
         </label>
         <label style="display:flex;flex-direction:column;gap:6px;font-size:.74rem;color:var(--text2);font-weight:600">Deck list — one card per line, count first ("4 Card Name" or "4x Card Name") — used by the log parser and the catalogue
           <textarea value="{{ ed.cards }}" onchange="{{ ed.onCards }}" placeholder="4 Dale - Ready for His Shot
@@ -745,21 +819,24 @@ class Component extends DCLogic {
         cards:["4 Dale - Ready for His Shot","4 Mulan - Injured Soldier","4 Mulan - Elite Archer","4 Reuben - Sandwich Expert","4 Chip - Retrieval Expert","4 Stitch - Carefree Snowboarder","2 Stitch - Carefree Surfer","4 Gaston - Frightful Bully","4 Scrooge McDuck - Ghostly Ebenezer","4 Bambi - Ethereal Fawn","4 Zeus - Defiant God","4 Ohana Means Family","4 This Growing Pressure","3 The Horseman Strikes!","4 Webby's Diary","3 Medallion Weights","1 The Sword of Shan-Yu"],
         hasCombos:true, hasPlaybook:'dale', slotPrefix:'rr',
         clockNote:'Guide target: cross 10 around T6–7, close 20 by T8–10. Most logged games never get the clock going — the deck stabilizes the board but forgets to score.',
-        muRead:'the grindy matchups — Control and Locations — are where games are being lost on the back end. Go-wide aggro (Toys / Dwarves) punishes slow starts. Re-tag any game in the Games tab if a guess is off.' },
+        muRead:'the grindy matchups — Control and Locations — are where games are being lost on the back end. Go-wide aggro (Toys / Dwarves) punishes slow starts. Re-tag any game in the Games tab if a guess is off.',
+        strategy:'Win condition: stall the board with Dale/Mulan removal and combat tricks until Zeus + This Growing Pressure or The Horseman Strikes! swing a lopsided combat turn, then close with Bambi/Scrooge lore. Losses usually trace back to being too slow to interact (no early removal drawn) or getting raced by go-wide boards before the combo pieces land.' },
       woody:{ id:'woody', title:'Woody & Buzz', inks:['amber','emerald'], arch:'Go-wide toys tempo',
         accent:'#2F6B44', kickerLine:'Field Dossier · Toy Box Brigade',
         tagline:'Reach for the sky — flood the board, buff the team, quest to infinity and beyond.',
         cards:['Woody','Buzz Lightyear','Jessie','Bullseye','Hamm','Rex','Bo Peep','Sarge','Lenny','Slinky Dog','Grandmother Willow'],
         hasCombos:false, hasPlaybook:'woody', slotPrefix:'wb',
         clockNote:'Guide target for go-wide tempo: quest from T2, cross 10 by T5, close by T7–8 before removal stabilizes.',
-        muRead:'log a few games and the matchup pages write themselves. Re-tag any game in the Games tab if a guess is off.' },
+        muRead:'log a few games and the matchup pages write themselves. Re-tag any game in the Games tab if a guess is off.',
+        strategy:'Win condition: flood the board early with cheap Toys, buff wide with Bo Peep/Sarge, and race lore before opponents stabilize. Losses usually come from board wipes or single big blockers that neutralize a wide-but-shallow board — track how often that happens.' },
       sid:{ id:'sid', title:"Sid's Toys", inks:['amber','ruby'], arch:'Sacrifice & recycle',
         accent:'#9F2731', kickerLine:'Field Dossier · Broken Toy Bench',
         tagline:'Toys are not for playing nice — break your own, get paid, rebuild, repeat.',
         cards:['Sid','Babyface','Combat Carl','Mr. Potato Head','Little Green Men','Hamm','Rex','Jessie'],
         hasCombos:false, hasPlaybook:'sid', slotPrefix:'sid',
         clockNote:'Guide target: convert each broken toy into tempo — the clock should tick every time the bench does.',
-        muRead:'log a few games and the matchup pages write themselves. Re-tag any game in the Games tab if a guess is off.' }
+        muRead:'log a few games and the matchup pages write themselves. Re-tag any game in the Games tab if a guess is off.',
+        strategy:'Win condition: sacrifice your own Toys for value/removal, rebuild the bench, and grind out an advantage over several turns. Losses usually mean the sac engine got disrupted early or the deck ran out of bodies to break before it found payoff.' }
     };
     this.INKS={
       amber:{name:'Amber', light:'#E9B94C', dark:'#C8920F', text:'#9a6c0f', border:'#d9b45a', bg:'rgba(200,146,15,.08)'},
@@ -1105,15 +1182,16 @@ class Component extends DCLogic {
       tagline:e.tagline||base.tagline||'A fresh page in the atlas — file an expedition to begin.',
       cards:(e.cards&&e.cards.length)?e.cards:base.cards,
       heroArts:(e.heroArts&&e.heroArts.length)?e.heroArts:null,
+      strategy:e.strategy||base.strategy||'',
       accent:base.accent||this.INKS[inks[0]].dark };
   }
   openEditor(id){
     const lib=this.state.lib||[];
     if(id){
       const d=this.getDeck(id);
-      this.setState({editor:{isNew:false,id,title:d.title,ink1:d.inks[0],ink2:d.inks[1],arch:d.arch,tagline:d.tagline,cards:(d.cards||[]).join('\n'),canDelete:lib.length>1}});
+      this.setState({editor:{isNew:false,id,title:d.title,ink1:d.inks[0],ink2:d.inks[1],arch:d.arch,tagline:d.tagline,cards:(d.cards||[]).join('\n'),strategy:d.strategy||'',canDelete:lib.length>1}});
     } else {
-      this.setState({editor:{isNew:true,id:null,title:'',ink1:'amber',ink2:'ruby',arch:'',tagline:'',cards:'',canDelete:false}});
+      this.setState({editor:{isNew:true,id:null,title:'',ink1:'amber',ink2:'ruby',arch:'',tagline:'',cards:'',strategy:'',canDelete:false}});
     }
   }
   edField(k,v){ this.setState({editor:{...this.state.editor,[k]:v}}); }
@@ -1123,7 +1201,7 @@ class Component extends DCLogic {
     if(!title){ this.toast('Give the deck a name'); return; }
     const cards=(ed.cards||'').split('\n').map(x=>x.trim()).filter(Boolean);
     let lib=(this.state.lib||[]).slice();
-    const entry={ title, inks:[ed.ink1,ed.ink2], arch:(ed.arch||'').trim(), tagline:(ed.tagline||'').trim(), cards:cards.length?cards:null, mtime:new Date().toISOString() };
+    const entry={ title, inks:[ed.ink1,ed.ink2], arch:(ed.arch||'').trim(), tagline:(ed.tagline||'').trim(), strategy:(ed.strategy||'').trim(), cards:cards.length?cards:null, mtime:new Date().toISOString() };
     let id=ed.id;
     if(ed.isNew){
       id='d'+Math.random().toString(36).slice(2,8);
@@ -1350,7 +1428,8 @@ class Component extends DCLogic {
           value:a.onPlayWR+'% / '+a.onDrawWR+'%', label:'Win% play / draw'}
       ],
       insights, winRows:this.catRows(wins.map(g=>g.winCat),false), lossRows:this.catRows(losses.map(g=>g.lossCat),true),
-      winsCount:wins.length, lossesCount:losses.length
+      winsCount:wins.length, lossesCount:losses.length,
+      coachPatterns:this.coachPatterns(G, wins, losses)
     };
 
     // MATCHUPS
@@ -1410,6 +1489,7 @@ class Component extends DCLogic {
     const gmGames=[...G].map((g,idx)=>({g,idx})).reverse().map(({g,idx})=>{
       const chips2=[];
       if(D.hasCombos&&g.combos){ if(g.combos.tripleShot)chips2.push('ruby|Triple Shot'); if(g.combos.dale)chips2.push('amber|Dale'); if(g.combos.ohana)chips2.push('amber|Ohana'); if(g.combos.snowboarder)chips2.push('neutral|Stitch draw'); if(g.combos.sword)chips2.push('neutral|Sword'); }
+      const coach=g.coach||null, planScore=g.planScore||null;
       return {
         id:g.id, result:g.result, resBg:g.result==='W'?'#4E9D6B':'#B3232C',
         title:`vs ${this.archLabel(g)} · ${g.myLore}–${g.oppLore}`, margin:(g.margin>0?'+':'')+g.margin,
@@ -1419,7 +1499,10 @@ class Component extends DCLogic {
         to10:g.cross10?'T'+g.cross10:'—', myT:g.cross10MyTurn?'(your T'+g.cross10MyTurn+')':'',
         archetype:g.archetype||'Other / Unknown', archOptions:ARCH,
         catValue:(g.result==='W'?g.winCat:g.lossCat)||'', catOptions:(g.result==='W'?WIN:LOSS),
-        onArch:this.requireAdmin((e)=>this.setArch(idx,e.target.value)), onCat:this.requireAdmin((e)=>this.setCat(idx,e.target.value)), onDelete:this.requireAdmin(()=>this.delGame(g.id))
+        onArch:this.requireAdmin((e)=>this.setArch(idx,e.target.value)), onCat:this.requireAdmin((e)=>this.setCat(idx,e.target.value)), onDelete:this.requireAdmin(()=>this.delGame(g.id)),
+        hasCoach:!!coach, coachHeadline:coach?coach.headline:'',
+        planScoreVal:planScore?planScore.score:null,
+        planScoreColor:planScore?(planScore.score>=80?'#4ADE80':planScore.score>=50?'#F5C542':'#F87171'):'var(--text2)'
       };
     });
     const gm={ logText:s.logText, count:G.length, games:gmGames };
@@ -1428,6 +1511,7 @@ class Component extends DCLogic {
     const p=s.parsed;
     let parsedView=null;
     if(p){
+      const coach=p.coach||{}, planScore=p.planScore||null, cond=p.result==='W'?(p.winCondition||{}):(p.lossCondition||{});
       parsedView={
         title:`Parsed ${p.result==='W'?'WIN':'LOSS'}`, headColor:p.result==='W'?'#3F7D56':'#9F2731',
         sub:`you were Player ${p.me}, ${p.onPlay?'on the play':'on the draw'}. Files under ${D.title}.`,
@@ -1435,7 +1519,19 @@ class Component extends DCLogic {
         chips:D.hasCombos? E.COMBO_DEFS.filter(c=>p.combos&&p.combos[c.key]).map(c=>c.label):[],
         archetype:p.archetype, archOptions:ARCH,
         catLabel:p.result==='W'?'Win reason':'Loss reason',
-        catValue:p.result==='W'?p.winCat:p.lossCat, catOptions:p.result==='W'?WIN:LOSS
+        catValue:p.result==='W'?p.winCat:p.lossCat, catOptions:p.result==='W'?WIN:LOSS,
+        isDuplicate:!!p.isDuplicateOfId, confirmDuplicate:!!s.confirmDuplicate,
+        saveLabel:(p.isDuplicateOfId&&!s.confirmDuplicate)?'Looks like a duplicate — save anyway?':'Save game',
+        hasCoach:!!planScore,
+        planScoreVal:planScore?planScore.score:null, planScoreLabel:planScore?planScore.label:'',
+        planScoreColor:planScore?(planScore.score>=80?'#4ADE80':planScore.score>=50?'#F5C542':'#F87171'):'var(--text2)',
+        conditionLabel:p.result==='W'?'Win condition':'Loss condition',
+        conditionPrimary:cond.primary||'Unknown / manual review',
+        evidence:(cond.evidence||[]).map(e=>({text:e})),
+        turningPoints:(p.keyTurningPoints||[]).map(tp=>({label:tp.label+(tp.turn!=null?' · T'+tp.turn:''), evidence:tp.evidence, color:tp.impact==='negative'?'#F87171':'#4ADE80'})),
+        coachHeadline:coach.headline||'', coachSummary:coach.summary||'',
+        nextGameFocus:(coach.nextGameFocus||[]).map(t=>({text:t})),
+        mulliganAdvice:coach.mulliganAdvice||'', matchupAdvice:coach.matchupAdvice||''
       };
     }
 
@@ -1613,7 +1709,7 @@ class Component extends DCLogic {
 
       h1, h2, h3, heroFrames, hp, sync, vp,
       hideImg:(e)=>{ if(e&&e.target) e.target.style.display='none'; },
-      deck:{ title:D.title, tagline:D.tagline, kickerLine:D.kickerLine, accent:D.accent, chips },
+      deck:{ title:D.title, tagline:D.tagline, kickerLine:D.kickerLine, accent:D.accent, chips, strategy:D.strategy||'' },
       ring,
       heroPrefix:D.slotPrefix||s.deck,
       isDaleDeck:s.deck==='dale',
@@ -1625,13 +1721,14 @@ class Component extends DCLogic {
       editorOpen:!!s.editor,
       ed:s.editor?{
         heading:s.editor.isNew?'Add a deck':'Edit deck', saveLabel:s.editor.isNew?'Add deck':'Save changes',
-        title:s.editor.title, arch:s.editor.arch, tagline:s.editor.tagline, cards:s.editor.cards,
+        title:s.editor.title, arch:s.editor.arch, tagline:s.editor.tagline, cards:s.editor.cards, strategy:s.editor.strategy,
         ink1:s.editor.ink1, ink2:s.editor.ink2, canDelete:!!s.editor.canDelete,
         inkOptions:['amber','ruby','emerald','sapphire','steel','amethyst'].map(v=>({v,label:this.INKS[v].name})),
         onTitle:(e)=>this.edField('title',e.target.value),
         onArch:(e)=>this.edField('arch',e.target.value),
         onTagline:(e)=>this.edField('tagline',e.target.value),
         onCards:(e)=>this.edField('cards',e.target.value),
+        onStrategy:(e)=>this.edField('strategy',e.target.value),
         onInk1:(e)=>this.edField('ink1',e.target.value),
         onInk2:(e)=>this.edField('ink2',e.target.value)
       }:{},
@@ -1653,18 +1750,55 @@ class Component extends DCLogic {
     };
   }
 
+  coachPatterns(G, wins, losses){
+    const withCoach=G.filter(g=>g.coach||g.lossCondition||g.winCondition);
+    if(withCoach.length<4) return [];
+    const pats=[];
+    const lateQuest=G.filter(g=>g.firstQuestMyTurn&&g.firstQuestMyTurn>=6).length;
+    if(lateQuest>=3) pats.push({label:'Late first quest', detail:`${lateQuest} of ${G.length} games had your first quest on turn 6 or later.`});
+    const missCross10=G.filter(g=>g.cross10MyTurn==null).length;
+    if(missCross10>=3) pats.push({label:'Frequently missing 10 lore', detail:`${missCross10} of ${G.length} games never crossed 10 lore.`});
+    const heavyRemovalLowLore=G.filter(g=>g.removedByMe>=4&&g.myLore<12).length;
+    if(heavyRemovalLowLore>=3) pats.push({label:'High removal, low lore', detail:`${heavyRemovalLowLore} games removed 4+ bodies but stayed under 12 lore.`});
+    const loseAfter15=losses.filter(g=>g.myLore>=15).length;
+    if(loseAfter15>=2) pats.push({label:'Losing after reaching 15+ lore', detail:`${loseAfter15} losses happened after you were already at 15+ lore.`});
+    const onDrawLosses=losses.filter(g=>!g.onPlay).length, onDrawGames=G.filter(g=>!g.onPlay).length;
+    if(onDrawGames>=4 && onDrawLosses/onDrawGames>=0.6) pats.push({label:'Poor on-draw results', detail:`${onDrawLosses} of ${onDrawGames} on-the-draw games were losses.`});
+    const hasComboData=G.some(g=>g.combos&&Object.keys(g.combos).length);
+    if(hasComboData){
+      const comboMissingLosses=losses.filter(g=>g.combos&&Object.keys(g.combos).length&&!Object.keys(g.combos).some(k=>g.combos[k])).length;
+      if(comboMissingLosses>=3) pats.push({label:'Combo missing in losses', detail:`${comboMissingLosses} losses had no combo flags fire at all.`});
+    }
+    const lossReasonCounts={};
+    losses.forEach(g=>{ const r=(g.lossCondition&&g.lossCondition.primary)||g.lossCat; if(r) lossReasonCounts[r]=(lossReasonCounts[r]||0)+1; });
+    Object.keys(lossReasonCounts).forEach(r=>{ if(lossReasonCounts[r]>=3) pats.push({label:'Repeated loss reason', detail:`"${r}" has shown up in ${lossReasonCounts[r]} losses.`}); });
+    return pats.slice(0,5);
+  }
   onParse(){
     const raw=(this.state.logText||'').trim();
     if(!raw){ this.toast('Paste a log first'); return; }
     const D=this.getDeck(this.state.deck);
-    let g; try{ g=this.E.parseLog(raw, D.cards&&D.cards.map(l=>this.parseReq(l).name)); }catch(e){ this.toast('Could not parse that log'); return; }
+    const deckCards=D.cards&&D.cards.map(l=>this.parseReq(l).name);
+    let g;
+    try{
+      g=this.E.parseLog(raw, deckCards, {
+        deckTitle: D.title, deckArch: D.arch, deckStrategy: D.strategy||'', deckList: deckCards,
+        existingGames: this.games()
+      });
+    }catch(e){ this.toast('Could not parse that log'); return; }
     if(!D.hasCombos) g.combos={};
-    this.setState({ parsed:g, pv:{venue:'',notes:''} });
+    this.setState({ parsed:g, pv:{venue:'',notes:''}, confirmDuplicate:false });
   }
   onSaveParsed(){
-    const g={...this.state.parsed}; g.venue=this.state.pv.venue; g.notes=this.state.pv.notes; g.oppInks=this.oppInks(g);
+    const p=this.state.parsed;
+    if(p&&p.isDuplicateOfId&&!this.state.confirmDuplicate){
+      this.setState({confirmDuplicate:true});
+      this.toast('Looks like a duplicate of a saved game — click Save again to save anyway');
+      return;
+    }
+    const g={...p}; g.venue=this.state.pv.venue; g.notes=this.state.pv.notes; g.oppInks=this.oppInks(g);
     this.setGames([...this.games(), g]);
-    this.setState({ parsed:null, logText:'', pv:{venue:'',notes:''}, tab:'games' });
+    this.setState({ parsed:null, logText:'', pv:{venue:'',notes:''}, tab:'games', confirmDuplicate:false });
     try{ localStorage.setItem(this.TKEY,'games'); }catch(e){}
     this.toast('Game saved to '+this.getDeck(this.state.deck).title);
   }
