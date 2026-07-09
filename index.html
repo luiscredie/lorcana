@@ -607,9 +607,8 @@ class Component extends DCLogic {
     this.GH={owner:'luiscredie', repo:'lorcana', branch:'main', path:'atlas-data.json'};
     // Public read path (same origin as the site) — every device reads the shared atlas with zero config.
     this.READ_URL='atlas-data.json';
-    // Write endpoint (Cloudflare Worker that holds the GitHub token). Hardcode once known;
-    // until then it can be set per-device in the Sync panel. Reads never need it.
-    this.SYNC_URL='';
+    // Write endpoint (Cloudflare Worker that holds the GitHub token). Reads never need it.
+    this.SYNC_URL='https://lorcana.luis-credie.workers.dev';
     this.IMG_BASE='https://luiscredie.github.io/lorcana/Lorcana%20Cards%20Named/';
     this.TREE_API='https://api.github.com/repos/luiscredie/lorcana/git/trees/main?recursive=1';
     this.TREEKEY='lorcanaAtlas_fileTree_v2';
