@@ -12,7 +12,9 @@
   "The Horseman Strikes!","Stitch - Carefree Snowboarder","Stitch - Carefree Surfer","Medallion Weights",
   "The Sword of Shan-Yu","Chip - Retrieval Expert"];
 
-  const ARCHETYPES = ["Toys","Dwarves","Sapphire/Steel Control","Detective","Locations","Princesses","Amethyst/Sapphire Evasive","Amber/Emerald Aggro","Amber/Amethyst Evasive","Emerald/Sapphire Control","Amber/Ruby Toys","Other / Unknown"];
+  const ARCHETYPES = ["Toys","Dwarves","Sapphire/Steel Control","Detective","Locations","Princesses","Amethyst/Sapphire Evasive","Amber/Emerald Aggro","Amber/Amethyst Evasive","Emerald/Sapphire Control","Amber/Ruby Toys",
+    "Amber/Sapphire","Amber/Steel","Amethyst/Emerald","Amethyst/Ruby","Amethyst/Steel","Emerald/Ruby","Emerald/Steel","Ruby/Sapphire","Ruby/Steel",
+    "Other / Unknown"];
   const WIN_CATS = ["Out-raced (go-wide tempo)","Dale + Mulan board clear","Ground them out (Ohana/Boost)","Removal denied their clock","Opponent conceded behind","Closed to 20 lore"];
   const LOSS_CATS = ["Couldn't stabilize vs aggro","Out-removed by control","Evasive out-raced me","Locations ticked me out","Dale answered / no combo online","Slow start / mulligan whiff","Never built a clock","Flooded / drew no threats"];
 
