@@ -320,6 +320,7 @@
                   <div style="position:relative;aspect-ratio:5/7;border-radius:11px;border:1px solid {{ r.frameBorder }};background:{{ r.frameBg }};box-shadow:0 6px 12px -8px rgba(60,40,20,.3)">
                     {{ r.imgEl }}<sc-if value="{{ r.noImg }}" hint-placeholder-val="{{ false }}"><span style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;text-align:center;padding:8px;font-size:.62rem;font-weight:600;color:#8B7A63;line-height:1.3">{{ r.name }}</span></sc-if>
                     <span style="position:absolute;top:-7px;right:-6px;font-family:'Space Mono',monospace;font-size:.62rem;font-weight:700;border-radius:999px;padding:2px 8px;box-shadow:0 3px 7px rgba(40,25,10,.3);pointer-events:none;z-index:2;background:{{ r.chipBg2 }};color:{{ r.chipColor2 }}">{{ r.countStr }}</span>
+                    <sc-if value="{{ r.canSwap }}" hint-placeholder-val="{{ false }}"><button onclick="{{ r.onSwap }}" title="Choose a different printing" style="position:absolute;bottom:6px;right:6px;width:22px;height:22px;border-radius:50%;border:1px solid #d8c8a4;background:rgba(255,253,248,.92);color:#6F604A;font-size:.62rem;line-height:1;cursor:pointer;z-index:3;display:flex;align-items:center;justify-content:center">⇄</button></sc-if>
                   </div>
                   <span style="display:grid;grid-template-columns:1fr auto;gap:5px;align-items:center;margin-top:6px;padding:0 2px">
                     <span style="font-weight:600;font-size:.7rem;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ r.name }}</span>
@@ -393,6 +394,7 @@
                           <div style="position:relative;aspect-ratio:5/7;border-radius:11px;border:1px solid {{ r.frameBorder }};background:{{ r.frameBg }};box-shadow:0 6px 12px -8px rgba(60,40,20,.3)">
                             {{ r.imgEl }}<sc-if value="{{ r.noImg }}" hint-placeholder-val="{{ false }}"><span style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;text-align:center;padding:8px;font-size:.62rem;font-weight:600;color:#8B7A63;line-height:1.3">{{ r.name }}</span></sc-if>
                             <span style="position:absolute;top:-7px;right:-6px;background:#251D14;color:#F4ECDC;font-family:'Space Mono',monospace;font-size:.66rem;font-weight:700;border-radius:999px;padding:2px 8px;box-shadow:0 3px 7px rgba(40,25,10,.35);pointer-events:none;z-index:2">×{{ r.qty }}</span>
+                            <sc-if value="{{ r.canSwap }}" hint-placeholder-val="{{ false }}"><button onclick="{{ r.onSwap }}" title="Choose a different printing" style="position:absolute;bottom:6px;right:6px;width:22px;height:22px;border-radius:50%;border:1px solid #d8c8a4;background:rgba(255,253,248,.92);color:#6F604A;font-size:.62rem;line-height:1;cursor:pointer;z-index:3;display:flex;align-items:center;justify-content:center">⇄</button></sc-if>
                           </div>
                           <span style="display:grid;grid-template-columns:auto 1fr auto;gap:5px;align-items:start;margin-top:6px;padding:0 2px">
                             <i style="width:8px;height:8px;border-radius:50%;display:block;background:{{ r.dot }};margin-top:3px"></i>
@@ -525,6 +527,28 @@
   </div>
   </sc-if>
 
+  <sc-if value="{{ vp.open }}" hint-placeholder-val="{{ false }}">
+  <div onClick="{{ vp.onClose }}" style="position:fixed;inset:0;z-index:85;background:rgba(37,29,20,.45);backdrop-filter:blur(3px);display:flex;align-items:center;justify-content:center;padding:20px">
+    <div onClick="{{ stopClick }}" style="background:#FFFDF8;border:1px solid #d9b45a;border-radius:20px;box-shadow:0 30px 60px -20px rgba(40,25,10,.5), inset 0 0 0 3px rgba(200,146,15,.12);max-width:620px;width:100%;max-height:84vh;overflow:auto;padding:22px">
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:10px">
+        <h3 style="font-family:'Newsreader',serif;font-weight:600;font-size:1.15rem;margin:0;letter-spacing:-.01em">Choose art for {{ vp.name }}</h3>
+        <button onclick="{{ vp.onClose }}" style="border:1px solid #E0D3B8;border-radius:10px;padding:7px 12px;font-family:inherit;font-weight:700;font-size:.78rem;cursor:pointer;background:#FBF6EC;color:#6F604A">✕ Close</button>
+      </div>
+      <p style="color:#8B7A63;font-size:.82rem;margin:6px 0 16px">Multiple printings of this card were found in the image folder — pick which one shows everywhere.</p>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:12px">
+        <sc-for list="{{ vp.options }}" as="o" hint-placeholder-count="4">
+          <div onClick="{{ o.onChoose }}" style="cursor:pointer">
+            <div style="position:relative;aspect-ratio:5/7;border-radius:10px;border:2px solid {{ o.currentBorder }};background:#FBF6EC;overflow:hidden">
+              {{ o.imgEl }}
+            </div>
+            <div style="font-family:'Space Mono',monospace;font-size:.6rem;letter-spacing:.04em;text-align:center;margin-top:5px;color:#8B7A63">{{ o.label }}</div>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+  </div>
+  </sc-if>
+
   <sc-if value="{{ sync.open }}" hint-placeholder-val="{{ false }}">
   <div onClick="{{ sync.onClose }}" style="position:fixed;inset:0;z-index:85;background:rgba(37,29,20,.45);backdrop-filter:blur(3px);display:flex;align-items:center;justify-content:center;padding:20px">
     <div onClick="{{ stopClick }}" style="background:#FFFDF8;border:1px solid #d9b45a;border-radius:20px;box-shadow:0 30px 60px -20px rgba(40,25,10,.5), inset 0 0 0 3px rgba(200,146,15,.12);max-width:560px;width:100%;max-height:84vh;overflow:auto;padding:24px">
@@ -612,6 +636,7 @@ class Component extends DCLogic {
     this.IMG_BASE='https://luiscredie.github.io/lorcana/Lorcana%20Cards%20Named/';
     this.TREE_API='https://api.github.com/repos/luiscredie/lorcana/git/trees/main?recursive=1';
     this.TREEKEY='lorcanaAtlas_fileTree_v2';
+    this.VKEY='lorcanaAtlas_variants_v1';
     this.loadFileTree();
     this.DECKS={
       dale:{ id:'dale', title:"Dale's Growing Pressure", inks:['amber','ruby'], arch:'Combat-control midrange',
@@ -684,6 +709,8 @@ class Component extends DCLogic {
     if(!this.tabAllowed(tab,deck,lib)) tab='overview';
     let collection={};
     try{ const c=JSON.parse(localStorage.getItem(this.CKEY)); if(c&&typeof c==='object'&&!Array.isArray(c)) collection=c; }catch(e){}
+    let variants={};
+    try{ const v=JSON.parse(localStorage.getItem(this.VKEY)); if(v&&typeof v==='object'&&!Array.isArray(v)) variants=v; }catch(e){}
     // Backfill set/number metadata from the baked-in card index (works offline, no fetch)
     const META=(typeof window!=='undefined'&&window.LORCANA_CARD_META)||null;
     if(META){
@@ -707,7 +734,7 @@ class Component extends DCLogic {
         this.setState({collection:file});
       }).catch(()=>{});
     }
-    this.setState({ ready:true, store, deck, tab, lib, collection });
+    this.setState({ ready:true, store, deck, tab, lib, collection, variants });
     setTimeout(()=>this.doSync(), 400);
     // Re-pull the shared atlas whenever the tab regains focus so every browser converges.
     if(typeof window!=='undefined' && !this._focusHook){
@@ -727,13 +754,13 @@ class Component extends DCLogic {
   loadFileTree(force){
     let cached=null;
     try{ cached=JSON.parse(localStorage.getItem(this.TREEKEY)); }catch(e){}
-    const fresh=cached&&cached.map&&(Date.now()-(cached.t||0))<24*3600*1000;
-    if(fresh&&!force){ this._fileTree=cached.map; return; }
+    const fresh=cached&&cached.multi&&(Date.now()-(cached.t||0))<24*3600*1000;
+    if(fresh&&!force){ this._fileTreeMulti=cached.multi; return; }
     if(this._treeLoading) return; this._treeLoading=true;
+    const multi={};
+    const prefix='Lorcana Cards Named/';
     fetch(this.TREE_API).then(r=>r.ok?r.json():null).then(j=>{
       if(!j||!Array.isArray(j.tree)) throw new Error('bad tree');
-      const map={};
-      const prefix='Lorcana Cards Named/';
       j.tree.forEach(node=>{
         if(!node||node.type!=='blob'||typeof node.path!=='string') return;
         if(node.path.indexOf(prefix)!==0) return;
@@ -741,20 +768,39 @@ class Component extends DCLogic {
         const base=file.replace(/\.[a-z0-9]+$/i,'');
         const m=base.match(/^.+? - .+? - (.+)$/);
         const nm=m?m[1]:base;
-        map[this.colKey(nm)]=file;
+        const k=this.colKey(nm);
+        (multi[k]=multi[k]||[]).push(file);
       });
-      this._fileTree=map;
-      try{ localStorage.setItem(this.TREEKEY, JSON.stringify({t:Date.now(), map})); }catch(e){}
+      this._fileTreeMulti=multi;
+      try{ localStorage.setItem(this.TREEKEY, JSON.stringify({t:Date.now(), multi})); }catch(e){}
       this._treeLoading=false;
       this.forceUpdate();
-    }).catch(()=>{ this._fileTree=this._fileTree||cached?.map||{}; this._treeLoading=false; });
+    }).catch(()=>{ this._fileTreeMulti=this._fileTreeMulti||cached?.multi||{}; this._treeLoading=false; });
   }
+  // All known image files for a card name (for the variant picker), in a stable order.
+  variantFiles(name){
+    const k=this.colKey(name);
+    return (this._fileTreeMulti&&this._fileTreeMulti[k])?this._fileTreeMulti[k].slice().sort():[];
+  }
+  variantChoice(name){ const k=this.colKey(name); return (this.state.variants||{})[k]||null; }
+  setVariant(name,file){
+    const k=this.colKey(name);
+    const variants={...(this.state.variants||{}), [k]:file};
+    if(!file) delete variants[k];
+    this.persistVariants(variants);
+    this.setState({variants, variantPick:null});
+    this.toast(file?'Art variant set':'Reverted to default art');
+  }
+  persistVariants(v){ try{ localStorage.setItem(this.VKEY, JSON.stringify(v)); localStorage.setItem(this.VKEY+'_stamp', new Date().toISOString()); }catch(e){} this.queueSync(); }
+  variantsStamp(){ try{ return localStorage.getItem(this.VKEY+'_stamp')||''; }catch(e){ return ''; } }
   imgUrl(name){
     if(!name) return null;
     const k=this.colKey(name);
-    if(this._fileTree){
-      const file=this._fileTree[k];
-      if(file) return this.IMG_BASE+encodeURIComponent(file);
+    if(this._fileTreeMulti&&this._fileTreeMulti[k]&&this._fileTreeMulti[k].length){
+      const files=this._fileTreeMulti[k];
+      const chosen=(this.state.variants||{})[k];
+      const file=(chosen&&files.includes(chosen))?chosen:files[0];
+      return this.IMG_BASE+encodeURIComponent(file);
     }
     const c=(this.state.collection||{})[k];
     const META=(typeof window!=='undefined'&&window.LORCANA_CARD_META)||{};
@@ -855,10 +901,15 @@ class Component extends DCLogic {
         this.persistCol(collection);
         try{ localStorage.setItem(this.CKEY+'_stamp', colUpdated); localStorage.setItem(this.CSEED,'user'); }catch(e){}
       }
+      let variants=s.variants||{}, variantsUpdated=this.variantsStamp();
+      if(rd&&rd.variants&&typeof rd.variants==='object'&&!Array.isArray(rd.variants)&&(rd.variantsUpdated||'')>(variantsUpdated||'')){
+        variants=rd.variants; variantsUpdated=rd.variantsUpdated;
+        try{ localStorage.setItem(this.VKEY, JSON.stringify(variants)); localStorage.setItem(this.VKEY+'_stamp', variantsUpdated); }catch(e){}
+      }
       this.persist(store); this.persistLib(lib);
       let deck=s.deck; if(!lib.find(d=>d.id===deck)) deck=lib[0].id;
-      this.setState({store, lib, collection, deck});
-      return {v:1, updated:new Date().toISOString(), store, lib, collection, colUpdated,
+      this.setState({store, lib, collection, variants, deck});
+      return {v:1, updated:new Date().toISOString(), store, lib, collection, colUpdated, variants, variantsUpdated,
         deletedGames:[...delG].sort(), deletedDecks:[...delD].sort()};
     } finally { this._merging=false; }
   }
@@ -871,7 +922,7 @@ class Component extends DCLogic {
       let remote=null;
       try{ remote=await this.ghGet(); }catch(e){ if(w) throw e; }
       const doc=this.mergeAll(remote&&remote.doc);
-      const sig=(o)=>{ try{ return JSON.stringify({s:o.store,l:o.lib,c:o.collection,cu:o.colUpdated,dg:(o.deletedGames||[]).slice().sort(),dd:(o.deletedDecks||[]).slice().sort()}); }catch(e){ return Math.random()+''; } };
+      const sig=(o)=>{ try{ return JSON.stringify({s:o.store,l:o.lib,c:o.collection,cu:o.colUpdated,v:o.variants,vu:o.variantsUpdated,dg:(o.deletedGames||[]).slice().sort(),dd:(o.deletedDecks||[]).slice().sort()}); }catch(e){ return Math.random()+''; } };
       const same=!!(remote&&remote.doc)&&sig(remote.doc)===sig(doc);
       if(w&&!same){
         const wrapped=this._wrapFmt!==false; // unknown (e.g. file didn't exist yet) defaults to the wrapped contract
@@ -1086,7 +1137,7 @@ class Component extends DCLogic {
 
   renderVals(){
     const s=this.state;
-    if(!s.ready) return { ready:false, tabs:[], deckCards:[], toast:s.toast||'', deck:{}, ring:{}, heroPrefix:'rr', editorOpen:false, ed:{}, onAddDeck:()=>{}, h1:{}, h2:{}, h3:{}, hp:{open:false,cards:[]}, sync:{open:false,chip:'○ Sync',chipStyle:"border:1px solid #8B7A6355;background:#F3F2E6;color:#8B7A63;border-radius:7px;padding:5px 10px;font-family:'Space Mono',monospace;font-size:.58rem;letter-spacing:.14em;text-transform:uppercase;cursor:pointer;white-space:nowrap"}, hideImg:()=>{} };
+    if(!s.ready) return { ready:false, tabs:[], deckCards:[], toast:s.toast||'', deck:{}, ring:{}, heroPrefix:'rr', editorOpen:false, ed:{}, onAddDeck:()=>{}, h1:{}, h2:{}, h3:{}, hp:{open:false,cards:[]}, sync:{open:false,chip:'○ Sync',chipStyle:"border:1px solid #8B7A6355;background:#F3F2E6;color:#8B7A63;border-radius:7px;padding:5px 10px;font-family:'Space Mono',monospace;font-size:.58rem;letter-spacing:.14em;text-transform:uppercase;cursor:pointer;white-space:nowrap"}, vp:{open:false,options:[]}, hideImg:()=>{} };
     const E=this.E, D=this.getDeck(s.deck), G=this.games(), a=this.agg(G);
 
     // deck switcher
@@ -1266,9 +1317,11 @@ class Component extends DCLogic {
       }
       const di=c.name.indexOf(' - ');
       const imc=this.imgUrl(c.name);
+      const vfilesC=this.variantFiles(c.name);
       const meta=[c.num!=null?('#'+c.num):'', c.color, c.rarity, c.foil?(c.foil+' foil'):''].filter(Boolean).join(' · ');
       curGroup.rows.push({
         name:c.name, qty:c.qty, meta, dot:I?I.dark:'#CDBF9F', img:imc, noImg:!imc, imgEl:this.imgEl(imc,c.name,{borderRadius:'10px'}),
+        canSwap:vfilesC.length>1, onSwap:()=>this.setState({variantPick:c.name}),
         slotId:'card_'+k.replace(/[^a-z0-9]+/g,'_'),
         title:di>0?c.name.slice(0,di):c.name, sub:di>0?c.name.slice(di+3):'',
         rarity:c.rarity||'', foilStr:c.foil?('✦ '+c.foil):'',
@@ -1293,7 +1346,9 @@ class Component extends DCLogic {
         const ink=(String((c&&c.color)||'').split(/[\s,\/]+/)[0]||'').toLowerCase();
         const I=this.INKS[ink];
         const im=this.imgUrl(r.name);
+        const vfiles=this.variantFiles(r.name);
         return { name:r.name, countStr:Math.min(have,r.qty)+'/'+r.qty, missing:miss, img:im, noImg:!im, imgEl:this.imgEl(im,r.name,{borderRadius:'10px'}),
+          canSwap:vfiles.length>1, onSwap:()=>this.setState({variantPick:r.name}),
           slotId:'card_'+k.replace(/[^a-z0-9]+/g,'_'),
           frameBg:I?`linear-gradient(165deg, ${I.bg}, #FBF6EC 70%)`:'linear-gradient(165deg, #F2E9D6, #FBF6EC 70%)',
           frameBorder:miss?'#d88a90':(I?I.border:'#d8c8a4'),
@@ -1347,6 +1402,24 @@ class Component extends DCLogic {
       onClear:()=>this.setHeroArt(this.state.heroPick, null),
       onClose:()=>this.setState({heroPick:null})
     };
+    // variant picker (choose which printing's art to show for a card name)
+    const vpName=s.variantPick||null;
+    const vpFiles=vpName?this.variantFiles(vpName):[];
+    const vpCur=vpName?this.variantChoice(vpName):null;
+    const vp={
+      open:!!vpName,
+      name:vpName||'',
+      options:vpFiles.map(file=>{
+        const base=file.replace(/\.[a-z0-9]+$/i,'');
+        const m=base.match(/^(.+?) - (.+?) - /);
+        const label=m?('Set '+parseInt(m[1],10)+' · #'+m[2]):file;
+        const url=this.IMG_BASE+encodeURIComponent(file);
+        return { file, label, img:url, imgEl:this.imgEl(url,label), current:file===(vpCur||vpFiles[0]),
+          currentBorder:file===(vpCur||vpFiles[0])?'#356B4E':'#d8c8a4',
+          onChoose:()=>this.setVariant(vpName, file===vpFiles[0]?null:file) };
+      }),
+      onClose:()=>this.setState({variantPick:null})
+    };
     // sync status + panel
     const sst=s.sync||'idle';
     const chipMap={ busy:['◌ Syncing…','#8B7A63'], ok:['● Synced','#356B4E'], error:['● Sync error','#9F2731'], offline:['○ Read-only','#9a6c0f'], idle:['○ Sync','#8B7A63'] };
@@ -1368,7 +1441,7 @@ class Component extends DCLogic {
 
     return {
       ready:true, toast:s.toast||'', tabs, deckCards,
-      h1, h2, h3, heroFrames, hp, sync,
+      h1, h2, h3, heroFrames, hp, sync, vp,
       hideImg:(e)=>{ if(e&&e.target) e.target.style.display='none'; },
       deck:{ title:D.title, tagline:D.tagline, kickerLine:D.kickerLine, accent:D.accent, chips },
       ring,
