@@ -29,6 +29,11 @@
   @keyframes scanline{0%{transform:translateY(-120%)}100%{transform:translateY(120%)}}
   @keyframes radarSpin{0%{transform:rotate(0deg)}100%{transform:rotate(360deg)}}
   @keyframes fallDown{0%{transform:translateY(-20vh)}100%{transform:translateY(120vh)}}
+  @media (max-width:640px){
+    [data-hero-grid]{grid-template-columns:1fr !important}
+    [data-hero-grid] > div:last-child{justify-self:center;margin-top:18px}
+    [data-screen-label="Masthead"]{flex-wrap:wrap}
+  }
 </style>
 </helmet>
 <div style="{{ themeVars }}{{ dotGrid }}min-height:100vh;background-color:var(--bg);color:var(--text);font-family:'Hanken Grotesk',system-ui,-apple-system,sans-serif;-webkit-font-smoothing:antialiased;line-height:1.5;transition:background-color .25s,color .25s;animation:gridDrift 3.2s linear infinite">
@@ -92,7 +97,7 @@
       <!-- ============ HERO ============ -->
       <div data-screen-label="Hero" style="position:relative;margin:24px 0 26px;padding:34px;border-radius:28px;overflow:hidden;background:linear-gradient(var(--panel),var(--panel)) padding-box, linear-gradient(135deg, rgba(204,120,92,.65), rgba(167,139,250,.5) 35%, rgba(74,222,128,.4) 65%, rgba(204,120,92,.65)) border-box;background-size:100% 100%, 300% 300%;border:1px solid transparent;box-shadow:var(--shadow);backdrop-filter:blur(24px);animation:borderFlow 8s linear infinite">
         <div style="position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,#CC785C,transparent);animation:scanline 4s ease-in-out infinite;pointer-events:none"></div>
-        <div style="position:relative;display:grid;grid-template-columns:1fr auto;gap:26px;align-items:center">
+        <div style="position:relative;display:grid;grid-template-columns:1fr auto;gap:26px;align-items:center" data-hero-grid="1">
           <div>
             <div style="font-family:'Space Mono',monospace;font-size:.7rem;letter-spacing:.3em;text-transform:uppercase;margin-bottom:16px;color:{{ deck.accent }}">{{ deck.kickerLine }}<span style="animation:blinkCursor 1s step-end infinite">_</span></div>
             <h1 style="font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:clamp(2.2rem,5vw,3.6rem);line-height:1.08;letter-spacing:-.02em;margin:0;color:var(--text)">{{ deck.title }}</h1>
@@ -179,7 +184,7 @@
         </sc-for>
       </div>
 
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:14px">
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px;margin-top:14px">
         <div style="background:linear-gradient(var(--panel),var(--panel)) padding-box, linear-gradient(135deg, rgba(204,120,92,.55), rgba(167,139,250,.4) 35%, rgba(74,222,128,.3) 65%, rgba(204,120,92,.55)) border-box;background-size:100% 100%, 300% 300%;border:1px solid transparent;border-radius:22px;box-shadow:var(--shadow);backdrop-filter:blur(24px);animation:borderFlow 10s linear infinite;padding:24px">
           <div style="font-family:'Space Mono',monospace;font-size:.66rem;font-weight:700;letter-spacing:.15em;text-transform:uppercase;color:#4ADE80;margin-bottom:14px">Why you won · {{ ov.winsCount }}</div>
           <sc-for list="{{ ov.winRows }}" as="r" hint-placeholder-count="3">
@@ -211,7 +216,7 @@
         <span style="font-family:'Space Mono',monospace;font-size:.78rem;color:#CC785C;letter-spacing:.1em">{{ mu.count }}</span>
         <h2 style="font-family:'Chakra Petch',sans-serif;font-weight:500;font-size:clamp(1.5rem,3vw,2.05rem);letter-spacing:-.01em;margin:0">Your matchups</h2>
       </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px">
         <sc-for list="{{ mu.rows }}" as="m" hint-placeholder-count="6">
           <div style="background:linear-gradient(var(--panel),var(--panel)) padding-box, linear-gradient(135deg, rgba(204,120,92,.55), rgba(167,139,250,.4) 35%, rgba(74,222,128,.3) 65%, rgba(204,120,92,.55)) border-box;background-size:100% 100%, 300% 300%;border:1px solid transparent;border-radius:22px;box-shadow:var(--shadow);backdrop-filter:blur(24px);animation:borderFlow 10s linear infinite;padding:24px;position:relative">
             <span style="position:absolute;top:18px;right:18px;font-family:'Space Mono',monospace;font-size:.56rem;letter-spacing:.12em;text-transform:uppercase;padding:4px 9px;border-radius:999px;background:{{ m.badgeBg }};color:{{ m.badgeColor }}">{{ m.badgeLabel }}</span>
@@ -236,7 +241,7 @@
         <span style="font-family:'Space Mono',monospace;font-size:.78rem;color:#CC785C;letter-spacing:.1em">◷</span>
         <h2 style="font-family:'Chakra Petch',sans-serif;font-weight:500;font-size:clamp(1.5rem,3vw,2.05rem);letter-spacing:-.01em;margin:0">The clock</h2>
       </div>
-      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px">
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px">
         <div style="background:var(--panel);border:1px solid var(--border);border-radius:18px;box-shadow:0 12px 26px -20px rgba(80,55,25,.28);padding:20px"><div style="font-family:'Space Mono',monospace;font-size:.62rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--text3);margin-bottom:10px">Avg turn to 10</div><div style="font-family:'Chakra Petch',sans-serif;font-weight:500;font-size:2.1rem;color:#7A5BB0;line-height:1">{{ ck.cross10Str }}</div><div style="font-size:.74rem;color:var(--text2);margin-top:6px">{{ ck.crossedStr }}</div></div>
         <div style="background:var(--panel);border:1px solid var(--border);border-radius:18px;box-shadow:0 12px 26px -20px rgba(80,55,25,.28);padding:20px"><div style="font-family:'Space Mono',monospace;font-size:.62rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--text3);margin-bottom:10px">Avg first quest</div><div style="font-family:'Chakra Petch',sans-serif;font-weight:500;font-size:2.1rem;color:#9a6c0f;line-height:1">{{ ck.fqStr }}</div><div style="font-size:.74rem;color:var(--text2);margin-top:6px">your active turn</div></div>
         <div style="background:var(--panel);border:1px solid var(--border);border-radius:18px;box-shadow:0 12px 26px -20px rgba(80,55,25,.28);padding:20px"><div style="font-family:'Space Mono',monospace;font-size:.62rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--text3);margin-bottom:10px">Lore / your turn</div><div style="font-family:'Chakra Petch',sans-serif;font-weight:500;font-size:2.1rem;line-height:1">{{ ck.lptStr }}</div><div style="font-size:.74rem;color:var(--text2);margin-top:6px">once active</div></div>
@@ -261,7 +266,7 @@
       </div>
 
       <sc-if value="{{ isDaleDeck }}" hint-placeholder-val="{{ true }}">
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:16px">
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px;margin-top:16px">
         <div style="background:var(--panel);border:1px solid var(--border);border-radius:22px;box-shadow:0 12px 26px -20px rgba(80,55,25,.28);padding:24px">
           <div style="font-family:'Space Mono',monospace;font-size:.66rem;font-weight:700;letter-spacing:.15em;text-transform:uppercase;color:var(--text3);margin-bottom:14px">Target curve</div>
           <div style="display:grid;gap:9px">
@@ -288,7 +293,7 @@
         <span style="font-family:'Space Mono',monospace;font-size:.78rem;color:#CC785C;letter-spacing:.1em">⚙</span>
         <h2 style="font-family:'Chakra Petch',sans-serif;font-weight:500;font-size:clamp(1.5rem,3vw,2.05rem);letter-spacing:-.01em;margin:0">Combos &amp; engine execution</h2>
       </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px">
         <sc-for list="{{ cb.rows }}" as="c" hint-placeholder-count="6">
           <div style="background:var(--panel);border:1px solid var(--border);border-left:5px solid {{ c.accent }};border-radius:18px;box-shadow:0 12px 26px -20px rgba(80,55,25,.28);padding:22px">
             <span style="display:inline-block;font-family:'Space Mono',monospace;font-size:.58rem;letter-spacing:.16em;text-transform:uppercase;padding:3px 8px;border-radius:6px;margin-bottom:9px;background:{{ c.kBg }};color:{{ c.accent }}">{{ c.kindLabel }}</span>
