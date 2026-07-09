@@ -68,11 +68,12 @@
         </div>
         <div style="display:flex;align-items:center;gap:9px">
           <button onclick="{{ onToggleTheme }}" title="Toggle theme" style="width:34px;height:34px;border-radius:10px;border:1px solid var(--border);background:var(--panel2);color:var(--text2);cursor:pointer;font-size:.9rem;display:flex;align-items:center;justify-content:center">{{ themeIcon }}</button>
+          <button onclick="{{ onAdminClick }}" title="{{ adminTitle }}" style="width:34px;height:34px;border-radius:10px;border:1px solid var(--border);background:var(--panel2);color:{{ adminColor }};cursor:pointer;font-size:.85rem;display:flex;align-items:center;justify-content:center">{{ adminIcon }}</button>
           <button onclick="{{ sync.onOpen }}" style="{{ sync.chipStyle }}">{{ sync.chip }}</button>
         </div>
       </header>
 
-      <!-- ============ DECK SWITCHER ============ -->
+      
       <div data-screen-label="Deck switcher" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px;margin-top:26px">
         <sc-for list="{{ deckCards }}" as="d" hint-placeholder-count="3">
           <div onClick="{{ d.onClick }}" style="{{ d.style }}">
@@ -94,7 +95,7 @@
         </button>
       </div>
 
-      <!-- ============ HERO ============ -->
+      
       <div data-screen-label="Hero" style="position:relative;margin:24px 0 26px;padding:34px;border-radius:28px;overflow:hidden;background:linear-gradient(var(--panel),var(--panel)) padding-box, linear-gradient(135deg, rgba(204,120,92,.65), rgba(167,139,250,.5) 35%, rgba(74,222,128,.4) 65%, rgba(204,120,92,.65)) border-box;background-size:100% 100%, 300% 300%;border:1px solid transparent;box-shadow:var(--shadow);backdrop-filter:blur(24px);animation:borderFlow 8s linear infinite">
         <div style="position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,#CC785C,transparent);animation:scanline 4s ease-in-out infinite;pointer-events:none"></div>
         <div style="position:relative;display:grid;grid-template-columns:1fr auto;gap:26px;align-items:center" data-hero-grid="1">
@@ -148,7 +149,7 @@
       </div>
     </div>
 
-    <!-- ============ EMPTY DOSSIER ============ -->
+    
     <sc-if value="{{ showEmpty }}" hint-placeholder-val="{{ false }}">
     <section data-screen-label="Empty dossier" style="padding:18px 0 70px">
       <div style="background:var(--panel);border:1px dashed var(--border-soft);border-radius:20px;padding:44px 28px;text-align:center">
@@ -160,7 +161,7 @@
     </section>
     </sc-if>
 
-    <!-- ============ OVERVIEW ============ -->
+    
     <sc-if value="{{ isOverview }}" hint-placeholder-val="{{ true }}">
     <section data-screen-label="Overview" style="padding:18px 0 70px">
       <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px">
@@ -209,7 +210,7 @@
     </section>
     </sc-if>
 
-    <!-- ============ MATCHUPS ============ -->
+    
     <sc-if value="{{ isMatchups }}" hint-placeholder-val="{{ false }}">
     <section data-screen-label="Matchups" style="padding:18px 0 70px">
       <div style="display:flex;align-items:baseline;gap:14px;margin:6px 0 22px">
@@ -234,7 +235,7 @@
     </section>
     </sc-if>
 
-    <!-- ============ CLOCK ============ -->
+    
     <sc-if value="{{ isClock }}" hint-placeholder-val="{{ false }}">
     <section data-screen-label="Clock" style="padding:18px 0 70px">
       <div style="display:flex;align-items:baseline;gap:14px;margin:6px 0 22px">
@@ -250,7 +251,7 @@
       <div style="background:linear-gradient(var(--panel),var(--panel)) padding-box, linear-gradient(135deg, rgba(204,120,92,.55), rgba(167,139,250,.4) 35%, rgba(74,222,128,.3) 65%, rgba(204,120,92,.55)) border-box;background-size:100% 100%, 300% 300%;border:1px solid transparent;border-radius:22px;box-shadow:var(--shadow);backdrop-filter:blur(24px);animation:borderFlow 10s linear infinite;padding:24px;margin-top:16px">
         <div style="display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap">
           <div style="font-family:'Space Mono',monospace;font-size:.66rem;font-weight:700;letter-spacing:.15em;text-transform:uppercase;color:var(--text3)">Your lore curve, by game-turn</div>
-          <select onchange="{{ ck.onSelect }}" value="{{ ck.selIndex }}" style="border:1px solid var(--border);border-radius:10px;padding:7px 10px;font-family:inherit;font-size:.78rem;background:var(--panel2);color:var(--text);max-width:260px">
+          <select onchange="{{ ck.onSelect }}" value="{{ ck.selIndex }}" style="color-scheme:{{ colorScheme }};border:1px solid var(--border);border-radius:10px;padding:7px 10px;font-family:inherit;font-size:.78rem;color:var(--text);background:var(--panel2);color:var(--text);max-width:260px">
             <sc-for list="{{ ck.games }}" as="o" hint-placeholder-count="4"><option value="{{ o.i }}">{{ o.label }}</option></sc-for>
           </select>
         </div>
@@ -286,7 +287,7 @@
     </section>
     </sc-if>
 
-    <!-- ============ COMBOS ============ -->
+    
     <sc-if value="{{ isCombos }}" hint-placeholder-val="{{ false }}">
     <section data-screen-label="Combos" style="padding:18px 0 70px">
       <div style="display:flex;align-items:baseline;gap:14px;margin:6px 0 22px">
@@ -310,7 +311,7 @@
     </section>
     </sc-if>
 
-    <!-- ============ DECK ============ -->
+    
     <sc-if value="{{ isDeckTab }}" hint-placeholder-val="{{ false }}">
     <section data-screen-label="Deck" style="padding:18px 0 70px">
       <div style="display:flex;align-items:baseline;gap:14px;margin:6px 0 22px">
@@ -367,7 +368,7 @@
     </section>
     </sc-if>
 
-    <!-- ============ COLLECTION ============ -->
+    
     <sc-if value="{{ isCollection }}" hint-placeholder-val="{{ false }}">
     <section data-screen-label="Collection" style="padding:18px 0 70px">
       <div style="display:flex;align-items:baseline;gap:14px;margin:6px 0 22px">
@@ -453,7 +454,7 @@
     </section>
     </sc-if>
 
-    <!-- ============ GAMES ============ -->
+    
     <sc-if value="{{ isGames }}" hint-placeholder-val="{{ false }}">
     <section data-screen-label="Games" style="padding:18px 0 70px">
       <div style="background:linear-gradient(var(--panel),var(--panel)) padding-box, linear-gradient(135deg, rgba(204,120,92,.55), rgba(167,139,250,.4) 35%, rgba(74,222,128,.3) 65%, rgba(204,120,92,.55)) border-box;background-size:100% 100%, 300% 300%;border:1px solid transparent;border-radius:22px;box-shadow:var(--shadow);backdrop-filter:blur(24px);animation:borderFlow 10s linear infinite;padding:24px">
@@ -480,8 +481,8 @@
             <sc-for list="{{ parsedView.chips }}" as="ch" hint-placeholder-count="2"><span style="font-size:.72rem;font-weight:600;padding:4px 9px;border-radius:999px;background:#F4E8CC;color:#9a6c0f">{{ ch }}</span></sc-for>
           </div>
           <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;margin-top:13px">
-            <label style="display:flex;flex-direction:column;gap:5px;font-size:.72rem;color:var(--text2);font-weight:600">Opponent<select onchange="{{ onParsedArch }}" value="{{ parsedView.archetype }}" style="border:1px solid var(--border);border-radius:10px;padding:7px 10px;font-family:inherit;font-size:.78rem;background:var(--panel2);color:var(--text)"><sc-for list="{{ parsedView.archOptions }}" as="o" hint-placeholder-count="5"><option value="{{ o }}">{{ o }}</option></sc-for></select></label>
-            <label style="display:flex;flex-direction:column;gap:5px;font-size:.72rem;color:var(--text2);font-weight:600">{{ parsedView.catLabel }}<select onchange="{{ onParsedCat }}" value="{{ parsedView.catValue }}" style="border:1px solid var(--border);border-radius:10px;padding:7px 10px;font-family:inherit;font-size:.78rem;background:var(--panel2);color:var(--text)"><sc-for list="{{ parsedView.catOptions }}" as="o" hint-placeholder-count="5"><option value="{{ o }}">{{ o }}</option></sc-for></select></label>
+            <label style="display:flex;flex-direction:column;gap:5px;font-size:.72rem;color:var(--text2);font-weight:600">Opponent<select onchange="{{ onParsedArch }}" value="{{ parsedView.archetype }}" style="color-scheme:{{ colorScheme }};border:1px solid var(--border);border-radius:10px;padding:7px 10px;font-family:inherit;font-size:.78rem;background:var(--panel2);color:var(--text)"><sc-for list="{{ parsedView.archOptions }}" as="o" hint-placeholder-count="5"><option value="{{ o }}">{{ o }}</option></sc-for></select></label>
+            <label style="display:flex;flex-direction:column;gap:5px;font-size:.72rem;color:var(--text2);font-weight:600">{{ parsedView.catLabel }}<select onchange="{{ onParsedCat }}" value="{{ parsedView.catValue }}" style="color-scheme:{{ colorScheme }};border:1px solid var(--border);border-radius:10px;padding:7px 10px;font-family:inherit;font-size:.78rem;background:var(--panel2);color:var(--text)"><sc-for list="{{ parsedView.catOptions }}" as="o" hint-placeholder-count="5"><option value="{{ o }}">{{ o }}</option></sc-for></select></label>
             <label style="display:flex;flex-direction:column;gap:5px;font-size:.72rem;color:var(--text2);font-weight:600">Venue<input type="text" onchange="{{ onPvVenue }}" placeholder="Online ladder" style="border:1px solid var(--border);border-radius:10px;padding:7px 10px;font-family:inherit;font-size:.78rem;background:var(--panel2);color:var(--text)"></label>
           </div>
           <label style="display:flex;flex-direction:column;gap:5px;font-size:.72rem;color:var(--text2);font-weight:600;margin-top:10px">Notes<input type="text" onchange="{{ onPvNotes }}" placeholder="What decided it?" style="border:1px solid var(--border);border-radius:10px;padding:7px 10px;font-family:inherit;font-size:.78rem;background:var(--panel2);color:var(--text)"></label>
@@ -502,8 +503,8 @@
                 <sc-for list="{{ g.chips }}" as="ch" hint-placeholder-count="2"><span style="font-size:.71rem;font-weight:600;padding:3px 9px;border-radius:999px;background:{{ ch.bg }};color:{{ ch.color }}">{{ ch.label }}</span></sc-for>
               </div>
               <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:10px">
-                <select onchange="{{ g.onArch }}" value="{{ g.archetype }}" style="border:1px solid var(--border);border-radius:10px;padding:6px 9px;font-family:inherit;font-size:.76rem;background:var(--panel2);color:var(--text)"><sc-for list="{{ g.archOptions }}" as="o" hint-placeholder-count="5"><option value="{{ o }}">{{ o }}</option></sc-for></select>
-                <select onchange="{{ g.onCat }}" value="{{ g.catValue }}" style="border:1px solid var(--border);border-radius:10px;padding:6px 9px;font-family:inherit;font-size:.76rem;background:var(--panel2);color:var(--text)"><sc-for list="{{ g.catOptions }}" as="o" hint-placeholder-count="5"><option value="{{ o }}">{{ o }}</option></sc-for></select>
+                <select onchange="{{ g.onArch }}" value="{{ g.archetype }}" style="color-scheme:{{ colorScheme }};border:1px solid var(--border);border-radius:10px;padding:6px 9px;font-family:inherit;font-size:.76rem;background:var(--panel2);color:var(--text)"><sc-for list="{{ g.archOptions }}" as="o" hint-placeholder-count="5"><option value="{{ o }}">{{ o }}</option></sc-for></select>
+                <select onchange="{{ g.onCat }}" value="{{ g.catValue }}" style="color-scheme:{{ colorScheme }};border:1px solid var(--border);border-radius:10px;padding:6px 9px;font-family:inherit;font-size:.76rem;background:var(--panel2);color:var(--text)"><sc-for list="{{ g.catOptions }}" as="o" hint-placeholder-count="5"><option value="{{ o }}">{{ o }}</option></sc-for></select>
                 <button onclick="{{ g.onDelete }}" style="border:0;background:transparent;color:#B3232C;font-family:inherit;font-weight:600;font-size:.76rem;padding:5px 6px;cursor:pointer">Delete</button>
               </div>
             </div>
@@ -598,12 +599,12 @@
         </label>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
           <label style="display:flex;flex-direction:column;gap:6px;font-size:.74rem;color:var(--text2);font-weight:600">First ink
-            <select value="{{ ed.ink1 }}" onchange="{{ ed.onInk1 }}" style="border:1px solid var(--border);border-radius:11px;padding:10px 12px;font-family:inherit;font-size:.88rem;background:var(--panel2);color:var(--text)">
+            <select value="{{ ed.ink1 }}" onchange="{{ ed.onInk1 }}" style="color-scheme:{{ colorScheme }};border:1px solid var(--border);border-radius:11px;padding:10px 12px;font-family:inherit;font-size:.88rem;background:var(--panel2);color:var(--text)">
               <sc-for list="{{ ed.inkOptions }}" as="o" hint-placeholder-count="6"><option value="{{ o.v }}">{{ o.label }}</option></sc-for>
             </select>
           </label>
           <label style="display:flex;flex-direction:column;gap:6px;font-size:.74rem;color:var(--text2);font-weight:600">Second ink
-            <select value="{{ ed.ink2 }}" onchange="{{ ed.onInk2 }}" style="border:1px solid var(--border);border-radius:11px;padding:10px 12px;font-family:inherit;font-size:.88rem;background:var(--panel2);color:var(--text)">
+            <select value="{{ ed.ink2 }}" onchange="{{ ed.onInk2 }}" style="color-scheme:{{ colorScheme }};border:1px solid var(--border);border-radius:11px;padding:10px 12px;font-family:inherit;font-size:.88rem;background:var(--panel2);color:var(--text)">
               <sc-for list="{{ ed.inkOptions }}" as="o" hint-placeholder-count="6"><option value="{{ o.v }}">{{ o.label }}</option></sc-for>
             </select>
           </label>
@@ -636,6 +637,38 @@
   <sc-if value="{{ toast }}" hint-placeholder-val="{{ false }}">
     <div style="position:fixed;bottom:22px;left:50%;transform:translateX(-50%);background:var(--text);color:#fff;padding:11px 20px;border-radius:13px;font-size:.85rem;font-weight:600;z-index:60;box-shadow:0 14px 30px -12px rgba(0,0,0,.4)">{{ toast }}</div>
   </sc-if>
+
+  <sc-if value="{{ adminOpen }}" hint-placeholder-val="{{ false }}">
+    <div style="position:fixed;inset:0;z-index:90;background:rgba(0,0,0,.6);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;padding:24px" onclick="{{ onCloseAdmin }}">
+      <div style="background:var(--panel);border:1px solid var(--border-soft);border-radius:22px;box-shadow:0 30px 60px -20px rgba(0,0,0,.6);backdrop-filter:blur(28px);max-width:360px;width:100%;padding:26px" onclick="{{ stopClick }}">
+        <sc-if value="{{ isAdminNow }}" hint-placeholder-val="{{ false }}">
+          <div style="font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:1.1rem;margin-bottom:6px">Admin session active</div>
+          <div style="font-size:.82rem;color:var(--text2);margin-bottom:18px">You can save changes on this device. Session ends automatically after 1 hour.</div>
+          <div style="display:flex;gap:9px">
+            <button onclick="{{ onLogout }}" style="flex:1;border:0;border-radius:12px;padding:10px 16px;font-family:inherit;font-weight:700;font-size:.85rem;cursor:pointer;background:var(--chip-bg);color:var(--text)">Log out</button>
+            <button onclick="{{ onCloseAdmin }}" style="border:1px solid var(--border);background:transparent;color:var(--text2);border-radius:12px;padding:10px 16px;font-family:inherit;font-size:.85rem;cursor:pointer">Close</button>
+          </div>
+        </sc-if>
+        <sc-if value="{{ showLoginForm }}" hint-placeholder-val="{{ true }}">
+          <div style="font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:1.1rem;margin-bottom:6px">Admin login</div>
+          <div style="font-size:.82rem;color:var(--text2);margin-bottom:16px">Everyone can view decks and stats. Only an admin can save changes.</div>
+          <label style="display:flex;flex-direction:column;gap:5px;font-size:.72rem;color:var(--text2);font-weight:600;margin-bottom:12px">Username
+            <input type="text" value="{{ loginUser }}" onchange="{{ onLoginUser }}" autocomplete="username" style="border:1px solid var(--border);border-radius:11px;padding:10px 12px;font-family:inherit;font-size:.88rem;background:var(--panel2);color:var(--text)">
+          </label>
+          <label style="display:flex;flex-direction:column;gap:5px;font-size:.72rem;color:var(--text2);font-weight:600;margin-bottom:6px">Password
+            <input type="password" value="{{ loginPass }}" onchange="{{ onLoginPass }}" autocomplete="current-password" style="border:1px solid var(--border);border-radius:11px;padding:10px 12px;font-family:inherit;font-size:.88rem;background:var(--panel2);color:var(--text)">
+          </label>
+          <sc-if value="{{ loginErr }}" hint-placeholder-val="{{ false }}">
+            <div style="color:#F87171;font-size:.78rem;margin-top:8px">{{ loginErr }}</div>
+          </sc-if>
+          <div style="display:flex;gap:9px;margin-top:16px">
+            <button onclick="{{ onDoLogin }}" disabled="{{ loginBusy }}" style="flex:1;border:0;border-radius:12px;padding:10px 16px;font-family:inherit;font-weight:700;font-size:.85rem;cursor:pointer;background:#CC785C;color:#fff">{{ loginBtnLabel }}</button>
+            <button onclick="{{ onCloseAdmin }}" style="border:1px solid var(--border);background:transparent;color:var(--text2);border-radius:12px;padding:10px 16px;font-family:inherit;font-size:.85rem;cursor:pointer">Cancel</button>
+          </div>
+        </sc-if>
+      </div>
+    </div>
+  </sc-if>
   </div>
 </div>
 
@@ -648,7 +681,7 @@ class Component extends DCLogic {
     light:"--bg:#F3F1EC;--panel:#FFFFFF;--panel2:#FAF9F6;--border:#E6E2D8;--border-soft:#EDE9DE;--text:#1B1712;--text2:#5C5648;--text3:#8B8579;--nav-bg:#ECE7DA;--chip-bg:#EFEBDF;--shadow:0 1px 2px rgba(20,15,5,.04),0 18px 38px -24px rgba(20,15,5,.14);--sticky-bg:rgba(243,241,236,.82);--hero-glow:radial-gradient(940px 420px at 50% -160px, rgba(204,120,92,.14), transparent 70%), radial-gradient(760px 360px at 88% -120px, rgba(200,146,15,.11), transparent 66%);"
   };
   dotGrid(theme){ const c=theme==='light'?'rgba(20,15,5,.06)':'rgba(255,255,255,.05)'; return `background-image:radial-gradient(${c} 1.2px, transparent 1.2px);background-size:22px 22px;`; }
-  RAIN_POOL=['🧞','🪔','🐠','🦀','🐚','🌊','🦁','🐗','🦝','☀️','❄️','⛄','🦌','🪄','✨','📖','🌹','🏹','🐻','🍎','🧵','🪡','👠','🎃','🕛','🐭','🦎','🌺','🌴','⛵','🐚','🐉','⚔️','🏮'];
+  RAIN_POOL=['🏰','✨','🪄','⭐','🌟','💫','🎆','🎇','👑','🧚','🧚‍♀️','🦄','🌙','☁️','🌈','🎠','🎡','🎢','🎭','🎶','🎵','❤️','💛','💙','🐭','🐁','🐶','🦆','🐿️','🐻','🐰','🦌','🐘','🐅','🐒','🦁','🎩','🧤','🤠','🚀','👽','🧸','🪀','🪁','👨‍🚀','🌌','🛸','🐴','🦖','🦕','🐷','🪙','💰','🌀','🥔','👓','👞','🐑','🎀','🍴','🗑️','🍓','🪖','🎖️','🟢','🏎️','🔋','⚡','👾','😈','🧩','🎲','🚗','🚙','🛞','🏁','🔧','🛠️','⛽','🛣️','🐠','🐟','🐡','🦈','🐢','🐙','🦀','🐚','🌊','🏝️','⛵','🤿','👁️','👹','🚪','🔦','😱','💚','🏠','🎈','👴','👦','🌄','🧭','✈️','🤖','🌱','🪴','🛰️','♻️','🧯','🐀','👨‍🍳','🍳','🥖','🧀','🍝','🍷','🥘','🎸','💀','🌼','🕯️','👨‍👩‍👧‍👦','🧡','😊','😢','😡','😨','🤢','🧠','💭','❄️','⛄','🧊','🏔️','🌨️','🦋','🌺','💃','🐓','🧜‍♀️','🧜','🔱','🍎','📖','🌹','☕','🫖','🐗','🦓','🐆','🐸','🍯','🐝','🐦','🦢','🏹','🗡️','🐉','🐲','🌸','🪷','🐎','🦗','🏮','🎎','🎋','🥋','🪭','🧞','🧞‍♂️','🧞‍♀️','🪔','🕌','💎','🧺','🍞','🐍','🦜','🪶','🧚‍♂️','🏴‍☠️','⚓','🐊','⏰','🪝','🧒','🧑‍✈️','🛶','🛳️','🌲','🍄','🦝','🐺','🦅','🦉','🌻','🌷','💐','🏵️','🍃','🍂','🍁','☀️','☾','☽','★','☆','✦','✧','❇','❈','❉','❊','❋','✶','✷','✸','✹','✺','✻','✼','✽','✾','✿','❀','❁','♥','♡','♛','♕','♔','♚','☀','☂'];
   buildRainCols(tick){
     tick = tick||0;
     const N=102, pool=this.RAIN_POOL, plen=pool.length, out=[];
@@ -682,8 +715,19 @@ class Component extends DCLogic {
     let theme='dark'; try{ theme=localStorage.getItem('lorcanaAtlas_theme_v1')||'dark'; }catch(e){}
     this.setState({theme});
     this._rainTimer = setInterval(()=>{ this.setState(s=>({rainTick:((s.rainTick||0)+1)%10000})); }, 650);
+    // Light deterrent against casual copying — not real protection (any browser that
+    // renders this page must download the full source; devtools can't be blocked).
+    if(typeof document!=='undefined' && !this._antiCopyHook){
+      this._antiCopyHook=1;
+      document.addEventListener('contextmenu', e=>e.preventDefault());
+      document.addEventListener('keydown', e=>{
+        const k=(e.key||'').toLowerCase();
+        if(k==='f12' || (e.ctrlKey&&e.shiftKey&&(k==='i'||k==='j'||k==='c')) || (e.ctrlKey&&k==='u')) e.preventDefault();
+      });
+    }
     this.KEY='lorcanaAtlas_games_v1'; this.DKEY='lorcanaAtlas_deck_v1'; this.TKEY='lorcanaAtlas_tab_v1'; this.LKEY='lorcanaAtlas_decks_v1'; this.CKEY='lorcanaAtlas_collection_v1'; this.CSEED='lorcanaAtlas_colSeed_v1';
     this.GKEY='lorcanaAtlas_gh_token_v1'; this.TOMB='lorcanaAtlas_tombs_v1'; this.SURL='lorcanaAtlas_syncurl_v1';
+    this.ADMIN_KEY='lorcanaAtlas_admin_v1';
     this.GH={owner:'luiscredie', repo:'lorcana', branch:'main', path:'atlas-data.json'};
     // Public read path (same origin as the site) — every device reads the shared atlas with zero config.
     this.READ_URL='atlas-data.json';
@@ -980,10 +1024,12 @@ class Component extends DCLogic {
       const doc=this.mergeAll(remote&&remote.doc);
       const sig=(o)=>{ try{ return JSON.stringify({s:o.store,l:o.lib,c:o.collection,cu:o.colUpdated,v:o.variants,vu:o.variantsUpdated,dg:(o.deletedGames||[]).slice().sort(),dd:(o.deletedDecks||[]).slice().sort()}); }catch(e){ return Math.random()+''; } };
       const same=!!(remote&&remote.doc)&&sig(remote.doc)===sig(doc);
-      if(w&&!same){
+      const token=this.adminToken();
+      if(w&&!same&&token){
         const wrapped=this._wrapFmt!==false; // unknown (e.g. file didn't exist yet) defaults to the wrapped contract
         const body=wrapped?JSON.stringify({content:JSON.stringify(doc), sha:remote&&remote.sha}):JSON.stringify(doc);
-        const r=await fetch(w, {method:'POST', headers:{'Content-Type':'application/json'}, body});
+        const r=await fetch(w, {method:'POST', headers:{'Content-Type':'application/json', 'Authorization':'Bearer '+token}, body});
+        if(r.status===401){ try{ localStorage.removeItem(this.ADMIN_KEY); }catch(e){} throw new Error('admin session expired — log in again to save'); }
         if(r.status===409||r.status===422){
           this._retry=(this._retry||0)+1;
           if(this._retry<=2){ this._syncing=false; return this.doSync(); }
@@ -1002,6 +1048,40 @@ class Component extends DCLogic {
       if(this._again){ this._again=false; this.queueSync(); }
     }
   }
+  // ---- Admin auth: server (Worker) verifies user/pass and issues a signed, time-limited
+  // token; the browser only ever stores that token, never the password. ----
+  isAdmin(){ return !!this.adminToken(); }
+  adminToken(){
+    try{
+      const raw=localStorage.getItem(this.ADMIN_KEY); if(!raw) return null;
+      const s=JSON.parse(raw);
+      if(!s||!s.token||!s.exp) return null;
+      if(Date.now()>s.exp){ localStorage.removeItem(this.ADMIN_KEY); return null; }
+      return s.token;
+    }catch(e){ return null; }
+  }
+  requireAdmin(fn){
+    return (...args)=>{
+      if(this.isAdmin()) return fn(...args);
+      this.setState({adminOpen:true, loginErr:''});
+    };
+  }
+  async doLogin(){
+    const w=this.syncUrl();
+    if(!w){ this.setState({loginErr:'No save server configured yet'}); return; }
+    const user=(this.state.loginUser||'').trim(), pass=this.state.loginPass||'';
+    if(!user||!pass){ this.setState({loginErr:'Enter username and password'}); return; }
+    this.setState({loginBusy:true, loginErr:''});
+    try{
+      const r=await fetch(w, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({action:'login', user, pass})});
+      const j=await r.json().catch(()=>({}));
+      if(!r.ok||!j.token){ this.setState({loginBusy:false, loginErr:j.error||'Invalid login'}); return; }
+      try{ localStorage.setItem(this.ADMIN_KEY, JSON.stringify({token:j.token, exp:j.exp})); }catch(e){}
+      this.setState({loginBusy:false, adminOpen:false, loginUser:'', loginPass:'', loginErr:''});
+      this.toast('Logged in — you can now save changes');
+    }catch(e){ this.setState({loginBusy:false, loginErr:'Could not reach save server'}); }
+  }
+  doLogout(){ try{ localStorage.removeItem(this.ADMIN_KEY); }catch(e){} this.setState({}); this.toast('Logged out'); }
   tabAllowed(tab,deck,lib){
     const d=this.getDeck(deck,lib);
     if(tab==='combos'&&!d.hasCombos) return false;
@@ -1193,7 +1273,10 @@ class Component extends DCLogic {
 
   renderVals(){
     const s=this.state;
-    if(!s.ready) return { ready:false, tabs:[], deckCards:[], toast:s.toast||'', deck:{}, ring:{}, heroPrefix:'rr', editorOpen:false, ed:{}, onAddDeck:()=>{}, themeVars:this.THEMES[s.theme==='light'?'light':'dark'], dotGrid:this.dotGrid(s.theme), themeIcon:s.theme==='light'?'\u25d1':'\u25cf', onToggleTheme:()=>{}, rainCols:this.buildRainCols(s.rainTick), h1:{}, h2:{}, h3:{}, hp:{open:false,cards:[]}, sync:{open:false,chip:'○ Sync',chipStyle:"border:1px solid #8B7A6355;background:#F3F2E6;color:#8B7A63;border-radius:7px;padding:5px 10px;font-family:'Space Mono',monospace;font-size:.58rem;letter-spacing:.14em;text-transform:uppercase;cursor:pointer;white-space:nowrap"}, vp:{open:false,options:[]}, hideImg:()=>{} };
+    if(!s.ready) return { ready:false, tabs:[], deckCards:[], toast:s.toast||'', deck:{}, ring:{}, heroPrefix:'rr', editorOpen:false, ed:{}, onAddDeck:()=>{}, themeVars:this.THEMES[s.theme==='light'?'light':'dark'], dotGrid:this.dotGrid(s.theme), themeIcon:s.theme==='light'?'\u25d1':'\u25cf', onToggleTheme:()=>{}, colorScheme:s.theme==='light'?'light':'dark', rainCols:this.buildRainCols(s.rainTick),
+      adminOpen:!!s.adminOpen, isAdminNow:false, showLoginForm:true, loginUser:'', loginPass:'', loginErr:'', loginBusy:false, loginBtnLabel:'Log in',
+      onLoginUser:()=>{}, onLoginPass:()=>{}, onDoLogin:()=>{}, onCloseAdmin:()=>{}, onLogout:()=>{}, onAdminClick:()=>{}, adminIcon:'\u25cb', adminColor:'var(--text2)', adminTitle:'Admin login',
+      h1:{}, h2:{}, h3:{}, hp:{open:false,cards:[]}, sync:{open:false,chip:'○ Sync',chipStyle:"border:1px solid #8B7A6355;background:#F3F2E6;color:#8B7A63;border-radius:7px;padding:5px 10px;font-family:'Space Mono',monospace;font-size:.58rem;letter-spacing:.14em;text-transform:uppercase;cursor:pointer;white-space:nowrap"}, vp:{open:false,options:[]}, hideImg:()=>{} };
     const E=this.E, D=this.getDeck(s.deck), G=this.games(), a=this.agg(G);
 
     // deck switcher
@@ -1204,7 +1287,7 @@ class Component extends DCLogic {
       return {
         active:act,
         onClick:()=>this.setDeck(id),
-        onEdit:(e)=>{ e.stopPropagation(); this.openEditor(id); },
+        onEdit:(e)=>{ e.stopPropagation(); this.requireAdmin(()=>this.openEditor(id))(); },
         style:`position:relative;text-align:left;font-family:inherit;cursor:pointer;border-radius:14px;padding:16px 16px 13px;transition:.15s;display:block;width:100%;box-sizing:border-box;${act
           ?'background:var(--panel2);border:1px solid #CC785C;box-shadow:0 12px 24px -14px rgba(0,0,0,.5), inset 0 0 0 2px rgba(204,120,92,.2)'
           :'background:var(--panel);border:1px dashed var(--border-soft);box-shadow:none'}`,
@@ -1336,7 +1419,7 @@ class Component extends DCLogic {
         to10:g.cross10?'T'+g.cross10:'—', myT:g.cross10MyTurn?'(your T'+g.cross10MyTurn+')':'',
         archetype:g.archetype||'Other / Unknown', archOptions:ARCH,
         catValue:(g.result==='W'?g.winCat:g.lossCat)||'', catOptions:(g.result==='W'?WIN:LOSS),
-        onArch:(e)=>this.setArch(idx,e.target.value), onCat:(e)=>this.setCat(idx,e.target.value), onDelete:()=>this.delGame(g.id)
+        onArch:this.requireAdmin((e)=>this.setArch(idx,e.target.value)), onCat:this.requireAdmin((e)=>this.setCat(idx,e.target.value)), onDelete:this.requireAdmin(()=>this.delGame(g.id))
       };
     });
     const gm={ logText:s.logText, count:G.length, games:gmGames };
@@ -1442,7 +1525,7 @@ class Component extends DCLogic {
       complete:!!reqs&&covNeed>0&&shopping.length===0,
       onName:(e)=>this.setState({colName:e.target.value}),
       onQty:(e)=>this.setState({colQty:e.target.value}),
-      onAdd:()=>this.addCard()
+      onAdd:this.requireAdmin(()=>this.addCard())
     };
 
     // hero art frames + picker
@@ -1464,8 +1547,8 @@ class Component extends DCLogic {
       open:s.heroPick!=null,
       title:s.heroPick===1?'Pick the hero card':'Pick card art',
       noCards:!reqsAll.length,
-      cards:reqsAll.map(r=>{ const u=this.imgUrl(r.name); return { name:r.name, img:u, imgEl:this.imgEl(u,r.name), onChoose:()=>this.setHeroArt(this.state.heroPick, r.name) }; }),
-      onClear:()=>this.setHeroArt(this.state.heroPick, null),
+      cards:reqsAll.map(r=>{ const u=this.imgUrl(r.name); return { name:r.name, img:u, imgEl:this.imgEl(u,r.name), onChoose:this.requireAdmin(()=>this.setHeroArt(this.state.heroPick, r.name)) }; }),
+      onClear:this.requireAdmin(()=>this.setHeroArt(this.state.heroPick, null)),
       onClose:()=>this.setState({heroPick:null})
     };
     // variant picker (choose which printing's art to show for a card name)
@@ -1482,7 +1565,7 @@ class Component extends DCLogic {
         const url=this.IMG_BASE+encodeURIComponent(file);
         return { file, label, img:url, imgEl:this.imgEl(url,label), current:file===(vpCur||vpFiles[0]),
           currentBorder:file===(vpCur||vpFiles[0])?'#356B4E':'var(--border-soft)',
-          onChoose:()=>this.setVariant(vpName, file===vpFiles[0]?null:file) };
+          onChoose:this.requireAdmin(()=>this.setVariant(vpName, file===vpFiles[0]?null:file)) };
       }),
       onClose:()=>this.setState({variantPick:null})
     };
@@ -1509,7 +1592,22 @@ class Component extends DCLogic {
       ready:true, toast:s.toast||'', tabs, deckCards,
       themeVars: this.THEMES[s.theme==='light'?'light':'dark'],
       dotGrid: this.dotGrid(s.theme),
+      colorScheme: s.theme==='light'?'light':'dark',
       rainCols: this.buildRainCols(s.rainTick),
+      adminOpen: !!s.adminOpen,
+      isAdminNow: this.isAdmin(),
+      showLoginForm: !this.isAdmin(),
+      loginUser: s.loginUser||'', loginPass: s.loginPass||'', loginErr: s.loginErr||'', loginBusy: !!s.loginBusy,
+      loginBtnLabel: s.loginBusy?'Logging in…':'Log in',
+      onLoginUser:(e)=>this.setState({loginUser:e.target.value}),
+      onLoginPass:(e)=>this.setState({loginPass:e.target.value}),
+      onDoLogin:()=>this.doLogin(),
+      onCloseAdmin:()=>this.setState({adminOpen:false, loginErr:''}),
+      onLogout:()=>this.doLogout(),
+      onAdminClick:()=>this.setState({adminOpen:true, loginErr:''}),
+      adminIcon: this.isAdmin()?'\u25cf':'\u25cb',
+      adminColor: this.isAdmin()?'#4ADE80':'var(--text2)',
+      adminTitle: this.isAdmin()?'Admin session active':'Admin login',
       themeIcon: s.theme==='light'?'\u25d1':'\u25cf',
       onToggleTheme:()=>{ const t=s.theme==='light'?'dark':'light'; try{ localStorage.setItem('lorcanaAtlas_theme_v1', t); }catch(e){} this.setState({theme:t}); },
 
@@ -1537,10 +1635,10 @@ class Component extends DCLogic {
         onInk1:(e)=>this.edField('ink1',e.target.value),
         onInk2:(e)=>this.edField('ink2',e.target.value)
       }:{},
-      onAddDeck:()=>this.openEditor(null),
-      onEditorSave:()=>this.saveEditor(),
+      onAddDeck:this.requireAdmin(()=>this.openEditor(null)),
+      onEditorSave:this.requireAdmin(()=>this.saveEditor()),
       onEditorCancel:()=>this.setState({editor:null}),
-      onEditorDelete:()=>this.deleteEditorDeck(),
+      onEditorDelete:this.requireAdmin(()=>this.deleteEditorDeck()),
       stopClick:(e)=>e.stopPropagation(),
       ov, mu, ck, cb, gm, parsedView,
       goGames:()=>this.setTab('games'),
@@ -1550,8 +1648,8 @@ class Component extends DCLogic {
       onParsedCat:(e)=>{ const q={...s.parsed}; if(q.result==='W')q.winCat=e.target.value; else q.lossCat=e.target.value; this.setState({parsed:q}); },
       onPvVenue:(e)=>this.setState({pv:{...s.pv,venue:e.target.value}}),
       onPvNotes:(e)=>this.setState({pv:{...s.pv,notes:e.target.value}}),
-      onSaveParsed:()=>this.onSaveParsed(),
-      onExport:()=>this.onExport(), onImport:(e)=>this.onImport(e)
+      onSaveParsed:this.requireAdmin(()=>this.onSaveParsed()),
+      onExport:()=>this.onExport(), onImport:this.requireAdmin((e)=>this.onImport(e))
     };
   }
 

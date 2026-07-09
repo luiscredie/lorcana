@@ -1,17 +1,25 @@
 // Ranger Atlas save server — Cloudflare Worker (free).
-// Holds your GitHub token as a SECRET so no browser ever sees it.
+// Holds your GitHub token AND admin password as SECRETS so no browser ever sees them.
 //
 // SETUP (one time, ~4 min):
 // 1. Make a fine-grained GitHub token: github.com -> Settings -> Developer settings ->
 //    Fine-grained personal access tokens -> Generate. Repository access: only
 //    luiscredie/lorcana. Permissions: Contents = Read and write. Copy it.
-// 2. dash.cloudflare.com -> Workers & Pages -> Create -> Create Worker -> name it
-//    (e.g. "lorcana-atlas") -> Deploy. Then "Edit code", paste THIS whole file, Deploy.
-// 3. Worker -> Settings -> Variables and Secrets -> Add a SECRET named GH_TOKEN =
-//    your token. (Optional plain vars: GH_OWNER, GH_REPO, GH_BRANCH, GH_PATH — defaults below.)
-// 4. Copy the Worker URL (https://lorcana-atlas.<you>.workers.dev). In the app's Sync
-//    panel, paste it and press Save. (Send it to me and I can bake it in so no device
-//    needs any setup.)
+// 2. dash.cloudflare.com -> Workers & Pages -> your existing Worker (or Create -> Create
+//    Worker) -> "Edit code", paste THIS whole file (replacing what's there), Deploy.
+// 3. Worker -> Settings -> Variables and Secrets -> Add these SECRETS:
+//      GH_TOKEN        = your GitHub token from step 1
+//      ADMIN_USER      = luiscredie
+//      ADMIN_PASS      = lorcanamaster123
+//      SESSION_SECRET  = any long random string you make up (used only to sign login
+//                        sessions — never shown anywhere; e.g. mash your keyboard for 40+ chars)
+//    (Optional plain vars: GH_OWNER, GH_REPO, GH_BRANCH, GH_PATH — defaults below.)
+// 4. Deploy. That's it — the same Worker URL you already pasted into the app's Sync
+//    panel keeps working; it now also handles admin login.
+//
+// Reads (GET) stay open to everyone, no login needed. Writes (POST, other than the
+// login action) now REQUIRE a valid session token, checked here on the server — a
+// browser can never bypass this by editing the page's JavaScript.
 
 const CFG = (env) => ({
   owner:  env.GH_OWNER  || "luiscredie",
@@ -20,12 +28,13 @@ const CFG = (env) => ({
   path:   env.GH_PATH   || "atlas-data.json",
 });
 const ALLOW = "https://luiscredie.github.io"; // set to "*" to allow any origin
+const SESSION_MS = 60 * 60 * 1000; // 1 hour
 
 function cors(origin) {
   return {
     "Access-Control-Allow-Origin": ALLOW === "*" ? (origin || "*") : ALLOW,
     "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
-    "Access-Control-Allow-Headers": "Content-Type",
+    "Access-Control-Allow-Headers": "Content-Type, Authorization",
     "Access-Control-Max-Age": "86400",
   };
 }
@@ -34,6 +43,29 @@ const json = (obj, status, origin) =>
     status: status || 200,
     headers: { "Content-Type": "application/json", "Cache-Control": "no-store", ...cors(origin) },
   });
+
+async function hmacHex(secret, msg) {
+  const enc = new TextEncoder();
+  const key = await crypto.subtle.importKey("raw", enc.encode(secret), { name: "HMAC", hash: "SHA-256" }, false, ["sign"]);
+  const sig = await crypto.subtle.sign("HMAC", key, enc.encode(msg));
+  return [...new Uint8Array(sig)].map((b) => b.toString(16).padStart(2, "0")).join("");
+}
+function timingSafeEqual(a, b) {
+  if (a.length !== b.length) return false;
+  let diff = 0;
+  for (let i = 0; i < a.length; i++) diff |= a.charCodeAt(i) ^ b.charCodeAt(i);
+  return diff === 0;
+}
+async function verifyToken(token, secret) {
+  if (!token || !secret) return false;
+  const dot = token.lastIndexOf(".");
+  if (dot < 0) return false;
+  const expStr = token.slice(0, dot), sig = token.slice(dot + 1);
+  const exp = parseInt(expStr, 10);
+  if (!exp || Date.now() > exp) return false;
+  const expected = await hmacHex(secret, expStr);
+  return timingSafeEqual(expected, sig);
+}
 
 export default {
   async fetch(request, env) {
@@ -61,8 +93,28 @@ export default {
       }
 
       if (request.method === "POST") {
-        if (!env.GH_TOKEN) return json({ error: "server missing GH_TOKEN secret" }, 500, origin);
         const body = await request.json().catch(() => ({}));
+
+        // ---- Admin login: checked against secrets, never against anything client-visible ----
+        if (body && body.action === "login") {
+          if (!env.ADMIN_USER || !env.ADMIN_PASS || !env.SESSION_SECRET) {
+            return json({ error: "server missing admin secrets (ADMIN_USER/ADMIN_PASS/SESSION_SECRET)" }, 500, origin);
+          }
+          const userOk = typeof body.user === "string" && timingSafeEqual(body.user, env.ADMIN_USER);
+          const passOk = typeof body.pass === "string" && timingSafeEqual(body.pass, env.ADMIN_PASS);
+          if (!userOk || !passOk) return json({ error: "invalid username or password" }, 401, origin);
+          const exp = Date.now() + SESSION_MS;
+          const sig = await hmacHex(env.SESSION_SECRET, String(exp));
+          return json({ token: exp + "." + sig, exp }, 200, origin);
+        }
+
+        // ---- Write: requires a valid, unexpired session token from the login step above ----
+        const authHeader = request.headers.get("Authorization") || "";
+        const token = authHeader.replace(/^Bearer\s+/i, "");
+        const authed = await verifyToken(token, env.SESSION_SECRET || "");
+        if (!authed) return json({ error: "unauthorized — log in as admin to save" }, 401, origin);
+
+        if (!env.GH_TOKEN) return json({ error: "server missing GH_TOKEN secret" }, 500, origin);
         if (typeof body.content !== "string") return json({ error: "no content" }, 400, origin);
         const put = {
           message: "Ranger Atlas sync " + new Date().toISOString(),
