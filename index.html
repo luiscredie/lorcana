@@ -10,6 +10,7 @@
 <helmet>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+<link rel="preconnect" href="https://luiscredie.github.io" crossorigin="">
 <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;500;600;700&amp;family=Space+Grotesk:wght@400;500;600;700&amp;family=Hanken+Grotesk:wght@400;500;600;700;800&amp;family=Space+Mono:wght@400;700&amp;display=swap" rel="stylesheet">
 <script src="engine.js"></script>
 <script src="card-index.js"></script>
@@ -29,6 +30,7 @@
   @keyframes scanline{0%{transform:translateY(-120%)}100%{transform:translateY(120%)}}
   @keyframes radarSpin{0%{transform:rotate(0deg)}100%{transform:rotate(360deg)}}
   @keyframes fallDown{0%{transform:translateY(-20vh)}100%{transform:translateY(120vh)}}
+  @keyframes spin{0%{transform:rotate(0deg)}100%{transform:rotate(360deg)}}
   @media (max-width:640px){
     [data-hero-grid]{grid-template-columns:1fr !important}
     [data-hero-grid] > div:last-child{justify-self:center;margin-top:18px}
@@ -37,8 +39,15 @@
 </style>
 </helmet>
 <div style="{{ themeVars }}{{ dotGrid }}min-height:100vh;background-color:var(--bg);color:var(--text);font-family:'Hanken Grotesk',system-ui,-apple-system,sans-serif;-webkit-font-smoothing:antialiased;line-height:1.5;transition:background-color .25s,color .25s;animation:gridDrift 3.2s linear infinite">
-  <div style="position:fixed;inset:0;z-index:0;overflow:hidden;pointer-events:none;opacity:.4;filter:grayscale(1) sepia(1) hue-rotate(68deg) saturate(6) brightness(1.05)">
-    <sc-for list="{{ rainCols }}" as="rc" hint-placeholder-count="102">
+  <sc-if value="{{ showLoader }}" hint-placeholder-val="{{ true }}">
+    <div style="position:fixed;inset:0;z-index:500;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;transition:opacity .3s">
+      <div style="width:56px;height:56px;border-radius:50%;border:3px solid var(--border-soft);border-top-color:#CC785C;animation:spin .8s linear infinite"></div>
+      <div style="font-family:'Chakra Petch',sans-serif;font-weight:600;letter-spacing:.02em;font-size:1.05rem">THE CONSTRUCT</div>
+      <div style="font-family:'Space Mono',monospace;font-size:.68rem;letter-spacing:.14em;text-transform:uppercase;color:var(--text3)">Loading decks &amp; card data…</div>
+    </div>
+  </sc-if>
+  <div style="position:fixed;inset:0;z-index:0;overflow:hidden;pointer-events:none;opacity:.4;filter:{{ rainFilter }}">
+    <sc-for list="{{ rainCols }}" as="rc" hint-placeholder-count="70">
       <div style="{{ rc.style }}">
         <sc-for list="{{ rc.chars }}" as="ch" hint-placeholder-count="10">
           <span style="{{ ch.style }}">{{ ch.emoji }}</span>
@@ -371,12 +380,18 @@
               <div style="font-family:'Space Mono',monospace;font-size:.62rem;font-weight:700;letter-spacing:.15em;text-transform:uppercase;color:#9F2731;margin:16px 0 9px">To buy</div>
               <div style="display:flex;flex-wrap:wrap;gap:7px">
                 <sc-for list="{{ col.shopping }}" as="p" hint-placeholder-count="3">
-                  <span style="font-size:.78rem;font-weight:600;font-family:'Space Mono',monospace;padding:5px 11px;border-radius:999px;background:rgba(179,35,44,.08);border:1px solid #d88a90;color:#9F2731">{{ p.label }}</span>
+                  <button onclick="{{ p.onClick }}" style="font-size:.78rem;font-weight:600;font-family:'Space Mono',monospace;padding:5px 11px;border-radius:999px;background:rgba(179,35,44,.08);border:1px solid #d88a90;color:#9F2731;cursor:pointer">{{ p.label }}</button>
                 </sc-for>
               </div>
             </sc-if>
             <sc-if value="{{ col.complete }}" hint-placeholder-val="{{ false }}">
               <div style="border-left:4px solid #4E9D6B;background:rgba(78,157,107,.09);padding:12px 15px;border-radius:0 11px 11px 0;margin-top:16px;font-size:.88rem;color:#3F5F49;line-height:1.5"><b>Full set</b> — you own every copy this deck needs.</div>
+            </sc-if>
+            <sc-if value="{{ deck.strategy }}" hint-placeholder-val="{{ false }}">
+              <div style="background:var(--panel2);border:1px solid var(--border-soft);border-radius:12px;padding:14px 16px;margin-top:16px">
+                <div style="font-family:'Space Mono',monospace;font-size:.6rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--text3);margin-bottom:6px">Deck strategy</div>
+                <div style="font-size:.86rem;line-height:1.55;color:var(--text2);white-space:pre-wrap">{{ deck.strategy }}</div>
+              </div>
             </sc-if>
           </sc-if>
           <sc-if value="{{ col.noCov }}" hint-placeholder-val="{{ false }}">
@@ -479,12 +494,6 @@
       <div style="background:linear-gradient(var(--panel),var(--panel)) padding-box, linear-gradient(135deg, rgba(204,120,92,.55), rgba(167,139,250,.4) 35%, rgba(74,222,128,.3) 65%, rgba(204,120,92,.55)) border-box;background-size:100% 100%, 300% 300%;border:1px solid transparent;border-radius:22px;box-shadow:var(--shadow);backdrop-filter:blur(24px);animation:borderFlow 10s linear infinite;padding:24px">
         <h3 style="font-family:'Chakra Petch',sans-serif;font-weight:600;font-size:1.25rem;margin:0 0 4px;letter-spacing:-.01em">Add a game · {{ deck.title }}</h3>
         <p style="color:var(--text2);font-size:.86rem;margin:0 0 12px">Paste a raw game log. It auto-detects which player is you, the clock, board trades, and combos. Tag the opponent before saving — it files under the open deck.</p>
-        <sc-if value="{{ deck.strategy }}" hint-placeholder-val="{{ false }}">
-          <div style="background:var(--panel2);border:1px solid var(--border-soft);border-radius:12px;padding:12px 14px;margin-bottom:12px">
-            <div style="font-family:'Space Mono',monospace;font-size:.6rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--text3);margin-bottom:5px">Deck strategy — reference while you tag this game</div>
-            <div style="font-size:.84rem;line-height:1.5;color:var(--text2);white-space:pre-wrap">{{ deck.strategy }}</div>
-          </div>
-        </sc-if>
         <textarea onchange="{{ onLogInput }}" value="{{ gm.logText }}" placeholder="Player 1's starting hand: ...
 --- Turn 1 ---
 ..." style="width:100%;min-height:150px;border:1px solid var(--border);border-radius:14px;padding:13px;font-family:'Space Mono',monospace;font-size:.74rem;line-height:1.5;resize:vertical;background:var(--panel2);color:var(--text)"></textarea>
@@ -492,7 +501,76 @@
           <button onclick="{{ onParse }}" style="border:0;border-radius:12px;padding:11px 18px;font-family:inherit;font-weight:700;font-size:.85rem;cursor:pointer;background:#CC785C;color:#fff">Parse log</button>
           <button onclick="{{ onExport }}" style="border:0;border-radius:12px;padding:11px 18px;font-family:inherit;font-weight:700;font-size:.85rem;cursor:pointer;background:var(--chip-bg);color:var(--text)">Export JSON</button>
           <label style="border:0;border-radius:12px;padding:11px 18px;font-family:inherit;font-weight:700;font-size:.85rem;cursor:pointer;background:var(--chip-bg);color:var(--text)">Import<input type="file" accept="application/json" onchange="{{ onImport }}" style="display:none"></label>
+          <button onclick="{{ off.onToggle }}" style="border:1px solid var(--border);border-radius:12px;padding:11px 18px;font-family:inherit;font-weight:700;font-size:.85rem;cursor:pointer;background:var(--panel2);color:var(--text)">{{ off.toggleLabel }}</button>
         </div>
+
+        <sc-if value="{{ off.open }}" hint-placeholder-val="{{ false }}">
+          <div style="background:var(--panel2);border:1px solid var(--border-soft);border-radius:16px;padding:16px 18px;margin-top:14px">
+            <h4 style="font-family:'Chakra Petch',sans-serif;font-weight:600;font-size:1.02rem;margin:0 0 4px">Log an offline game</h4>
+            <p style="color:var(--text2);font-size:.8rem;margin:0 0 14px">No log to paste? Answer these instead — files under {{ deck.title }}.</p>
+            <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px">
+              <label style="display:flex;flex-direction:column;gap:5px;font-size:.72rem;color:var(--text2);font-weight:600">Result
+                <div style="position:relative;display:inline-block">
+                  <button onclick="{{ off.resultDD.onToggle }}" style="border:1px solid var(--border);border-radius:10px;padding:7px 10px;font-family:inherit;font-size:.8rem;background:var(--panel);color:var(--text);cursor:pointer;display:flex;align-items:center;justify-content:space-between">{{ off.resultDD.label }} <span style="font-size:.65rem;opacity:.7">▾</span></button>
+                  <sc-if value="{{ off.resultDD.open }}" hint-placeholder-val="{{ false }}">
+                    <div style="position:absolute;top:100%;left:0;margin-top:4px;background:var(--panel2);border:1px solid var(--border);border-radius:10px;box-shadow:0 12px 24px -8px rgba(0,0,0,.5);z-index:46;min-width:100%">
+                      <sc-for list="{{ off.resultDD.items }}" as="it" hint-placeholder-count="2"><div onClick="{{ it.onClick }}" style="{{ it.rowStyle }}">{{ it.label }}</div></sc-for>
+                    </div>
+                  </sc-if>
+                </div>
+              </label>
+              <label style="display:flex;flex-direction:column;gap:5px;font-size:.72rem;color:var(--text2);font-weight:600">How it ended
+                <div style="position:relative;display:inline-block">
+                  <button onclick="{{ off.methodDD.onToggle }}" style="border:1px solid var(--border);border-radius:10px;padding:7px 10px;font-family:inherit;font-size:.8rem;background:var(--panel);color:var(--text);cursor:pointer;display:flex;align-items:center;justify-content:space-between">{{ off.methodDD.label }} <span style="font-size:.65rem;opacity:.7">▾</span></button>
+                  <sc-if value="{{ off.methodDD.open }}" hint-placeholder-val="{{ false }}">
+                    <div style="position:absolute;top:100%;left:0;margin-top:4px;background:var(--panel2);border:1px solid var(--border);border-radius:10px;box-shadow:0 12px 24px -8px rgba(0,0,0,.5);z-index:46;min-width:100%">
+                      <sc-for list="{{ off.methodDD.items }}" as="it" hint-placeholder-count="3"><div onClick="{{ it.onClick }}" style="{{ it.rowStyle }}">{{ it.label }}</div></sc-for>
+                    </div>
+                  </sc-if>
+                </div>
+              </label>
+              <label style="display:flex;flex-direction:column;gap:5px;font-size:.72rem;color:var(--text2);font-weight:600">On the play / draw
+                <div style="position:relative;display:inline-block">
+                  <button onclick="{{ off.playDD.onToggle }}" style="border:1px solid var(--border);border-radius:10px;padding:7px 10px;font-family:inherit;font-size:.8rem;background:var(--panel);color:var(--text);cursor:pointer;display:flex;align-items:center;justify-content:space-between">{{ off.playDD.label }} <span style="font-size:.65rem;opacity:.7">▾</span></button>
+                  <sc-if value="{{ off.playDD.open }}" hint-placeholder-val="{{ false }}">
+                    <div style="position:absolute;top:100%;left:0;margin-top:4px;background:var(--panel2);border:1px solid var(--border);border-radius:10px;box-shadow:0 12px 24px -8px rgba(0,0,0,.5);z-index:46;min-width:100%">
+                      <sc-for list="{{ off.playDD.items }}" as="it" hint-placeholder-count="2"><div onClick="{{ it.onClick }}" style="{{ it.rowStyle }}">{{ it.label }}</div></sc-for>
+                    </div>
+                  </sc-if>
+                </div>
+              </label>
+              <label style="display:flex;flex-direction:column;gap:5px;font-size:.72rem;color:var(--text2);font-weight:600">Mulligan count
+                <div style="position:relative;display:inline-block">
+                  <button onclick="{{ off.mullDD.onToggle }}" style="border:1px solid var(--border);border-radius:10px;padding:7px 10px;font-family:inherit;font-size:.8rem;background:var(--panel);color:var(--text);cursor:pointer;display:flex;align-items:center;justify-content:space-between">{{ off.mullDD.label }} <span style="font-size:.65rem;opacity:.7">▾</span></button>
+                  <sc-if value="{{ off.mullDD.open }}" hint-placeholder-val="{{ false }}">
+                    <div style="position:absolute;top:100%;left:0;margin-top:4px;background:var(--panel2);border:1px solid var(--border);border-radius:10px;box-shadow:0 12px 24px -8px rgba(0,0,0,.5);z-index:46;min-width:100%;max-height:200px;overflow-y:auto">
+                      <sc-for list="{{ off.mullDD.items }}" as="it" hint-placeholder-count="8"><div onClick="{{ it.onClick }}" style="{{ it.rowStyle }}">{{ it.label }}</div></sc-for>
+                    </div>
+                  </sc-if>
+                </div>
+              </label>
+              <label style="display:flex;flex-direction:column;gap:5px;font-size:.72rem;color:var(--text2);font-weight:600">Your final lore<input type="number" min="0" max="40" value="{{ off.myLore }}" onchange="{{ off.onMyLore }}" style="border:1px solid var(--border);border-radius:10px;padding:7px 10px;font-family:inherit;font-size:.8rem;background:var(--panel);color:var(--text)"></label>
+              <label style="display:flex;flex-direction:column;gap:5px;font-size:.72rem;color:var(--text2);font-weight:600">Opponent's final lore<input type="number" min="0" max="40" value="{{ off.oppLore }}" onchange="{{ off.onOppLore }}" style="border:1px solid var(--border);border-radius:10px;padding:7px 10px;font-family:inherit;font-size:.8rem;background:var(--panel);color:var(--text)"></label>
+              <label style="display:flex;flex-direction:column;gap:5px;font-size:.72rem;color:var(--text2);font-weight:600">Total game length (turns)<input type="number" min="1" max="60" value="{{ off.gameTurns }}" onchange="{{ off.onGameTurns }}" style="border:1px solid var(--border);border-radius:10px;padding:7px 10px;font-family:inherit;font-size:.8rem;background:var(--panel);color:var(--text)"></label>
+              <label style="display:flex;flex-direction:column;gap:5px;font-size:.72rem;color:var(--text2);font-weight:600">First quest — your turn #<input type="number" min="0" max="20" value="{{ off.firstQuestMyTurn }}" onchange="{{ off.onFirstQuest }}" placeholder="optional" style="border:1px solid var(--border);border-radius:10px;padding:7px 10px;font-family:inherit;font-size:.8rem;background:var(--panel);color:var(--text)"></label>
+              <label style="display:flex;flex-direction:column;gap:5px;font-size:.72rem;color:var(--text2);font-weight:600">Crossed 10 lore — your turn #<input type="number" min="0" max="20" value="{{ off.cross10MyTurn }}" onchange="{{ off.onCross10 }}" placeholder="optional" style="border:1px solid var(--border);border-radius:10px;padding:7px 10px;font-family:inherit;font-size:.8rem;background:var(--panel);color:var(--text)"></label>
+              <label style="display:flex;flex-direction:column;gap:5px;font-size:.72rem;color:var(--text2);font-weight:600">Opponent archetype
+                <div style="position:relative;display:inline-block">
+                  <button onclick="{{ off.archDD.onToggle }}" style="border:1px solid var(--border);border-radius:10px;padding:7px 10px;font-family:inherit;font-size:.8rem;background:var(--panel);color:var(--text);cursor:pointer;display:flex;align-items:center;justify-content:space-between">{{ off.archDD.label }} <span style="font-size:.65rem;opacity:.7">▾</span></button>
+                  <sc-if value="{{ off.archDD.open }}" hint-placeholder-val="{{ false }}">
+                    <div style="position:absolute;top:100%;left:0;margin-top:4px;background:var(--panel2);border:1px solid var(--border);border-radius:10px;box-shadow:0 12px 24px -8px rgba(0,0,0,.5);z-index:46;min-width:100%;max-height:220px;overflow-y:auto">
+                      <sc-for list="{{ off.archDD.items }}" as="it" hint-placeholder-count="5"><div onClick="{{ it.onClick }}" style="{{ it.rowStyle }}">{{ it.label }}</div></sc-for>
+                    </div>
+                  </sc-if>
+                </div>
+                <input type="text" onchange="{{ off.onArchCustom }}" placeholder="Not listed? Type the colors" style="margin-top:2px;border:1px solid var(--border);border-radius:8px;padding:5px 8px;font-family:inherit;font-size:.7rem;background:var(--panel);color:var(--text)">
+              </label>
+              <label style="display:flex;flex-direction:column;gap:5px;font-size:.72rem;color:var(--text2);font-weight:600">Venue<input type="text" onchange="{{ off.onVenue }}" placeholder="Online ladder" style="border:1px solid var(--border);border-radius:10px;padding:7px 10px;font-family:inherit;font-size:.8rem;background:var(--panel);color:var(--text)"></label>
+            </div>
+            <label style="display:flex;flex-direction:column;gap:5px;font-size:.72rem;color:var(--text2);font-weight:600;margin-top:12px">Notes<input type="text" onchange="{{ off.onNotes }}" placeholder="What decided it?" style="width:100%;box-sizing:border-box;border:1px solid var(--border);border-radius:10px;padding:7px 10px;font-family:inherit;font-size:.8rem;background:var(--panel);color:var(--text)"></label>
+            <div style="margin-top:13px"><button onclick="{{ off.onSave }}" style="border:0;border-radius:12px;padding:11px 18px;font-family:inherit;font-weight:700;font-size:.85rem;cursor:pointer;background:#CC785C;color:#fff">Save offline game</button></div>
+          </div>
+        </sc-if>
 
         <sc-if value="{{ parsedView }}" hint-placeholder-val="{{ false }}">
         <div style="background:#F6EFE1;border:1px solid #E7DBC2;border-radius:14px;padding:16px;margin-top:14px;font-size:.84rem">
@@ -517,6 +595,7 @@
                   </div>
                 </sc-if>
               </div>
+              <input type="text" onchange="{{ parsedView.onArchCustom }}" placeholder="Not listed? Type the colors" style="margin-top:4px;border:1px solid var(--border);border-radius:8px;padding:5px 8px;font-family:inherit;font-size:.7rem;background:var(--panel2);color:var(--text);width:160px">
             </label>
             <label style="display:flex;flex-direction:column;gap:5px;font-size:.72rem;color:var(--text2);font-weight:600">{{ parsedView.catLabel }}
               <div style="position:relative;display:inline-block">
@@ -613,6 +692,7 @@
                     </div>
                   </sc-if>
                 </div>
+                <input type="text" onchange="{{ g.onArchCustom }}" placeholder="Not listed? type colors" style="border:1px solid var(--border);border-radius:8px;padding:5px 8px;font-family:inherit;font-size:.68rem;background:var(--panel2);color:var(--text);width:130px">
                 <div style="position:relative;display:inline-block">
                   <button onclick="{{ g.catDD.onToggle }}" style="border:1px solid var(--border);border-radius:10px;padding:6px 9px;font-family:inherit;font-size:.76rem;background:var(--panel2);color:var(--text);cursor:pointer;display:flex;align-items:center;gap:6px">{{ g.catDD.label }} <span style="font-size:.6rem;opacity:.7">▾</span></button>
                   <sc-if value="{{ g.catDD.open }}" hint-placeholder-val="{{ false }}">
@@ -659,6 +739,23 @@
             <div style="font-size:.68rem;font-weight:600;line-height:1.25;margin-top:5px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">{{ c.name }}</div>
           </div>
         </sc-for>
+      </div>
+    </div>
+  </div>
+  </sc-if>
+
+  <sc-if value="{{ buyPreview.open }}" hint-placeholder-val="{{ false }}">
+  <div onClick="{{ buyPreview.onClose }}" style="position:fixed;inset:0;z-index:85;background:rgba(37,29,20,.45);backdrop-filter:blur(3px);display:flex;align-items:center;justify-content:center;padding:20px">
+    <div onClick="{{ stopClick }}" style="background:var(--panel2);border:1px solid var(--border-soft);border-radius:20px;box-shadow:0 30px 60px -20px rgba(0,0,0,.5);backdrop-filter:blur(28px);max-width:340px;width:100%;padding:18px">
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:12px">
+        <h3 style="font-family:'Chakra Petch',sans-serif;font-weight:600;font-size:1.05rem;margin:0;letter-spacing:-.01em">{{ buyPreview.name }}</h3>
+        <button onclick="{{ buyPreview.onClose }}" style="border:1px solid var(--border);border-radius:10px;padding:6px 11px;font-family:inherit;font-weight:700;font-size:.76rem;cursor:pointer;background:var(--panel2);color:var(--text2)">✕</button>
+      </div>
+      <div style="position:relative;aspect-ratio:5/7;border-radius:14px;border:1px solid var(--border-soft);background:var(--panel2);overflow:hidden">
+        {{ buyPreview.imgEl }}
+        <sc-if value="{{ buyPreview.noImg }}" hint-placeholder-val="{{ false }}">
+          <span style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;text-align:center;padding:14px;font-size:.78rem;font-weight:600;color:var(--text2)">No image found for this card</span>
+        </sc-if>
       </div>
     </div>
   </div>
@@ -814,16 +911,23 @@
 </x-dc>
 <script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1060,&quot;height&quot;:920},&quot;defaultDeck&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;default&quot;:&quot;dale&quot;,&quot;options&quot;:[&quot;dale&quot;,&quot;woody&quot;,&quot;sid&quot;],&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Behavior&quot;}}">
 class Component extends DCLogic {
-  state = { ready:false, deck:'dale', tab:'overview', store:null, logText:'', parsed:null, clockSel:null, toast:'', pv:{venue:'',notes:''}, theme:'dark', openDD:null };
+  state = { ready:false, deck:'dale', tab:'overview', store:null, logText:'', parsed:null, clockSel:null, toast:'', pv:{venue:'',notes:''}, theme:'dark', openDD:null,
+    offlineOpen:false, off:{ result:'W', method:'concession', onPlay:'yes', mulligan:'0', myLore:'', oppLore:'', gameTurns:'', firstQuestMyTurn:'', cross10MyTurn:'', archetype:'Other / Unknown', venue:'', notes:'' } };
   THEMES={
     dark:"--bg:#0B0D10;--panel:rgba(17,18,22,.86);--panel2:rgba(255,255,255,.075);--border:rgba(255,255,255,.09);--border-soft:rgba(255,255,255,.15);--text:#F3F1ED;--text2:#ABA59B;--text3:#847E72;--nav-bg:rgba(255,255,255,.05);--chip-bg:rgba(255,255,255,.08);--shadow:0 1px 0 rgba(255,255,255,.04) inset, 0 24px 48px -24px rgba(0,0,0,.65);--sticky-bg:rgba(11,13,16,.78);--hero-glow:radial-gradient(940px 420px at 50% -160px, rgba(204,120,92,.18), transparent 70%), radial-gradient(760px 360px at 88% -120px, rgba(200,146,15,.09), transparent 66%);",
     light:"--bg:#F3F1EC;--panel:#FFFFFF;--panel2:#FAF9F6;--border:#E6E2D8;--border-soft:#EDE9DE;--text:#1B1712;--text2:#5C5648;--text3:#8B8579;--nav-bg:#ECE7DA;--chip-bg:#EFEBDF;--shadow:0 1px 2px rgba(20,15,5,.04),0 18px 38px -24px rgba(20,15,5,.14);--sticky-bg:rgba(243,241,236,.82);--hero-glow:radial-gradient(940px 420px at 50% -160px, rgba(204,120,92,.14), transparent 70%), radial-gradient(760px 360px at 88% -120px, rgba(200,146,15,.11), transparent 66%);"
   };
   dotGrid(theme){ const c=theme==='light'?'rgba(20,15,5,.06)':'rgba(255,255,255,.05)'; return `background-image:radial-gradient(${c} 1.2px, transparent 1.2px);background-size:22px 22px;`; }
   RAIN_POOL=['🏰','✨','🪄','⭐','🌟','💫','🎆','🎇','👑','🧚','🧚‍♀️','🦄','🌙','☁️','🌈','🎠','🎡','🎢','🎭','🎶','🎵','❤️','💛','💙','🐭','🐁','🐶','🦆','🐿️','🐻','🐰','🦌','🐘','🐅','🐒','🦁','🎩','🧤','🤠','🚀','👽','🧸','🪀','🪁','👨‍🚀','🌌','🛸','🐴','🦖','🦕','🐷','🪙','💰','🌀','🥔','👓','👞','🐑','🎀','🍴','🗑️','🍓','🪖','🎖️','🟢','🏎️','🔋','⚡','👾','😈','🧩','🎲','🚗','🚙','🛞','🏁','🔧','🛠️','⛽','🛣️','🐠','🐟','🐡','🦈','🐢','🐙','🦀','🐚','🌊','🏝️','⛵','🤿','👁️','👹','🚪','🔦','😱','💚','🏠','🎈','👴','👦','🌄','🧭','✈️','🤖','🌱','🪴','🛰️','♻️','🧯','🐀','👨‍🍳','🍳','🥖','🧀','🍝','🍷','🥘','🎸','💀','🌼','🕯️','👨‍👩‍👧‍👦','🧡','😊','😢','😡','😨','🤢','🧠','💭','❄️','⛄','🧊','🏔️','🌨️','🦋','🌺','💃','🐓','🧜‍♀️','🧜','🔱','🍎','📖','🌹','☕','🫖','🐗','🦓','🐆','🐸','🍯','🐝','🐦','🦢','🏹','🗡️','🐉','🐲','🌸','🪷','🐎','🦗','🏮','🎎','🎋','🥋','🪭','🧞','🧞‍♂️','🧞‍♀️','🪔','🕌','💎','🧺','🍞','🐍','🦜','🪶','🧚‍♂️','🏴‍☠️','⚓','🐊','⏰','🪝','🧒','🧑‍✈️','🛶','🛳️','🌲','🍄','🦝','🐺','🦅','🦉','🌻','🌷','💐','🏵️','🍃','🍂','🍁','☀️','☾','☽','★','☆','✦','✧','❇','❈','❉','❊','❋','✶','✷','✸','✹','✺','✻','✼','✽','✾','✿','❀','❁','♥','♡','♛','♕','♔','♚','☀','☂'];
+  rainFilter(theme){
+    // Gold cast in light mode (low hue-rotate keeps sepia's warm base); green cast in dark mode.
+    return theme==='light'
+      ? 'grayscale(1) sepia(1) hue-rotate(2deg) saturate(6) brightness(1.05)'
+      : 'grayscale(1) sepia(1) hue-rotate(68deg) saturate(6) brightness(1.05)';
+  }
   buildRainCols(tick){
     tick = tick||0;
-    const N=102, pool=this.RAIN_POOL, plen=pool.length, out=[];
+    const N=70, pool=this.RAIN_POOL, plen=pool.length, out=[];
     for(let i=0;i<N;i++){
       const left=(i/N*100).toFixed(2);
       const dur=(6+((i*37)%9)+((i%3)*.6)).toFixed(1);
@@ -873,7 +977,7 @@ class Component extends DCLogic {
   componentDidMount(){
     let theme='dark'; try{ theme=localStorage.getItem('lorcanaAtlas_theme_v1')||'dark'; }catch(e){}
     this.setState({theme});
-    this._rainTimer = setInterval(()=>{ this.setState(s=>({rainTick:((s.rainTick||0)+1)%10000})); }, 650);
+    this._rainTimer = setInterval(()=>{ this.setState(s=>({rainTick:((s.rainTick||0)+1)%10000})); }, 900);
     // Light deterrent against casual copying — not real protection (any browser that
     // renders this page must download the full source; devtools can't be blocked).
     if(typeof document!=='undefined' && !this._antiCopyHook){
@@ -896,6 +1000,7 @@ class Component extends DCLogic {
     this.TREE_API='https://api.github.com/repos/luiscredie/lorcana/git/trees/main?recursive=1';
     this.TREEKEY='lorcanaAtlas_fileTree_v2';
     this.VKEY='lorcanaAtlas_variants_v1';
+    this._fileTreeReady=false;
     this.loadFileTree();
     this.DECKS={
       dale:{ id:'dale', title:"Dale's Growing Pressure", inks:['amber','ruby'], arch:'Combat-control midrange',
@@ -1007,7 +1112,7 @@ class Component extends DCLogic {
   }
   imgEl(src,alt,extra){
     if(!src) return null;
-    return React.createElement('img',{ src, alt:alt||'', loading:'lazy', decoding:'async',
+    return React.createElement('img',{ src, alt:alt||'', loading:'lazy', decoding:'async', fetchPriority:'low',
       onError:(e)=>{ if(e&&e.target&&e.target.style) e.target.style.display='none'; },
       style:Object.assign({position:'absolute',inset:0,width:'100%',height:'100%',objectFit:'cover',display:'block'},extra||{}) });
   }
@@ -1017,7 +1122,7 @@ class Component extends DCLogic {
     let cached=null;
     try{ cached=JSON.parse(localStorage.getItem(this.TREEKEY)); }catch(e){}
     const fresh=cached&&cached.multi&&(Date.now()-(cached.t||0))<24*3600*1000;
-    if(fresh&&!force){ this._fileTreeMulti=cached.multi; return; }
+    if(fresh&&!force){ this._fileTreeMulti=cached.multi; this._fileTreeReady=true; return; }
     if(this._treeLoading) return; this._treeLoading=true;
     const multi={};
     const prefix='Lorcana Cards Named/';
@@ -1036,8 +1141,9 @@ class Component extends DCLogic {
       this._fileTreeMulti=multi;
       try{ localStorage.setItem(this.TREEKEY, JSON.stringify({t:Date.now(), multi})); }catch(e){}
       this._treeLoading=false;
+      this._fileTreeReady=true;
       this.forceUpdate();
-    }).catch(()=>{ this._fileTreeMulti=this._fileTreeMulti||cached?.multi||{}; this._treeLoading=false; });
+    }).catch(()=>{ this._fileTreeMulti=this._fileTreeMulti||cached?.multi||{}; this._treeLoading=false; this._fileTreeReady=true; this.forceUpdate(); });
   }
   // All known image files for a card name (for the variant picker), in a stable order.
   variantFiles(name){
@@ -1440,7 +1546,8 @@ class Component extends DCLogic {
       ddOpen:false, onCloseDD:()=>{},
       adminOpen:!!s.adminOpen, isAdminNow:false, showLoginForm:true, loginUser:'', loginPass:'', loginErr:'', loginBusy:false, loginBtnLabel:'Log in',
       onLoginUser:()=>{}, onLoginPass:()=>{}, onDoLogin:()=>{}, onCloseAdmin:()=>{}, onLogout:()=>{}, onAdminClick:()=>{}, adminIcon:'\u25cb', adminColor:'var(--text2)', adminTitle:'Admin login',
-      h1:{}, h2:{}, h3:{}, hp:{open:false,cards:[]}, sync:{open:false,chip:'○ Sync',chipStyle:"border:1px solid #8B7A6355;background:#F3F2E6;color:#8B7A63;border-radius:7px;padding:5px 10px;font-family:'Space Mono',monospace;font-size:.58rem;letter-spacing:.14em;text-transform:uppercase;cursor:pointer;white-space:nowrap"}, vp:{open:false,options:[]}, hideImg:()=>{} };
+      h1:{}, h2:{}, h3:{}, hp:{open:false,cards:[]}, sync:{open:false,chip:'○ Sync',chipStyle:"border:1px solid #8B7A6355;background:#F3F2E6;color:#8B7A63;border-radius:7px;padding:5px 10px;font-family:'Space Mono',monospace;font-size:.58rem;letter-spacing:.14em;text-transform:uppercase;cursor:pointer;white-space:nowrap"}, vp:{open:false,options:[]}, hideImg:()=>{},
+      showLoader:true, rainFilter:this.rainFilter(s.theme), rainCols:[], buyPreview:{open:false}, off:{open:false} };
     const E=this.E, D=this.getDeck(s.deck), G=this.games(), a=this.agg(G);
 
     // deck switcher
@@ -1588,6 +1695,7 @@ class Component extends DCLogic {
         catValue:(g.result==='W'?g.winCat:g.lossCat)||'', catOptions:(g.result==='W'?WIN:LOSS),
         onArch:this.requireAdmin((e)=>this.setArch(idx,e.target.value)), onCat:this.requireAdmin((e)=>this.setCat(idx,e.target.value)), onDelete:this.requireAdmin(()=>this.delGame(g.id)),
         archDD:this.buildDD('gameArch'+g.id, g.archetype||'Other / Unknown', ARCH, this.requireAdmin((e)=>this.setArch(idx,e.target.value))),
+        onArchCustom:this.requireAdmin((e)=>{ const v=(e.target.value||'').trim(); if(v) this.setArch(idx,v); }),
         catDD:this.buildDD('gameCat'+g.id, (g.result==='W'?g.winCat:g.lossCat)||'', (g.result==='W'?WIN:LOSS), this.requireAdmin((e)=>this.setCat(idx,e.target.value))),
         hasCoach:!!coach, coachHeadline:coach?coach.headline:'',
         planScoreVal:planScore?planScore.score:null,
@@ -1595,6 +1703,26 @@ class Component extends DCLogic {
       };
     });
     const gm={ logText:s.logText, count:G.length, games:gmGames };
+
+    // OFFLINE GAME FORM
+    const oState=s.off||{};
+    const off={
+      open:!!s.offlineOpen, toggleLabel: s.offlineOpen?'✕ Cancel offline entry':'+ Log an offline game',
+      onToggle:()=>this.setState(st=>({offlineOpen:!st.offlineOpen})),
+      resultDD:this.buildDD('offResult', oState.result, [{v:'W',label:'Win'},{v:'L',label:'Loss'}], (e)=>this.offField('result',e.target.value)),
+      methodDD:this.buildDD('offMethod', oState.method, [{v:'concession',label:'Opponent conceded'},{v:'20 lore',label:'20 lore reached'},{v:'other',label:'Other / timed out'}], (e)=>this.offField('method',e.target.value)),
+      playDD:this.buildDD('offPlay', oState.onPlay, [{v:'yes',label:'On the play'},{v:'no',label:'On the draw'}], (e)=>this.offField('onPlay',e.target.value)),
+      mullDD:this.buildDD('offMull', oState.mulligan, ['0','1','2','3','4','5','6','7'].map(v=>({v,label:v})), (e)=>this.offField('mulligan',e.target.value)),
+      archDD:this.buildDD('offArch', oState.archetype, ARCH, (e)=>this.offField('archetype',e.target.value)),
+      onArchCustom:(e)=>{ const v=(e.target.value||'').trim(); if(v) this.offField('archetype',v); },
+      myLore:oState.myLore, onMyLore:(e)=>this.offField('myLore',e.target.value),
+      oppLore:oState.oppLore, onOppLore:(e)=>this.offField('oppLore',e.target.value),
+      gameTurns:oState.gameTurns, onGameTurns:(e)=>this.offField('gameTurns',e.target.value),
+      firstQuestMyTurn:oState.firstQuestMyTurn, onFirstQuest:(e)=>this.offField('firstQuestMyTurn',e.target.value),
+      cross10MyTurn:oState.cross10MyTurn, onCross10:(e)=>this.offField('cross10MyTurn',e.target.value),
+      onVenue:(e)=>this.offField('venue',e.target.value), onNotes:(e)=>this.offField('notes',e.target.value),
+      onSave:()=>this.onSaveOffline()
+    };
 
     // parsed preview
     const p=s.parsed;
@@ -1610,6 +1738,7 @@ class Component extends DCLogic {
         catLabel:p.result==='W'?'Win reason':'Loss reason',
         catValue:p.result==='W'?p.winCat:p.lossCat, catOptions:p.result==='W'?WIN:LOSS,
         archDD:this.buildDD('parsedArch', p.archetype, ARCH, (e)=>{ const q={...s.parsed,archetype:e.target.value}; this.setState({parsed:q}); }),
+        onArchCustom:(e)=>{ const v=(e.target.value||'').trim(); if(!v) return; const q={...s.parsed,archetype:v}; this.setState({parsed:q}); },
         catDD:this.buildDD('parsedCat', p.result==='W'?p.winCat:p.lossCat, p.result==='W'?WIN:LOSS, (e)=>{ const q={...s.parsed}; if(q.result==='W')q.winCat=e.target.value; else q.lossCat=e.target.value; this.setState({parsed:q}); }),
         isDuplicate:!!p.isDuplicateOfId, confirmDuplicate:!!s.confirmDuplicate,
         saveLabel:(p.isDuplicateOfId&&!s.confirmDuplicate)?'Looks like a duplicate — save anyway?':'Save game',
@@ -1694,7 +1823,7 @@ class Component extends DCLogic {
           chipBg2:miss?'#9F2731':'#356B4E', chipColor2:'#fff' };
       });
     }
-    const shopping=covRows.filter(r=>r.missing).map(r=>({label:r.missing+'× '+r.name}));
+    const shopping=covRows.filter(r=>r.missing).map(r=>({label:r.missing+'× '+r.name, name:r.name, onClick:()=>this.setState({buyPreview:{name:r.name}})}));
     const col={
       name:s.colName||'', qty:s.colQty||'4', groups:colGroups, count:allKeys.length, copies,
       shown:shownCount, filter:s.colFilter||'',
@@ -1781,6 +1910,9 @@ class Component extends DCLogic {
       dotGrid: this.dotGrid(s.theme),
       colorScheme: s.theme==='light'?'light':'dark',
       rainCols: this.buildRainCols(s.rainTick),
+      rainFilter: this.rainFilter(s.theme),
+      showLoader: !this._fileTreeReady,
+      buyPreview: (()=>{ const bp=s.buyPreview; if(!bp) return {open:false}; const u=this.imgUrl(bp.name); return { open:true, name:bp.name, img:u, noImg:!u, imgEl:this.imgEl(u,bp.name,{borderRadius:'14px'}), onClose:()=>this.setState({buyPreview:null}) }; })(),
       ddOpen: !!s.openDD,
       onCloseDD: ()=>this.setState({openDD:null}),
       adminOpen: !!s.adminOpen,
@@ -1832,7 +1964,7 @@ class Component extends DCLogic {
       onEditorCancel:()=>this.setState({editor:null}),
       onEditorDelete:this.requireAdmin(()=>this.deleteEditorDeck()),
       stopClick:(e)=>e.stopPropagation(),
-      ov, mu, ck, cb, gm, parsedView,
+      ov, mu, ck, cb, gm, off, parsedView,
       goGames:()=>this.setTab('games'),
       onLogInput:(e)=>this.setState({logText:e.target.value}),
       onParse:()=>this.onParse(),
@@ -1896,6 +2028,42 @@ class Component extends DCLogic {
     this.setState({ parsed:null, logText:'', pv:{venue:'',notes:''}, tab:'games', confirmDuplicate:false });
     try{ localStorage.setItem(this.TKEY,'games'); }catch(e){}
     this.toast('Game saved to '+this.getDeck(this.state.deck).title);
+  }
+  offField(key,val){ this.setState(s=>({off:{...s.off,[key]:val}})); }
+  onSaveOffline(){
+    const s=this.state, o=s.off||{}, D=this.getDeck(s.deck);
+    const myLore=+o.myLore||0, oppLore=+o.oppLore||0, gameTurns=+o.gameTurns||0;
+    const fq= o.firstQuestMyTurn!==''&&o.firstQuestMyTurn!=null ? +o.firstQuestMyTurn : null;
+    const c10= o.cross10MyTurn!==''&&o.cross10MyTurn!=null ? +o.cross10MyTurn : null;
+    const result = o.result==='L'?'L':'W';
+    const game = {
+      id:'m'+Math.random().toString(36).slice(2,9),
+      dateAdded:new Date().toISOString().slice(0,10),
+      me:1, onPlay:o.onPlay!=='no', mulligan:+o.mulligan||0,
+      myLore, oppLore, margin:myLore-oppLore,
+      cross10: c10!=null? (c10*2-(o.onPlay!=='no'?1:0)) : null, cross20:null,
+      cross10MyTurn:c10, firstQuest: fq!=null? (fq*2-(o.onPlay!=='no'?1:0)) : null, firstQuestMyTurn:fq,
+      myTurns:gameTurns? Math.ceil(gameTurns/2):0, gameTurns, lorePerTurn: gameTurns? +(myLore/Math.max(1,Math.ceil(gameTurns/2))).toFixed(2):0,
+      result, method:o.method||'other',
+      removedByMe:0, myLost:0, questers:{}, combos:{},
+      loreByTurn:{}, oppLoreByTurn:{}, oppCards:[],
+      archetype:o.archetype||'Other / Unknown', winCat:result==='W'?'':'', lossCat:'', venue:o.venue||'', notes:o.notes||'',
+      logged:'manual'
+    };
+    const hints = this.E.parseStrategyHints(D.strategy||'', D.cards&&D.cards.map(l=>this.parseReq(l).name));
+    const winCondition = this.E.classifyWinCondition(game, hints);
+    const lossCondition = this.E.classifyLossCondition(game, hints);
+    const planScore = this.E.computePlanScore(game, hints);
+    const keyTurningPoints = this.E.keyTurningPoints(game);
+    const coach = this.E.buildCoachReport(game, hints, winCondition, lossCondition, planScore, { existingGames:this.games() });
+    game.parserVersion=2; game.rawHash=this.E.rawHash('manual:'+JSON.stringify(o)+Math.random());
+    game.winCondition=winCondition; game.lossCondition=lossCondition; game.planScore=planScore; game.keyTurningPoints=keyTurningPoints; game.coach=coach;
+    game.winCat = result==='W'? (winCondition.primary||''):''; game.lossCat = result==='L'? (lossCondition.primary||''):'';
+    game.oppInks=this.oppInks(game);
+    this.setGames([...this.games(), game]);
+    this.setState({ offlineOpen:false, off:{ result:'W', method:'concession', onPlay:'yes', mulligan:'0', myLore:'', oppLore:'', gameTurns:'', firstQuestMyTurn:'', cross10MyTurn:'', archetype:'Other / Unknown', venue:'', notes:'' } });
+    try{ localStorage.setItem(this.TKEY,'games'); }catch(e){}
+    this.toast('Offline game saved to '+D.title);
   }
   setArch(i,val){ const games=this.games().slice(); games[i]={...games[i],archetype:val}; this.setGames(games); }
   setCat(i,val){ const games=this.games().slice(); const g={...games[i]}; if(g.result==='W')g.winCat=val; else g.lossCat=val; games[i]=g; this.setGames(games); }
