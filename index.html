@@ -55,6 +55,40 @@
       </div>
     </sc-for>
   </div>
+
+  <sc-if value="{{ gateVisible }}" hint-placeholder-val="{{ false }}">
+    <div style="position:relative;z-index:2;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px">
+      <div style="width:100%;max-width:380px;background:var(--panel);border:1px solid var(--border-soft);border-radius:22px;box-shadow:var(--shadow);backdrop-filter:blur(28px);padding:30px">
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:22px">
+          <div style="width:44px;height:44px;border-radius:14px;display:flex;align-items:center;justify-content:center;background:var(--panel2);border:1px solid var(--border);flex:0 0 auto">
+            <svg width="22" height="22" viewBox="0 0 32 32" aria-hidden="true">
+              <circle cx="16" cy="16" r="12" fill="none" stroke="#CC785C" stroke-width="2.4"></circle>
+              <circle cx="16" cy="16" r="4" fill="#CC785C"></circle>
+            </svg>
+          </div>
+          <div>
+            <div style="font-family:'Chakra Petch',sans-serif;font-weight:700;font-size:1.1rem;letter-spacing:-.02em;line-height:1">THE CONSTRUCT</div>
+            <div style="font-family:'Space Mono',monospace;font-size:.55rem;letter-spacing:.22em;text-transform:uppercase;color:var(--text2);margin-top:4px">Lorcana deck intelligence<span style="animation:blinkCursor 1s step-end infinite">_</span></div>
+          </div>
+        </div>
+        <div style="font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:1.15rem;margin-bottom:5px">Sign in to continue</div>
+        <div style="font-size:.82rem;color:var(--text2);margin-bottom:20px">This site is private. Enter your credentials to view decks, stats, and games.</div>
+        <label style="display:flex;flex-direction:column;gap:5px;font-size:.72rem;color:var(--text2);font-weight:600;margin-bottom:12px">Username
+          <input type="text" value="{{ loginUser }}" onchange="{{ onLoginUser }}" autocomplete="username" onkeydown="{{ onGateKeydown }}" style="border:1px solid var(--border);border-radius:11px;padding:11px 12px;font-family:inherit;font-size:.9rem;background:var(--panel2);color:var(--text)">
+        </label>
+        <label style="display:flex;flex-direction:column;gap:5px;font-size:.72rem;color:var(--text2);font-weight:600;margin-bottom:6px">Password
+          <input type="password" value="{{ loginPass }}" onchange="{{ onLoginPass }}" autocomplete="current-password" onkeydown="{{ onGateKeydown }}" style="border:1px solid var(--border);border-radius:11px;padding:11px 12px;font-family:inherit;font-size:.9rem;background:var(--panel2);color:var(--text)">
+        </label>
+        <sc-if value="{{ loginErr }}" hint-placeholder-val="{{ false }}">
+          <div style="color:#F87171;font-size:.78rem;margin-top:8px">{{ loginErr }}</div>
+        </sc-if>
+        <button onclick="{{ onDoLogin }}" disabled="{{ loginBusy }}" style="width:100%;border:0;border-radius:12px;padding:12px 16px;font-family:inherit;font-weight:700;font-size:.88rem;cursor:pointer;background:#CC785C;color:#fff;margin-top:18px">{{ loginBtnLabel }}</button>
+        <div style="font-size:.68rem;color:var(--text3);margin-top:16px;line-height:1.5">Sessions last 1 hour. More accounts can be added later — each with view-only or full access.</div>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ siteAuthed }}" hint-placeholder-val="{{ false }}">
   <div style="position:relative;z-index:1">
 
   <div style="position:relative;background:var(--hero-glow);overflow:hidden">
@@ -342,9 +376,12 @@
     
     <sc-if value="{{ isDeckTab }}" hint-placeholder-val="{{ false }}">
     <section data-screen-label="Deck" style="padding:18px 0 70px">
-      <div style="display:flex;align-items:baseline;gap:14px;margin:6px 0 22px">
-        <span style="font-family:'Space Mono',monospace;font-size:.78rem;color:#CC785C;letter-spacing:.1em">❖</span>
-        <h2 style="font-family:'Chakra Petch',sans-serif;font-weight:500;font-size:clamp(1.5rem,3vw,2.05rem);letter-spacing:-.01em;margin:0">Deck coverage</h2>
+      <div style="display:flex;align-items:baseline;justify-content:space-between;flex-wrap:wrap;gap:14px;margin:6px 0 22px">
+        <div style="display:flex;align-items:baseline;gap:14px">
+          <span style="font-family:'Space Mono',monospace;font-size:.78rem;color:#CC785C;letter-spacing:.1em">❖</span>
+          <h2 style="font-family:'Chakra Petch',sans-serif;font-weight:500;font-size:clamp(1.5rem,3vw,2.05rem);letter-spacing:-.01em;margin:0">Deck coverage</h2>
+        </div>
+        <button onclick="{{ onExportDeckList }}" style="border:1px solid var(--border);border-radius:12px;padding:9px 16px;font-family:inherit;font-weight:700;font-size:.8rem;cursor:pointer;background:var(--chip-bg);color:var(--text)">Export deck list</button>
       </div>
       <div style="background:linear-gradient(var(--panel),var(--panel)) padding-box, linear-gradient(135deg, rgba(204,120,92,.55), rgba(167,139,250,.4) 35%, rgba(74,222,128,.3) 65%, rgba(204,120,92,.55)) border-box;background-size:100% 100%, 300% 300%;border:1px solid transparent;border-radius:22px;box-shadow:var(--shadow);backdrop-filter:blur(24px);animation:borderFlow 10s linear infinite;padding:24px">
           <div onClick="{{ col.onToggleCov }}" style="display:flex;align-items:center;justify-content:space-between;gap:12px;cursor:pointer;user-select:none">
@@ -573,15 +610,15 @@
         </sc-if>
 
         <sc-if value="{{ parsedView }}" hint-placeholder-val="{{ false }}">
-        <div style="background:#F6EFE1;border:1px solid #E7DBC2;border-radius:14px;padding:16px;margin-top:14px;font-size:.84rem">
-          <b style="font-family:'Chakra Petch',sans-serif;font-size:1.02rem;color:{{ parsedView.headColor }}">{{ parsedView.title }}</b> — {{ parsedView.sub }}
+        <div style="background:var(--panel2);border:1px solid var(--border-soft);border-radius:14px;padding:16px;margin-top:14px;font-size:.84rem;color:var(--text)">
+          <b style="font-family:'Chakra Petch',sans-serif;font-size:1.02rem;color:{{ parsedView.headColor }}">{{ parsedView.title }}</b> — <span style="color:var(--text2)">{{ parsedView.sub }}</span>
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:5px 18px;margin-top:10px">
             <sc-for list="{{ parsedView.rows }}" as="pr" hint-placeholder-count="6">
-              <div style="display:flex;justify-content:space-between;gap:10px;border-bottom:1px dashed #d8cba9;padding:4px 0"><span style="color:var(--text2)">{{ pr.k }}</span><span style="font-weight:700;font-variant-numeric:tabular-nums">{{ pr.v }}</span></div>
+              <div style="display:flex;justify-content:space-between;gap:10px;border-bottom:1px dashed var(--border);padding:4px 0"><span style="color:var(--text2)">{{ pr.k }}</span><span style="font-weight:700;font-variant-numeric:tabular-nums;color:var(--text)">{{ pr.v }}</span></div>
             </sc-for>
           </div>
           <div style="display:flex;flex-wrap:wrap;gap:7px;margin-top:11px">
-            <sc-for list="{{ parsedView.chips }}" as="ch" hint-placeholder-count="2"><span style="font-size:.72rem;font-weight:600;padding:4px 9px;border-radius:999px;background:#F4E8CC;color:#9a6c0f">{{ ch }}</span></sc-for>
+            <sc-for list="{{ parsedView.chips }}" as="ch" hint-placeholder-count="2"><span style="font-size:.72rem;font-weight:600;padding:4px 9px;border-radius:999px;background:var(--chip-bg);color:var(--text)">{{ ch }}</span></sc-for>
           </div>
           <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;margin-top:13px">
             <label style="display:flex;flex-direction:column;gap:5px;font-size:.72rem;color:var(--text2);font-weight:600">Opponent
@@ -670,7 +707,7 @@
       <div style="background:linear-gradient(var(--panel),var(--panel)) padding-box, linear-gradient(135deg, rgba(204,120,92,.55), rgba(167,139,250,.4) 35%, rgba(74,222,128,.3) 65%, rgba(204,120,92,.55)) border-box;background-size:100% 100%, 300% 300%;border:1px solid transparent;border-radius:22px;box-shadow:var(--shadow);backdrop-filter:blur(24px);animation:borderFlow 10s linear infinite;padding:24px;margin-top:16px">
         <div style="font-family:'Space Mono',monospace;font-size:.66rem;font-weight:700;letter-spacing:.15em;text-transform:uppercase;color:var(--text3);margin-bottom:6px">Logged games · {{ gm.count }}</div>
         <sc-for list="{{ gm.games }}" as="g" hint-placeholder-count="5">
-          <div style="display:grid;grid-template-columns:44px 1fr auto;gap:14px;align-items:start;padding:15px 2px;border-bottom:1px solid #EFE6D4">
+          <div style="display:grid;grid-template-columns:44px 1fr auto;gap:14px;align-items:start;padding:15px 2px;border-bottom:1px solid var(--border-soft)">
             <div style="width:42px;height:42px;border-radius:13px;display:flex;align-items:center;justify-content:center;font-weight:800;color:#fff;font-size:1.05rem;background:{{ g.resBg }};box-shadow:0 6px 14px -6px rgba(80,40,20,.4)">{{ g.result }}</div>
             <div style="min-width:0">
               <div style="font-weight:700;font-size:.94rem">{{ g.title }} <span style="color:var(--text2);font-weight:500">({{ g.margin }})</span></div>
@@ -881,13 +918,13 @@
           <div style="font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:1.1rem;margin-bottom:6px">Admin session active</div>
           <div style="font-size:.82rem;color:var(--text2);margin-bottom:18px">You can save changes on this device. Session ends automatically after 1 hour.</div>
           <div style="display:flex;gap:9px">
-            <button onclick="{{ onLogout }}" style="flex:1;border:0;border-radius:12px;padding:10px 16px;font-family:inherit;font-weight:700;font-size:.85rem;cursor:pointer;background:var(--chip-bg);color:var(--text)">Log out</button>
+            <button onclick="{{ onLogout }}" style="flex:1;border:0;border-radius:12px;padding:10px 16px;font-family:inherit;font-weight:700;font-size:.85rem;cursor:pointer;background:var(--chip-bg);color:var(--text)">Log out of site</button>
             <button onclick="{{ onCloseAdmin }}" style="border:1px solid var(--border);background:transparent;color:var(--text2);border-radius:12px;padding:10px 16px;font-family:inherit;font-size:.85rem;cursor:pointer">Close</button>
           </div>
         </sc-if>
         <sc-if value="{{ showLoginForm }}" hint-placeholder-val="{{ true }}">
-          <div style="font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:1.1rem;margin-bottom:6px">Admin login</div>
-          <div style="font-size:.82rem;color:var(--text2);margin-bottom:16px">Everyone can view decks and stats. Only an admin can save changes.</div>
+          <div style="font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:1.1rem;margin-bottom:6px">Log in as admin</div>
+          <div style="font-size:.82rem;color:var(--text2);margin-bottom:16px">You're signed in to view. Enter admin credentials here to unlock saving changes on this device.</div>
           <label style="display:flex;flex-direction:column;gap:5px;font-size:.72rem;color:var(--text2);font-weight:600;margin-bottom:12px">Username
             <input type="text" value="{{ loginUser }}" onchange="{{ onLoginUser }}" autocomplete="username" style="border:1px solid var(--border);border-radius:11px;padding:10px 12px;font-family:inherit;font-size:.88rem;background:var(--panel2);color:var(--text)">
           </label>
@@ -906,6 +943,7 @@
     </div>
   </sc-if>
   </div>
+  </sc-if>
 </div>
 
 </x-dc>
@@ -1318,15 +1356,20 @@ class Component extends DCLogic {
   }
   // ---- Admin auth: server (Worker) verifies user/pass and issues a signed, time-limited
   // token; the browser only ever stores that token, never the password. ----
-  isAdmin(){ return !!this.adminToken(); }
-  adminToken(){
+  isAdmin(){ const s=this.sessionInfo(); return !!s && s.role==='admin'; }
+  isLoggedIn(){ return !!this.sessionInfo(); }
+  sessionInfo(){
     try{
       const raw=localStorage.getItem(this.ADMIN_KEY); if(!raw) return null;
       const s=JSON.parse(raw);
       if(!s||!s.token||!s.exp) return null;
       if(Date.now()>s.exp){ localStorage.removeItem(this.ADMIN_KEY); return null; }
-      return s.token;
+      return {token:s.token, exp:s.exp, role:s.role||'admin'};
     }catch(e){ return null; }
+  }
+  adminToken(){
+    const s=this.sessionInfo();
+    return s?s.token:null;
   }
   requireAdmin(fn){
     return (...args)=>{
@@ -1344,9 +1387,9 @@ class Component extends DCLogic {
       const r=await fetch(w, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({action:'login', user, pass})});
       const j=await r.json().catch(()=>({}));
       if(!r.ok||!j.token){ this.setState({loginBusy:false, loginErr:j.error||'Invalid login'}); return; }
-      try{ localStorage.setItem(this.ADMIN_KEY, JSON.stringify({token:j.token, exp:j.exp})); }catch(e){}
+      try{ localStorage.setItem(this.ADMIN_KEY, JSON.stringify({token:j.token, exp:j.exp, role:j.role||'admin'})); }catch(e){}
       this.setState({loginBusy:false, adminOpen:false, loginUser:'', loginPass:'', loginErr:''});
-      this.toast('Logged in — you can now save changes');
+      this.toast('Logged in');
     }catch(e){ this.setState({loginBusy:false, loginErr:'Could not reach save server'}); }
   }
   doLogout(){ try{ localStorage.removeItem(this.ADMIN_KEY); }catch(e){} this.setState({}); this.toast('Logged out'); }
@@ -1542,10 +1585,14 @@ class Component extends DCLogic {
 
   renderVals(){
     const s=this.state;
+    const siteAuthed=this.isLoggedIn();
+    const gateVisible=!s.showLoader && !siteAuthed;
+    const onGateKeydown=(e)=>{ if(e.key==='Enter') this.doLogin(); };
     if(!s.ready) return { ready:false, tabs:[], deckCards:[], toast:s.toast||'', deck:{}, ring:{}, heroPrefix:'rr', editorOpen:false, ed:{}, onAddDeck:()=>{}, themeVars:this.THEMES[s.theme==='light'?'light':'dark'], dotGrid:this.dotGrid(s.theme), themeIcon:s.theme==='light'?'\u25d1':'\u25cf', onToggleTheme:()=>{}, colorScheme:s.theme==='light'?'light':'dark', rainCols:this.buildRainCols(s.rainTick),
+      siteAuthed, gateVisible, onGateKeydown,
       ddOpen:false, onCloseDD:()=>{},
-      adminOpen:!!s.adminOpen, isAdminNow:false, showLoginForm:true, loginUser:'', loginPass:'', loginErr:'', loginBusy:false, loginBtnLabel:'Log in',
-      onLoginUser:()=>{}, onLoginPass:()=>{}, onDoLogin:()=>{}, onCloseAdmin:()=>{}, onLogout:()=>{}, onAdminClick:()=>{}, adminIcon:'\u25cb', adminColor:'var(--text2)', adminTitle:'Admin login',
+      adminOpen:!!s.adminOpen, isAdminNow:false, showLoginForm:true, loginUser:s.loginUser||'', loginPass:s.loginPass||'', loginErr:s.loginErr||'', loginBusy:!!s.loginBusy, loginBtnLabel:s.loginBusy?'Logging in…':'Log in',
+      onLoginUser:(e)=>this.setState({loginUser:e.target.value}), onLoginPass:(e)=>this.setState({loginPass:e.target.value}), onDoLogin:()=>this.doLogin(), onCloseAdmin:()=>{}, onLogout:()=>{}, onAdminClick:()=>{}, adminIcon:'\u25cb', adminColor:'var(--text2)', adminTitle:'Admin login',
       h1:{}, h2:{}, h3:{}, hp:{open:false,cards:[]}, sync:{open:false,chip:'○ Sync',chipStyle:"border:1px solid #8B7A6355;background:#F3F2E6;color:#8B7A63;border-radius:7px;padding:5px 10px;font-family:'Space Mono',monospace;font-size:.58rem;letter-spacing:.14em;text-transform:uppercase;cursor:pointer;white-space:nowrap"}, vp:{open:false,options:[]}, hideImg:()=>{},
       showLoader:true, rainFilter:this.rainFilter(s.theme), rainCols:[], buyPreview:{open:false}, off:{open:false} };
     const E=this.E, D=this.getDeck(s.deck), G=this.games(), a=this.agg(G);
@@ -1915,6 +1962,7 @@ class Component extends DCLogic {
       buyPreview: (()=>{ const bp=s.buyPreview; if(!bp) return {open:false}; const u=this.imgUrl(bp.name); return { open:true, name:bp.name, img:u, noImg:!u, imgEl:this.imgEl(u,bp.name,{borderRadius:'14px'}), onClose:()=>this.setState({buyPreview:null}) }; })(),
       ddOpen: !!s.openDD,
       onCloseDD: ()=>this.setState({openDD:null}),
+      siteAuthed, gateVisible, onGateKeydown,
       adminOpen: !!s.adminOpen,
       isAdminNow: this.isAdmin(),
       showLoginForm: !this.isAdmin(),
@@ -1964,7 +2012,7 @@ class Component extends DCLogic {
       onEditorCancel:()=>this.setState({editor:null}),
       onEditorDelete:this.requireAdmin(()=>this.deleteEditorDeck()),
       stopClick:(e)=>e.stopPropagation(),
-      ov, mu, ck, cb, gm, off, parsedView,
+      ov, mu, ck, cb, gm, off, parsedView, onExportDeckList:this.onExportDeckList.bind(this),
       goGames:()=>this.setTab('games'),
       onLogInput:(e)=>this.setState({logText:e.target.value}),
       onParse:()=>this.onParse(),
@@ -2069,6 +2117,20 @@ class Component extends DCLogic {
   setCat(i,val){ const games=this.games().slice(); const g={...games[i]}; if(g.result==='W')g.winCat=val; else g.lossCat=val; games[i]=g; this.setGames(games); }
   delGame(id){ this.addTomb('games',id); this.setGames(this.games().filter(x=>x.id!==id)); this.toast('Deleted'); }
   onExport(){ try{ const b=new Blob([JSON.stringify({...this.state.store, __collection:this.state.collection||{}},null,2)],{type:'application/json'}); const u=URL.createObjectURL(b); const el=document.createElement('a'); el.href=u; el.download='ranger-atlas-games.json'; el.click(); this.toast('Exported all decks'); }catch(e){ this.toast('Export failed'); } }
+  onExportDeckList(){
+    const D=this.getDeck(this.state.deck);
+    const reqs=this.deckReqs(D);
+    if(!reqs||!reqs.length){ this.toast('This deck has no card list saved'); return; }
+    const text=reqs.map(r=>`${r.qty} ${r.name}`).join('\n');
+    try{
+      const b=new Blob([text],{type:'text/plain'});
+      const u=URL.createObjectURL(b);
+      const el=document.createElement('a'); el.href=u; el.download=(D.title||'deck').replace(/[^\w\- ]/g,'')+' - deck list.txt';
+      document.body.appendChild(el); el.click(); el.remove();
+      URL.revokeObjectURL(u);
+      this.toast('Deck list downloaded');
+    }catch(e){ this.toast('Export failed'); }
+  }
   onImport(e){
     const f=e.target.files&&e.target.files[0]; if(!f)return;
     const r=new FileReader();
