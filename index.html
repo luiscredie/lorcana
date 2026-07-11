@@ -539,13 +539,12 @@
       <div style="background:linear-gradient(var(--panel),var(--panel)) padding-box, linear-gradient(135deg, rgba(204,120,92,.55), rgba(167,139,250,.4) 35%, rgba(74,222,128,.3) 65%, rgba(204,120,92,.55)) border-box;background-size:100% 100%, 300% 300%;border:1px solid transparent;border-radius:22px;box-shadow:var(--shadow);backdrop-filter:blur(24px);animation:borderFlow 10s linear infinite;padding:24px">
         <div style="font-family:'Space Mono',monospace;font-size:.66rem;font-weight:700;letter-spacing:.15em;text-transform:uppercase;color:var(--text3);margin-bottom:12px">Search every card ever printed</div>
         <input type="text" value="{{ cardBase.query }}" onchange="{{ cardBase.onQuery }}" placeholder="Search name or ability text (e.g. &quot;draw a card&quot;, &quot;Bodyguard&quot;)…" style="width:100%;box-sizing:border-box;border:1px solid var(--border);border-radius:11px;padding:10px 12px;font-family:inherit;font-size:.88rem;background:var(--panel2);color:var(--text);margin-bottom:14px">
-        <div style="display:flex;flex-wrap:wrap;gap:16px;margin-bottom:14px">
-          <label style="display:flex;flex-direction:column;gap:5px;font-size:.66rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--text3)">Rarity
-            <select value="{{ cardBase.raritySel }}" onchange="{{ cardBase.onRarity }}" style="border:1px solid var(--border);border-radius:10px;padding:8px 10px;font-family:inherit;font-size:.82rem;background:var(--panel2);color:var(--text);min-width:140px">
-              <option value="">All rarities</option>
-              <sc-for list="{{ cardBase.rarityOptions }}" as="ro" hint-placeholder-count="4"><option value="{{ ro }}">{{ ro }}</option></sc-for>
-            </select>
-          </label>
+        <div style="display:flex;flex-wrap:wrap;gap:16px;margin-bottom:14px"></div>
+        <div style="font-size:.66rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--text3);margin-bottom:6px">Rarity</div>
+        <div style="display:flex;flex-wrap:wrap;gap:7px;margin-bottom:14px">
+          <sc-for list="{{ cardBase.rarityChips }}" as="rc" hint-placeholder-count="6">
+            <button onclick="{{ rc.onClick }}" style="{{ rc.style }}">{{ rc.label }}</button>
+          </sc-for>
         </div>
         <div style="font-size:.66rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--text3);margin-bottom:6px">Set</div>
         <div style="display:flex;flex-wrap:wrap;gap:7px;margin-bottom:14px">
@@ -1437,7 +1436,7 @@ class Component extends DCLogic {
       const sig=(o)=>{ try{ return JSON.stringify({s:o.store,l:o.lib,c:o.collection,cu:o.colUpdated,v:o.variants,vu:o.variantsUpdated,dg:(o.deletedGames||[]).slice().sort(),dd:(o.deletedDecks||[]).slice().sort()}); }catch(e){ return Math.random()+''; } };
       const same=!!(remote&&remote.doc)&&sig(remote.doc)===sig(doc);
       const token=this.adminToken();
-      if(w&&!same&&token){
+      if(w&&!same&&token&&this.isAdmin()){
         const wrapped=this._wrapFmt!==false; // unknown (e.g. file didn't exist yet) defaults to the wrapped contract
         const body=wrapped?JSON.stringify({content:JSON.stringify(doc), sha:remote&&remote.sha}):JSON.stringify(doc);
         const r=await fetch(w, {method:'POST', headers:{'Content-Type':'application/json', 'Authorization':'Bearer '+token}, body});
@@ -1587,12 +1586,12 @@ class Component extends DCLogic {
   }
   zoomCard(name){ if(name) this.setState({buyPreview:{name}}); }
   onCbQuery(e){ this.setState({cbQuery:e.target.value}); }
-  onCbRarity(e){ this.setState({cbRarity:e.target.value}); }
   onToggleCbInk(ink){ const cur={...(this.state.cbInk||{})}; cur[ink]=!cur[ink]; this.setState({cbInk:cur}); }
   onToggleCbCost(c){ const cur={...(this.state.cbCost||{})}; cur[c]=!cur[c]; this.setState({cbCost:cur}); }
   onToggleCbSet(set){ const cur={...(this.state.cbSet||{})}; cur[set]=!cur[set]; this.setState({cbSet:cur}); }
   onToggleCbLore(l){ const cur={...(this.state.cbLore||{})}; cur[l]=!cur[l]; this.setState({cbLore:cur}); }
-  onClearCbFilters(){ this.setState({cbQuery:'', cbSet:{}, cbRarity:'', cbInk:{}, cbCost:{}, cbLore:{}}); }
+  onToggleCbRarity(r){ const cur={...(this.state.cbRarity2||{})}; cur[r]=!cur[r]; this.setState({cbRarity2:cur}); }
+  onClearCbFilters(){ this.setState({cbQuery:'', cbSet:{}, cbRarity2:{}, cbInk:{}, cbCost:{}, cbLore:{}}); }
   oppInks(g){
     if(Array.isArray(g.oppInks)&&g.oppInks.length) return g.oppInks;
     if(!Array.isArray(g.oppCards)||!g.oppCards.length) return [];
@@ -2019,23 +2018,25 @@ class Component extends DCLogic {
 
     // ---------- Card Base (advanced card search) ----------
     const cbAll=this.cardBaseList();
-    const cbSetOptions=[...new Set(cbAll.map(c=>c.setName).filter(Boolean))]
-      .sort((a,b)=>a.localeCompare(b));
+    const cbSetMeta={};
+    cbAll.forEach(c=>{ if(c.setName && !cbSetMeta[c.setName]) cbSetMeta[c.setName]=c.setNum||9999; });
+    const cbSetOptions=Object.keys(cbSetMeta).sort((a,b)=>cbSetMeta[a]-cbSetMeta[b]);
+    const RARITY_ORDER=['Common','Uncommon','Rare','Super Rare','Legendary','Enchanted'];
     const cbRarityOptions=[...new Set(cbAll.map(c=>c.r).filter(Boolean))]
-      .sort((a,b)=>a.localeCompare(b));
+      .sort((a,b)=>{ const ia=RARITY_ORDER.indexOf(a), ib=RARITY_ORDER.indexOf(b); if(ia===-1&&ib===-1) return a.localeCompare(b); if(ia===-1) return 1; if(ib===-1) return -1; return ia-ib; });
     const CB_INKS=['Amber','Amethyst','Emerald','Ruby','Sapphire','Steel'];
     const CB_COSTS=['1','2','3','4','5','6','7+'];
     const CB_LORE=['0','1','2','3','4','5+'];
-    const cbInkSel=s.cbInk||{}, cbCostSel=s.cbCost||{}, cbSetSelObj=s.cbSet||{}, cbLoreSel=s.cbLore||{};
+    const cbInkSel=s.cbInk||{}, cbCostSel=s.cbCost||{}, cbSetSelObj=s.cbSet||{}, cbLoreSel=s.cbLore||{}, cbRaritySelObj=s.cbRarity2||{};
     const cbInkChosen=CB_INKS.filter(k=>cbInkSel[k]);
     const cbCostChosen=CB_COSTS.filter(k=>cbCostSel[k]);
     const cbSetChosen=cbSetOptions.filter(k=>cbSetSelObj[k]);
     const cbLoreChosen=CB_LORE.filter(k=>cbLoreSel[k]);
+    const cbRarityChosen=cbRarityOptions.filter(k=>cbRaritySelObj[k]);
     const cbQ=(s.cbQuery||'').toLowerCase().trim().replace(/\s+/g,' ');
-    const cbRaritySel=s.cbRarity||'';
     let cbFiltered=cbAll.filter(c=>{
       if(cbSetChosen.length && !cbSetChosen.includes(c.setName)) return false;
-      if(cbRaritySel && c.r!==cbRaritySel) return false;
+      if(cbRarityChosen.length && !cbRarityChosen.includes(c.r)) return false;
       if(cbInkChosen.length){ const inks=(c.i||'').toLowerCase(); if(!cbInkChosen.some(ik=>inks.includes(ik.toLowerCase()))) return false; }
       if(cbCostChosen.length){
         const cv=c.c;
@@ -2058,13 +2059,13 @@ class Component extends DCLogic {
     const cbCapped=cbFiltered.slice(0,60);
     const cbResults=cbCapped.map(c=>{
       const im=this.imgUrl(c.n);
-      const chips=[c.c!=null?('Cost '+c.c):'', c.i||'', c.l!=null?(c.l+' lore'):'', c.r||''].filter(Boolean);
+      const chips=[c.setNum!=null?('Set '+c.setNum):'', c.c!=null?('Cost '+c.c):'', c.i||'', c.l!=null?(c.l+' lore'):'', c.r||''].filter(Boolean);
       return { name:c.n, img:im, noImg:!im, imgEl:this.imgEl(im,c.n,{borderRadius:'10px'}), chips, setName:c.setName||'', onZoom:()=>this.zoomCard(c.n) };
     });
     const cbChipStyle=(on)=>`border:1px solid ${on?'#CC785C':'var(--border)'};border-radius:999px;padding:6px 13px;font-family:inherit;font-weight:600;font-size:.78rem;cursor:pointer;background:${on?'#CC785C':'var(--panel2)'};color:${on?'#fff':'var(--text2)'}`;
     const cardBase={
       query:s.cbQuery||'', onQuery:(e)=>this.onCbQuery(e),
-      raritySel:cbRaritySel, onRarity:(e)=>this.onCbRarity(e), rarityOptions:cbRarityOptions,
+      rarityChips:cbRarityOptions.map(ro=>({label:ro, on:!!cbRaritySelObj[ro], onClick:()=>this.onToggleCbRarity(ro), style:cbChipStyle(!!cbRaritySelObj[ro])})),
       setChips:cbSetOptions.map(so=>({label:so, on:!!cbSetSelObj[so], onClick:()=>this.onToggleCbSet(so), style:cbChipStyle(!!cbSetSelObj[so])})),
       inkChips:CB_INKS.map(ik=>({label:ik, on:!!cbInkSel[ik], onClick:()=>this.onToggleCbInk(ik), style:cbChipStyle(!!cbInkSel[ik])})),
       costChips:CB_COSTS.map(cs=>({label:cs, on:!!cbCostSel[cs], onClick:()=>this.onToggleCbCost(cs), style:cbChipStyle(!!cbCostSel[cs])})),
