@@ -14,6 +14,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;500;600;700&amp;family=Space+Grotesk:wght@400;500;600;700&amp;family=Hanken+Grotesk:wght@400;500;600;700;800&amp;family=Space+Mono:wght@400;700&amp;display=swap" rel="stylesheet">
 <script src="engine.js"></script>
 <script src="card-index.js"></script>
+<script src="card-db.js"></script>
 <style>
   html,body{margin:0}
   body{background:#0B0D10}
@@ -172,6 +173,7 @@
               <div onClick="{{ f.onPick }}" title="{{ f.name }}" style="{{ f.frameStyle }}">
                 {{ f.imgEl }}
                 <sc-if value="{{ f.empty }}" hint-placeholder-val="{{ false }}"><span style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;color:var(--text3);font-family:'Space Mono',monospace;font-size:.6rem;letter-spacing:.12em;text-transform:uppercase;text-align:center;padding:10px"><i style="font-size:1.2rem;font-style:normal">+</i>{{ f.label }}</span></sc-if>
+                <sc-if value="{{ f.hasArt }}" hint-placeholder-val="{{ false }}"><button onclick="{{ f.onZoom }}" title="View card" style="position:absolute;bottom:5px;left:5px;width:22px;height:22px;border-radius:50%;border:1px solid var(--border-soft);background:rgba(255,253,248,.92);color:var(--text2);font-size:.62rem;line-height:1;cursor:pointer;z-index:3;display:flex;align-items:center;justify-content:center">⌕</button></sc-if>
               </div>
             </div>
           </sc-for>
@@ -404,6 +406,7 @@
                   <div style="position:relative;aspect-ratio:5/7;border-radius:11px;border:1px solid {{ r.frameBorder }};background:{{ r.frameBg }};box-shadow:0 6px 12px -8px rgba(60,40,20,.3)">
                     {{ r.imgEl }}<sc-if value="{{ r.noImg }}" hint-placeholder-val="{{ false }}"><span style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;text-align:center;padding:8px;font-size:.62rem;font-weight:600;color:var(--text2);line-height:1.3">{{ r.name }}</span></sc-if>
                     <span style="position:absolute;top:-7px;right:-6px;font-family:'Space Mono',monospace;font-size:.62rem;font-weight:700;border-radius:999px;padding:2px 8px;box-shadow:0 3px 7px rgba(40,25,10,.3);pointer-events:none;z-index:2;background:{{ r.chipBg2 }};color:{{ r.chipColor2 }}">{{ r.countStr }}</span>
+                    <button onclick="{{ r.onZoom }}" title="View card" style="position:absolute;bottom:6px;left:6px;width:22px;height:22px;border-radius:50%;border:1px solid var(--border-soft);background:rgba(255,253,248,.92);color:var(--text2);font-size:.66rem;line-height:1;cursor:pointer;z-index:3;display:flex;align-items:center;justify-content:center">⌕</button>
                     <sc-if value="{{ r.canSwap }}" hint-placeholder-val="{{ false }}"><button onclick="{{ r.onSwap }}" title="Choose a different printing" style="position:absolute;bottom:6px;right:6px;width:22px;height:22px;border-radius:50%;border:1px solid var(--border-soft);background:rgba(255,253,248,.92);color:var(--text2);font-size:.62rem;line-height:1;cursor:pointer;z-index:3;display:flex;align-items:center;justify-content:center">⇄</button></sc-if>
                   </div>
                   <span style="display:grid;grid-template-columns:1fr auto;gap:5px;align-items:center;margin-top:6px;padding:0 2px">
@@ -484,6 +487,7 @@
                           <div style="position:relative;aspect-ratio:5/7;border-radius:11px;border:1px solid {{ r.frameBorder }};background:{{ r.frameBg }};box-shadow:0 6px 12px -8px rgba(60,40,20,.3)">
                             {{ r.imgEl }}<sc-if value="{{ r.noImg }}" hint-placeholder-val="{{ false }}"><span style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;text-align:center;padding:8px;font-size:.62rem;font-weight:600;color:var(--text2);line-height:1.3">{{ r.name }}</span></sc-if>
                             <span style="position:absolute;top:-7px;right:-6px;background:var(--text);color:var(--bg);font-family:'Space Mono',monospace;font-size:.66rem;font-weight:700;border-radius:999px;padding:2px 8px;box-shadow:0 3px 7px rgba(40,25,10,.35);pointer-events:none;z-index:2">×{{ r.qty }}</span>
+                            <button onclick="{{ r.onZoom }}" title="View card" style="position:absolute;bottom:6px;left:6px;width:22px;height:22px;border-radius:50%;border:1px solid var(--border-soft);background:rgba(255,253,248,.92);color:var(--text2);font-size:.66rem;line-height:1;cursor:pointer;z-index:3;display:flex;align-items:center;justify-content:center">⤢</button>
                             <sc-if value="{{ r.canSwap }}" hint-placeholder-val="{{ false }}"><button onclick="{{ r.onSwap }}" title="Choose a different printing" style="position:absolute;bottom:6px;right:6px;width:22px;height:22px;border-radius:50%;border:1px solid var(--border-soft);background:rgba(255,253,248,.92);color:var(--text2);font-size:.62rem;line-height:1;cursor:pointer;z-index:3;display:flex;align-items:center;justify-content:center">⇄</button></sc-if>
                           </div>
                           <span style="display:grid;grid-template-columns:auto 1fr auto;gap:5px;align-items:start;margin-top:6px;padding:0 2px">
@@ -500,7 +504,7 @@
                       <sc-for list="{{ g.rows }}" as="r" hint-placeholder-count="5">
                         <div style="display:grid;grid-template-columns:auto 1fr auto auto;gap:10px;align-items:center;padding:9px 0;border-bottom:1px solid #EFE6D4">
                           <i style="width:11px;height:11px;border-radius:50%;display:block;background:{{ r.dot }}"></i>
-                          <span style="min-width:0">
+                          <span onClick="{{ r.onZoom }}" style="min-width:0;cursor:pointer">
                             <span style="font-weight:600;font-size:.88rem;line-height:1.3;display:block">{{ r.name }}</span>
                             <span style="font-family:'Space Mono',monospace;font-size:.6rem;color:var(--text3);display:block;margin-top:1px">{{ r.meta }}</span>
                           </span>
@@ -521,6 +525,73 @@
             <sc-if value="{{ col.empty }}" hint-placeholder-val="{{ false }}">
               <p style="color:var(--text2);font-size:.86rem;margin:6px 0 0;line-height:1.55">Nothing catalogued yet — add the cards you own above and the coverage chart fills in.</p>
             </sc-if>
+      </div>
+    </section>
+    </sc-if>
+
+    
+    <sc-if value="{{ isCardBase }}" hint-placeholder-val="{{ false }}">
+    <section data-screen-label="Card Base" style="padding:18px 0 70px">
+      <div style="display:flex;align-items:baseline;gap:14px;margin:6px 0 22px">
+        <span style="font-family:'Space Mono',monospace;font-size:.78rem;color:#CC785C;letter-spacing:.1em">❖</span>
+        <h2 style="font-family:'Chakra Petch',sans-serif;font-weight:500;font-size:clamp(1.5rem,3vw,2.05rem);letter-spacing:-.01em;margin:0">Card Base</h2>
+      </div>
+      <div style="background:linear-gradient(var(--panel),var(--panel)) padding-box, linear-gradient(135deg, rgba(204,120,92,.55), rgba(167,139,250,.4) 35%, rgba(74,222,128,.3) 65%, rgba(204,120,92,.55)) border-box;background-size:100% 100%, 300% 300%;border:1px solid transparent;border-radius:22px;box-shadow:var(--shadow);backdrop-filter:blur(24px);animation:borderFlow 10s linear infinite;padding:24px">
+        <div style="font-family:'Space Mono',monospace;font-size:.66rem;font-weight:700;letter-spacing:.15em;text-transform:uppercase;color:var(--text3);margin-bottom:12px">Search every card ever printed</div>
+        <input type="text" value="{{ cardBase.query }}" onchange="{{ cardBase.onQuery }}" placeholder="Search name or ability text (e.g. &quot;draw a card&quot;, &quot;Bodyguard&quot;)…" style="width:100%;box-sizing:border-box;border:1px solid var(--border);border-radius:11px;padding:10px 12px;font-family:inherit;font-size:.88rem;background:var(--panel2);color:var(--text);margin-bottom:14px">
+        <div style="display:flex;flex-wrap:wrap;gap:16px;margin-bottom:14px">
+          <label style="display:flex;flex-direction:column;gap:5px;font-size:.66rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--text3)">Set
+            <select value="{{ cardBase.setSel }}" onchange="{{ cardBase.onSet }}" style="border:1px solid var(--border);border-radius:10px;padding:8px 10px;font-family:inherit;font-size:.82rem;background:var(--panel2);color:var(--text);min-width:170px">
+              <option value="">All sets</option>
+              <sc-for list="{{ cardBase.setOptions }}" as="so" hint-placeholder-count="4"><option value="{{ so }}">{{ so }}</option></sc-for>
+            </select>
+          </label>
+          <label style="display:flex;flex-direction:column;gap:5px;font-size:.66rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--text3)">Rarity
+            <select value="{{ cardBase.raritySel }}" onchange="{{ cardBase.onRarity }}" style="border:1px solid var(--border);border-radius:10px;padding:8px 10px;font-family:inherit;font-size:.82rem;background:var(--panel2);color:var(--text);min-width:140px">
+              <option value="">All rarities</option>
+              <sc-for list="{{ cardBase.rarityOptions }}" as="ro" hint-placeholder-count="4"><option value="{{ ro }}">{{ ro }}</option></sc-for>
+            </select>
+          </label>
+        </div>
+        <div style="font-size:.66rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--text3);margin-bottom:6px">Ink</div>
+        <div style="display:flex;flex-wrap:wrap;gap:7px;margin-bottom:14px">
+          <sc-for list="{{ cardBase.inkChips }}" as="ic" hint-placeholder-count="6">
+            <button onclick="{{ ic.onClick }}" style="{{ ic.style }}">{{ ic.label }}</button>
+          </sc-for>
+        </div>
+        <div style="font-size:.66rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--text3);margin-bottom:6px">Cost</div>
+        <div style="display:flex;flex-wrap:wrap;gap:7px;margin-bottom:6px">
+          <sc-for list="{{ cardBase.costChips }}" as="cc" hint-placeholder-count="8">
+            <button onclick="{{ cc.onClick }}" style="{{ cc.style }}">{{ cc.label }}</button>
+          </sc-for>
+        </div>
+        <div style="display:flex;justify-content:flex-end;margin-bottom:6px">
+          <button onclick="{{ cardBase.onClear }}" style="border:0;background:transparent;color:var(--text2);font-family:inherit;font-weight:600;font-size:.76rem;padding:4px 6px;cursor:pointer">Clear filters</button>
+        </div>
+      </div>
+      <div style="margin-top:16px">
+        <sc-if value="{{ cardBase.noDb }}" hint-placeholder-val="{{ false }}">
+          <p style="color:var(--text2);font-size:.88rem;margin:6px 0 0;line-height:1.55">Card database not loaded (card-db.js missing).</p>
+        </sc-if>
+        <sc-if value="{{ cardBase.hasResults }}" hint-placeholder-val="{{ true }}">
+          <div style="font-family:'Space Mono',monospace;font-size:.62rem;letter-spacing:.1em;text-transform:uppercase;color:var(--text3);margin-bottom:10px">{{ cardBase.shown }} of {{ cardBase.total }} cards<sc-if value="{{ cardBase.capped }}" hint-placeholder-val="{{ false }}"> — narrow your search to see more</sc-if></div>
+          <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:14px">
+            <sc-for list="{{ cardBase.results }}" as="r" hint-placeholder-count="12">
+              <div>
+                <div onClick="{{ r.onZoom }}" style="position:relative;aspect-ratio:5/7;border-radius:11px;border:1px solid var(--border-soft);background:var(--panel2);box-shadow:0 6px 12px -8px rgba(60,40,20,.3);cursor:pointer;overflow:hidden">
+                  {{ r.imgEl }}<sc-if value="{{ r.noImg }}" hint-placeholder-val="{{ false }}"><span style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;text-align:center;padding:8px;font-size:.62rem;font-weight:600;color:var(--text2);line-height:1.3">{{ r.name }}</span></sc-if>
+                </div>
+                <div style="font-weight:600;font-size:.74rem;line-height:1.25;margin-top:7px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">{{ r.name }}</div>
+                <div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:5px">
+                  <sc-for list="{{ r.chips }}" as="ch" hint-placeholder-count="2"><span style="font-size:.58rem;font-weight:700;letter-spacing:.03em;text-transform:uppercase;padding:2px 7px;border-radius:999px;background:var(--chip-bg);color:var(--text2);font-family:'Space Mono',monospace">{{ ch }}</span></sc-for>
+                </div>
+              </div>
+            </sc-for>
+          </div>
+        </sc-if>
+        <sc-if value="{{ cardBase.noResults }}" hint-placeholder-val="{{ false }}">
+          <p style="color:var(--text2);font-size:.88rem;margin:6px 0 0;line-height:1.55">No cards match those filters.</p>
+        </sc-if>
       </div>
     </section>
     </sc-if>
@@ -772,6 +843,7 @@
           <div onClick="{{ c.onChoose }}" style="cursor:pointer">
             <div style="position:relative;aspect-ratio:5/7;border-radius:10px;border:1px solid var(--border-soft);background:var(--panel2);overflow:hidden">
               {{ c.imgEl }}
+              <button onclick="{{ c.onZoom }}" title="View card" style="position:absolute;bottom:5px;left:5px;width:22px;height:22px;border-radius:50%;border:1px solid var(--border-soft);background:rgba(255,253,248,.92);color:var(--text2);font-size:.62rem;line-height:1;cursor:pointer;z-index:3;display:flex;align-items:center;justify-content:center">⌕</button>
             </div>
             <div style="font-size:.68rem;font-weight:600;line-height:1.25;margin-top:5px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">{{ c.name }}</div>
           </div>
@@ -794,6 +866,16 @@
           <span style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;text-align:center;padding:14px;font-size:.78rem;font-weight:600;color:var(--text2)">No image found for this card</span>
         </sc-if>
       </div>
+      <sc-if value="{{ buyPreview.hasMeta }}" hint-placeholder-val="{{ false }}">
+        <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:12px">
+          <sc-for list="{{ buyPreview.metaChips }}" as="mc" hint-placeholder-count="3">
+            <span style="font-size:.66rem;font-weight:700;letter-spacing:.04em;text-transform:uppercase;padding:4px 9px;border-radius:999px;background:var(--chip-bg);color:var(--text2);font-family:'Space Mono',monospace">{{ mc }}</span>
+          </sc-for>
+        </div>
+      </sc-if>
+      <sc-if value="{{ buyPreview.text }}" hint-placeholder-val="{{ false }}">
+        <p style="font-size:.8rem;line-height:1.5;color:var(--text2);margin:12px 0 0;white-space:pre-wrap">{{ buyPreview.text }}</p>
+      </sc-if>
     </div>
   </div>
   </sc-if>
@@ -1486,6 +1568,24 @@ class Component extends DCLogic {
     this.toast('Deck removed');
   }
   colKey(n){ return String(n||'').toLowerCase().replace(/[\u2018\u2019\u02BC]/g,"'").replace(/\s+/g,' ').trim(); }
+  // ---------- Card Base (full searchable card database) ----------
+  cardDb(){ return (typeof window!=='undefined'&&window.LORCANA_CARD_DB)||{}; }
+  cardBaseList(){
+    if(this._cbList) return this._cbList;
+    this._cbList=Object.values(this.cardDb());
+    return this._cbList;
+  }
+  cardMeta(name){
+    if(!name) return null;
+    return this.cardDb()[this.colKey(name)]||null;
+  }
+  zoomCard(name){ if(name) this.setState({buyPreview:{name}}); }
+  onCbQuery(e){ this.setState({cbQuery:e.target.value}); }
+  onCbSet(e){ this.setState({cbSet:e.target.value}); }
+  onCbRarity(e){ this.setState({cbRarity:e.target.value}); }
+  onToggleCbInk(ink){ const cur={...(this.state.cbInk||{})}; cur[ink]=!cur[ink]; this.setState({cbInk:cur}); }
+  onToggleCbCost(c){ const cur={...(this.state.cbCost||{})}; cur[c]=!cur[c]; this.setState({cbCost:cur}); }
+  onClearCbFilters(){ this.setState({cbQuery:'', cbSet:'', cbRarity:'', cbInk:{}, cbCost:{}}); }
   oppInks(g){
     if(Array.isArray(g.oppInks)&&g.oppInks.length) return g.oppInks;
     if(!Array.isArray(g.oppCards)||!g.oppCards.length) return [];
@@ -1652,7 +1752,7 @@ class Component extends DCLogic {
     // tabs
     const defs=[['overview','Overview'],['matchups','Matchups'],['clock','Clock']];
     if(D.hasCombos) defs.push(['combos','Combos']);
-    defs.push(['games','Games'],['deck','Deck'],['collection','Collection']);
+    defs.push(['games','Games'],['deck','Deck'],['collection','Collection'],['cardbase','Card Base']);
     const tabs=defs.map(([key,label])=>({key,label,onClick:()=>this.setTab(key),
       style:`flex:1;min-width:84px;border:0;border-radius:11px;padding:9px 12px;font-family:inherit;font-weight:600;font-size:.82rem;cursor:pointer;white-space:nowrap;transition:.15s;background:${s.tab===key?'#CC785C':'transparent'};color:${s.tab===key?'#fff':'var(--text2)'};box-shadow:${s.tab===key?'0 4px 16px -4px rgba(204,120,92,.6)':'none'}`}));
 
@@ -1852,13 +1952,13 @@ class Component extends DCLogic {
       const meta=[c.num!=null?('#'+c.num):'', c.color, c.rarity, c.foil?(c.foil+' foil'):''].filter(Boolean).join(' · ');
       curGroup.rows.push({
         name:c.name, qty:c.qty, meta, dot:I?I.dark:'#CDBF9F', img:imc, noImg:!imc, imgEl:this.imgEl(imc,c.name,{borderRadius:'10px'}),
-        canSwap:vfilesC.length>1, onSwap:()=>this.setState({variantPick:c.name}),
+        canSwap:vfilesC.length>1, onSwap:()=>this.setState({variantPick:c.name}), onZoom:()=>this.zoomCard(c.name),
         slotId:'card_'+k.replace(/[^a-z0-9]+/g,'_'),
         title:di>0?c.name.slice(0,di):c.name, sub:di>0?c.name.slice(di+3):'',
         rarity:c.rarity||'', foilStr:c.foil?('✦ '+c.foil):'',
         frameBg:I?`linear-gradient(165deg, ${I.bg}, var(--panel2) 70%)`:'var(--panel2)',
         frameBorder:I?I.border:'var(--border-soft)',
-        onMinus:()=>this.bumpCard(k,-1), onPlus:()=>this.bumpCard(k,1), onRemove:()=>this.removeCard(k)
+        onMinus:()=>this.bumpCard(k,-1), onPlus:()=>this.bumpCard(k,1), onRemove:()=>this.removeCard(k), onZoom:()=>this.zoomCard(c.name)
       });
       shownCount++;
     });
@@ -1879,7 +1979,7 @@ class Component extends DCLogic {
         const im=this.imgUrl(r.name);
         const vfiles=this.variantFiles(r.name);
         return { name:r.name, countStr:Math.min(have,r.qty)+'/'+r.qty, missing:miss, img:im, noImg:!im, imgEl:this.imgEl(im,r.name,{borderRadius:'10px'}),
-          canSwap:vfiles.length>1, onSwap:()=>this.setState({variantPick:r.name}),
+          canSwap:vfiles.length>1, onSwap:()=>this.setState({variantPick:r.name}), onZoom:()=>this.zoomCard(r.name),
           slotId:'card_'+k.replace(/[^a-z0-9]+/g,'_'),
           frameBg:I?`linear-gradient(165deg, ${I.bg}, var(--panel2) 70%)`:'var(--panel2)',
           frameBorder:miss?'#d88a90':(I?I.border:'var(--border-soft)'),
@@ -1889,7 +1989,7 @@ class Component extends DCLogic {
           chipBg2:miss?'#9F2731':'#356B4E', chipColor2:'#fff' };
       });
     }
-    const shopping=covRows.filter(r=>r.missing).map(r=>({label:r.missing+'× '+r.name, name:r.name, onClick:()=>this.setState({buyPreview:{name:r.name}})}));
+    const shopping=covRows.filter(r=>r.missing).map(r=>({label:r.missing+'× '+r.name, name:r.name, onClick:()=>this.zoomCard(r.name)}));
     const col={
       name:s.colName||'', qty:s.colQty||'4', groups:colGroups, count:allKeys.length, copies,
       shown:shownCount, filter:s.colFilter||'',
@@ -1910,12 +2010,61 @@ class Component extends DCLogic {
       onAdd:this.requireAdmin(()=>this.addCard())
     };
 
+    // ---------- Card Base (advanced card search) ----------
+    const cbAll=this.cardBaseList();
+    const cbSetOptions=[...new Set(cbAll.map(c=>c.setName).filter(Boolean))]
+      .sort((a,b)=>a.localeCompare(b));
+    const cbRarityOptions=[...new Set(cbAll.map(c=>c.r).filter(Boolean))]
+      .sort((a,b)=>a.localeCompare(b));
+    const CB_INKS=['Amber','Amethyst','Emerald','Ruby','Sapphire','Steel'];
+    const CB_COSTS=['1','2','3','4','5','6','7+'];
+    const cbInkSel=s.cbInk||{}, cbCostSel=s.cbCost||{};
+    const cbInkChosen=CB_INKS.filter(k=>cbInkSel[k]);
+    const cbCostChosen=CB_COSTS.filter(k=>cbCostSel[k]);
+    const cbQ=(s.cbQuery||'').toLowerCase().trim();
+    const cbSetSel=s.cbSet||'', cbRaritySel=s.cbRarity||'';
+    let cbFiltered=cbAll.filter(c=>{
+      if(cbSetSel && c.setName!==cbSetSel) return false;
+      if(cbRaritySel && c.r!==cbRaritySel) return false;
+      if(cbInkChosen.length){ const inks=(c.i||'').toLowerCase(); if(!cbInkChosen.some(ik=>inks.includes(ik.toLowerCase()))) return false; }
+      if(cbCostChosen.length){
+        const cv=c.c;
+        const match=cbCostChosen.some(cs=>cs==='7+' ? (cv!=null&&cv>=7) : cv===parseInt(cs,10));
+        if(!match) return false;
+      }
+      if(cbQ){
+        const hay=(c.n+' '+(c.tx||'')+' '+(c.tags||'')+' '+(c.cl||'')).toLowerCase();
+        if(!hay.includes(cbQ)) return false;
+      }
+      return true;
+    });
+    cbFiltered.sort((a,b)=>a.n.localeCompare(b.n));
+    const cbTotal=cbFiltered.length;
+    const cbCapped=cbFiltered.slice(0,60);
+    const cbResults=cbCapped.map(c=>{
+      const im=this.imgUrl(c.n);
+      const chips=[c.c!=null?('Cost '+c.c):'', c.i||'', c.l!=null?(c.l+' lore'):'', c.r||''].filter(Boolean);
+      return { name:c.n, img:im, noImg:!im, imgEl:this.imgEl(im,c.n,{borderRadius:'10px'}), chips, setName:c.setName||'', onZoom:()=>this.zoomCard(c.n) };
+    });
+    const cardBase={
+      query:s.cbQuery||'', onQuery:(e)=>this.onCbQuery(e),
+      setSel:cbSetSel, onSet:(e)=>this.onCbSet(e), setOptions:cbSetOptions,
+      raritySel:cbRaritySel, onRarity:(e)=>this.onCbRarity(e), rarityOptions:cbRarityOptions,
+      inkChips:CB_INKS.map(ik=>({label:ik, on:!!cbInkSel[ik], onClick:()=>this.onToggleCbInk(ik),
+        style:`border:1px solid ${cbInkSel[ik]?'#CC785C':'var(--border)'};border-radius:999px;padding:6px 13px;font-family:inherit;font-weight:600;font-size:.78rem;cursor:pointer;background:${cbInkSel[ik]?'#CC785C':'var(--panel2)'};color:${cbInkSel[ik]?'#fff':'var(--text2)'}`})),
+      costChips:CB_COSTS.map(cs=>({label:cs, on:!!cbCostSel[cs], onClick:()=>this.onToggleCbCost(cs),
+        style:`border:1px solid ${cbCostSel[cs]?'#CC785C':'var(--border)'};border-radius:999px;padding:6px 13px;font-family:inherit;font-weight:600;font-size:.78rem;cursor:pointer;background:${cbCostSel[cs]?'#CC785C':'var(--panel2)'};color:${cbCostSel[cs]?'#fff':'var(--text2)'}`})),
+      onClear:()=>this.onClearCbFilters(),
+      total:cbTotal, shown:cbCapped.length, capped:cbTotal>cbCapped.length,
+      results:cbResults, hasResults:cbResults.length>0, noResults:cbAll.length>0&&cbResults.length===0, noDb:cbAll.length===0
+    };
+
     // hero art frames + picker
     const heroArts=D.heroArts||[];
     const mkHero=(i)=>{
       const nm=heroArts[i]||null;
       const img=nm?this.imgUrl(nm):null;
-      return { name:nm||'', img, empty:!img, imgEl:this.imgEl(img,nm||''), onPick:()=>this.setState({heroPick:i}) };
+      return { name:nm||'', img, empty:!img, hasArt:!!img, imgEl:this.imgEl(img,nm||''), onPick:()=>this.setState({heroPick:i}), onZoom:(e)=>{ e.stopPropagation(); this.zoomCard(nm); } };
     };
     const h1=mkHero(0), h2=mkHero(1), h3=mkHero(2);
     const frameSty=(w,hgt)=>`position:relative;display:block;width:${w}px;height:${hgt}px;border:1px solid var(--border-soft);background:var(--panel2);border-radius:14px;overflow:hidden;cursor:pointer`;
@@ -1929,7 +2078,7 @@ class Component extends DCLogic {
       open:s.heroPick!=null,
       title:s.heroPick===1?'Pick the hero card':'Pick card art',
       noCards:!reqsAll.length,
-      cards:reqsAll.map(r=>{ const u=this.imgUrl(r.name); return { name:r.name, img:u, imgEl:this.imgEl(u,r.name), onChoose:this.requireAdmin(()=>this.setHeroArt(this.state.heroPick, r.name)) }; }),
+      cards:reqsAll.map(r=>{ const u=this.imgUrl(r.name); return { name:r.name, img:u, imgEl:this.imgEl(u,r.name), onChoose:this.requireAdmin(()=>this.setHeroArt(this.state.heroPick, r.name)), onZoom:(e)=>{ e.stopPropagation(); this.zoomCard(r.name); } }; }),
       onClear:this.requireAdmin(()=>this.setHeroArt(this.state.heroPick, null)),
       onClose:()=>this.setState({heroPick:null})
     };
@@ -1978,7 +2127,7 @@ class Component extends DCLogic {
       rainCols: this.buildRainCols(s.rainTick),
       rainFilter: this.rainFilter(s.theme),
       showLoader: !this._fileTreeReady,
-      buyPreview: (()=>{ const bp=s.buyPreview; if(!bp) return {open:false}; const u=this.imgUrl(bp.name); return { open:true, name:bp.name, img:u, noImg:!u, imgEl:this.imgEl(u,bp.name,{borderRadius:'14px'}), onClose:()=>this.setState({buyPreview:null}) }; })(),
+      buyPreview: (()=>{ const bp=s.buyPreview; if(!bp) return {open:false}; const u=this.imgUrl(bp.name); const meta=this.cardMeta(bp.name); const metaChips=meta?[meta.c!=null?('Cost '+meta.c):'', meta.i||'', meta.l!=null?(meta.l+' lore'):'', meta.r||''].filter(Boolean):[]; return { open:true, name:bp.name, img:u, noImg:!u, imgEl:this.imgEl(u,bp.name,{borderRadius:'12px'}), metaChips, hasMeta:metaChips.length>0, text:meta?meta.tx:'', onClose:()=>this.setState({buyPreview:null}) }; })(),
       ddOpen: !!s.openDD,
       onCloseDD: ()=>this.setState({openDD:null}),
       siteAuthed, gateVisible, onGateKeydown,
@@ -2011,6 +2160,7 @@ class Component extends DCLogic {
       isClock:s.tab==='clock'&&!showEmpty, isCombos:s.tab==='combos'&&!showEmpty,
       isGames:s.tab==='games',
       isCollection:s.tab==='collection', isDeckTab:s.tab==='deck', col,
+      isCardBase:s.tab==='cardbase', cardBase,
       editorOpen:!!s.editor,
       ed:s.editor?{
         heading:s.editor.isNew?'Add a deck':'Edit deck', saveLabel:s.editor.isNew?'Add deck':'Save changes',
