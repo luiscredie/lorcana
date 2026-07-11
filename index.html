@@ -540,18 +540,18 @@
         <div style="font-family:'Space Mono',monospace;font-size:.66rem;font-weight:700;letter-spacing:.15em;text-transform:uppercase;color:var(--text3);margin-bottom:12px">Search every card ever printed</div>
         <input type="text" value="{{ cardBase.query }}" onchange="{{ cardBase.onQuery }}" placeholder="Search name or ability text (e.g. &quot;draw a card&quot;, &quot;Bodyguard&quot;)…" style="width:100%;box-sizing:border-box;border:1px solid var(--border);border-radius:11px;padding:10px 12px;font-family:inherit;font-size:.88rem;background:var(--panel2);color:var(--text);margin-bottom:14px">
         <div style="display:flex;flex-wrap:wrap;gap:16px;margin-bottom:14px">
-          <label style="display:flex;flex-direction:column;gap:5px;font-size:.66rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--text3)">Set
-            <select value="{{ cardBase.setSel }}" onchange="{{ cardBase.onSet }}" style="border:1px solid var(--border);border-radius:10px;padding:8px 10px;font-family:inherit;font-size:.82rem;background:var(--panel2);color:var(--text);min-width:170px">
-              <option value="">All sets</option>
-              <sc-for list="{{ cardBase.setOptions }}" as="so" hint-placeholder-count="4"><option value="{{ so }}">{{ so }}</option></sc-for>
-            </select>
-          </label>
           <label style="display:flex;flex-direction:column;gap:5px;font-size:.66rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--text3)">Rarity
             <select value="{{ cardBase.raritySel }}" onchange="{{ cardBase.onRarity }}" style="border:1px solid var(--border);border-radius:10px;padding:8px 10px;font-family:inherit;font-size:.82rem;background:var(--panel2);color:var(--text);min-width:140px">
               <option value="">All rarities</option>
               <sc-for list="{{ cardBase.rarityOptions }}" as="ro" hint-placeholder-count="4"><option value="{{ ro }}">{{ ro }}</option></sc-for>
             </select>
           </label>
+        </div>
+        <div style="font-size:.66rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--text3);margin-bottom:6px">Set</div>
+        <div style="display:flex;flex-wrap:wrap;gap:7px;margin-bottom:14px">
+          <sc-for list="{{ cardBase.setChips }}" as="sc" hint-placeholder-count="6">
+            <button onclick="{{ sc.onClick }}" style="{{ sc.style }}">{{ sc.label }}</button>
+          </sc-for>
         </div>
         <div style="font-size:.66rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--text3);margin-bottom:6px">Ink</div>
         <div style="display:flex;flex-wrap:wrap;gap:7px;margin-bottom:14px">
@@ -560,9 +560,15 @@
           </sc-for>
         </div>
         <div style="font-size:.66rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--text3);margin-bottom:6px">Cost</div>
-        <div style="display:flex;flex-wrap:wrap;gap:7px;margin-bottom:6px">
+        <div style="display:flex;flex-wrap:wrap;gap:7px;margin-bottom:14px">
           <sc-for list="{{ cardBase.costChips }}" as="cc" hint-placeholder-count="8">
             <button onclick="{{ cc.onClick }}" style="{{ cc.style }}">{{ cc.label }}</button>
+          </sc-for>
+        </div>
+        <div style="font-size:.66rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--text3);margin-bottom:6px">Lore</div>
+        <div style="display:flex;flex-wrap:wrap;gap:7px;margin-bottom:6px">
+          <sc-for list="{{ cardBase.loreChips }}" as="lc" hint-placeholder-count="6">
+            <button onclick="{{ lc.onClick }}" style="{{ lc.style }}">{{ lc.label }}</button>
           </sc-for>
         </div>
         <div style="display:flex;justify-content:flex-end;margin-bottom:6px">
@@ -1581,11 +1587,12 @@ class Component extends DCLogic {
   }
   zoomCard(name){ if(name) this.setState({buyPreview:{name}}); }
   onCbQuery(e){ this.setState({cbQuery:e.target.value}); }
-  onCbSet(e){ this.setState({cbSet:e.target.value}); }
   onCbRarity(e){ this.setState({cbRarity:e.target.value}); }
   onToggleCbInk(ink){ const cur={...(this.state.cbInk||{})}; cur[ink]=!cur[ink]; this.setState({cbInk:cur}); }
   onToggleCbCost(c){ const cur={...(this.state.cbCost||{})}; cur[c]=!cur[c]; this.setState({cbCost:cur}); }
-  onClearCbFilters(){ this.setState({cbQuery:'', cbSet:'', cbRarity:'', cbInk:{}, cbCost:{}}); }
+  onToggleCbSet(set){ const cur={...(this.state.cbSet||{})}; cur[set]=!cur[set]; this.setState({cbSet:cur}); }
+  onToggleCbLore(l){ const cur={...(this.state.cbLore||{})}; cur[l]=!cur[l]; this.setState({cbLore:cur}); }
+  onClearCbFilters(){ this.setState({cbQuery:'', cbSet:{}, cbRarity:'', cbInk:{}, cbCost:{}, cbLore:{}}); }
   oppInks(g){
     if(Array.isArray(g.oppInks)&&g.oppInks.length) return g.oppInks;
     if(!Array.isArray(g.oppCards)||!g.oppCards.length) return [];
@@ -2018,13 +2025,16 @@ class Component extends DCLogic {
       .sort((a,b)=>a.localeCompare(b));
     const CB_INKS=['Amber','Amethyst','Emerald','Ruby','Sapphire','Steel'];
     const CB_COSTS=['1','2','3','4','5','6','7+'];
-    const cbInkSel=s.cbInk||{}, cbCostSel=s.cbCost||{};
+    const CB_LORE=['0','1','2','3','4','5+'];
+    const cbInkSel=s.cbInk||{}, cbCostSel=s.cbCost||{}, cbSetSelObj=s.cbSet||{}, cbLoreSel=s.cbLore||{};
     const cbInkChosen=CB_INKS.filter(k=>cbInkSel[k]);
     const cbCostChosen=CB_COSTS.filter(k=>cbCostSel[k]);
-    const cbQ=(s.cbQuery||'').toLowerCase().trim();
-    const cbSetSel=s.cbSet||'', cbRaritySel=s.cbRarity||'';
+    const cbSetChosen=cbSetOptions.filter(k=>cbSetSelObj[k]);
+    const cbLoreChosen=CB_LORE.filter(k=>cbLoreSel[k]);
+    const cbQ=(s.cbQuery||'').toLowerCase().trim().replace(/\s+/g,' ');
+    const cbRaritySel=s.cbRarity||'';
     let cbFiltered=cbAll.filter(c=>{
-      if(cbSetSel && c.setName!==cbSetSel) return false;
+      if(cbSetChosen.length && !cbSetChosen.includes(c.setName)) return false;
       if(cbRaritySel && c.r!==cbRaritySel) return false;
       if(cbInkChosen.length){ const inks=(c.i||'').toLowerCase(); if(!cbInkChosen.some(ik=>inks.includes(ik.toLowerCase()))) return false; }
       if(cbCostChosen.length){
@@ -2032,8 +2042,13 @@ class Component extends DCLogic {
         const match=cbCostChosen.some(cs=>cs==='7+' ? (cv!=null&&cv>=7) : cv===parseInt(cs,10));
         if(!match) return false;
       }
+      if(cbLoreChosen.length){
+        const lv=c.l;
+        const match=cbLoreChosen.some(ls=>ls==='5+' ? (lv!=null&&lv>=5) : lv===parseInt(ls,10));
+        if(!match) return false;
+      }
       if(cbQ){
-        const hay=(c.n+' '+(c.tx||'')+' '+(c.tags||'')+' '+(c.cl||'')).toLowerCase();
+        const hay=(c.n+' '+(c.tx||'')+' '+(c.tags||'')+' '+(c.cl||'')).toLowerCase().replace(/\s+/g,' ');
         if(!hay.includes(cbQ)) return false;
       }
       return true;
@@ -2046,14 +2061,14 @@ class Component extends DCLogic {
       const chips=[c.c!=null?('Cost '+c.c):'', c.i||'', c.l!=null?(c.l+' lore'):'', c.r||''].filter(Boolean);
       return { name:c.n, img:im, noImg:!im, imgEl:this.imgEl(im,c.n,{borderRadius:'10px'}), chips, setName:c.setName||'', onZoom:()=>this.zoomCard(c.n) };
     });
+    const cbChipStyle=(on)=>`border:1px solid ${on?'#CC785C':'var(--border)'};border-radius:999px;padding:6px 13px;font-family:inherit;font-weight:600;font-size:.78rem;cursor:pointer;background:${on?'#CC785C':'var(--panel2)'};color:${on?'#fff':'var(--text2)'}`;
     const cardBase={
       query:s.cbQuery||'', onQuery:(e)=>this.onCbQuery(e),
-      setSel:cbSetSel, onSet:(e)=>this.onCbSet(e), setOptions:cbSetOptions,
       raritySel:cbRaritySel, onRarity:(e)=>this.onCbRarity(e), rarityOptions:cbRarityOptions,
-      inkChips:CB_INKS.map(ik=>({label:ik, on:!!cbInkSel[ik], onClick:()=>this.onToggleCbInk(ik),
-        style:`border:1px solid ${cbInkSel[ik]?'#CC785C':'var(--border)'};border-radius:999px;padding:6px 13px;font-family:inherit;font-weight:600;font-size:.78rem;cursor:pointer;background:${cbInkSel[ik]?'#CC785C':'var(--panel2)'};color:${cbInkSel[ik]?'#fff':'var(--text2)'}`})),
-      costChips:CB_COSTS.map(cs=>({label:cs, on:!!cbCostSel[cs], onClick:()=>this.onToggleCbCost(cs),
-        style:`border:1px solid ${cbCostSel[cs]?'#CC785C':'var(--border)'};border-radius:999px;padding:6px 13px;font-family:inherit;font-weight:600;font-size:.78rem;cursor:pointer;background:${cbCostSel[cs]?'#CC785C':'var(--panel2)'};color:${cbCostSel[cs]?'#fff':'var(--text2)'}`})),
+      setChips:cbSetOptions.map(so=>({label:so, on:!!cbSetSelObj[so], onClick:()=>this.onToggleCbSet(so), style:cbChipStyle(!!cbSetSelObj[so])})),
+      inkChips:CB_INKS.map(ik=>({label:ik, on:!!cbInkSel[ik], onClick:()=>this.onToggleCbInk(ik), style:cbChipStyle(!!cbInkSel[ik])})),
+      costChips:CB_COSTS.map(cs=>({label:cs, on:!!cbCostSel[cs], onClick:()=>this.onToggleCbCost(cs), style:cbChipStyle(!!cbCostSel[cs])})),
+      loreChips:CB_LORE.map(ls=>({label:ls, on:!!cbLoreSel[ls], onClick:()=>this.onToggleCbLore(ls), style:cbChipStyle(!!cbLoreSel[ls])})),
       onClear:()=>this.onClearCbFilters(),
       total:cbTotal, shown:cbCapped.length, capped:cbTotal>cbCapped.length,
       results:cbResults, hasResults:cbResults.length>0, noResults:cbAll.length>0&&cbResults.length===0, noDb:cbAll.length===0
