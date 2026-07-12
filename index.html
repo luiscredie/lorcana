@@ -638,59 +638,38 @@
             <p style="color:var(--text2);font-size:.8rem;margin:0 0 14px">No log to paste? Answer these instead — files under {{ deck.title }}.</p>
             <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px">
               <label style="display:flex;flex-direction:column;gap:5px;font-size:.72rem;color:var(--text2);font-weight:600">Result
-                <div style="position:relative;display:inline-block">
-                  <button onclick="{{ off.resultDD.onToggle }}" style="border:1px solid var(--border);border-radius:10px;padding:7px 10px;font-family:inherit;font-size:.8rem;background:var(--panel);color:var(--text);cursor:pointer;display:flex;align-items:center;justify-content:space-between">{{ off.resultDD.label }} <span style="font-size:.65rem;opacity:.7">▾</span></button>
-                  <sc-if value="{{ off.resultDD.open }}" hint-placeholder-val="{{ false }}">
-                    <div style="position:absolute;top:100%;left:0;margin-top:4px;background:var(--panel2);border:1px solid var(--border);border-radius:10px;box-shadow:0 12px 24px -8px rgba(0,0,0,.5);z-index:46;min-width:100%">
-                      <sc-for list="{{ off.resultDD.items }}" as="it" hint-placeholder-count="2"><div onClick="{{ it.onClick }}" style="{{ it.rowStyle }}">{{ it.label }}</div></sc-for>
-                    </div>
-                  </sc-if>
-                </div>
+                <select value="{{ off.resultSel.value }}" onchange="{{ off.resultSel.onChange }}" style="border:1px solid var(--border);border-radius:10px;padding:8px 10px;font-family:inherit;font-size:.85rem;background:var(--panel);color:var(--text)">
+                  <option value="">Select…</option>
+                  <sc-for list="{{ off.resultSel.opts }}" as="o" hint-placeholder-count="2"><option value="{{ o.v }}">{{ o.label }}</option></sc-for>
+                </select>
               </label>
               <label style="display:flex;flex-direction:column;gap:5px;font-size:.72rem;color:var(--text2);font-weight:600">How it ended
-                <div style="position:relative;display:inline-block">
-                  <button onclick="{{ off.methodDD.onToggle }}" style="border:1px solid var(--border);border-radius:10px;padding:7px 10px;font-family:inherit;font-size:.8rem;background:var(--panel);color:var(--text);cursor:pointer;display:flex;align-items:center;justify-content:space-between">{{ off.methodDD.label }} <span style="font-size:.65rem;opacity:.7">▾</span></button>
-                  <sc-if value="{{ off.methodDD.open }}" hint-placeholder-val="{{ false }}">
-                    <div style="position:absolute;top:100%;left:0;margin-top:4px;background:var(--panel2);border:1px solid var(--border);border-radius:10px;box-shadow:0 12px 24px -8px rgba(0,0,0,.5);z-index:46;min-width:100%">
-                      <sc-for list="{{ off.methodDD.items }}" as="it" hint-placeholder-count="3"><div onClick="{{ it.onClick }}" style="{{ it.rowStyle }}">{{ it.label }}</div></sc-for>
-                    </div>
-                  </sc-if>
-                </div>
+                <select value="{{ off.methodSel.value }}" onchange="{{ off.methodSel.onChange }}" style="border:1px solid var(--border);border-radius:10px;padding:8px 10px;font-family:inherit;font-size:.85rem;background:var(--panel);color:var(--text)">
+                  <option value="">Select…</option>
+                  <sc-for list="{{ off.methodSel.opts }}" as="o" hint-placeholder-count="3"><option value="{{ o.v }}">{{ o.label }}</option></sc-for>
+                </select>
               </label>
               <label style="display:flex;flex-direction:column;gap:5px;font-size:.72rem;color:var(--text2);font-weight:600">On the play / draw
-                <div style="position:relative;display:inline-block">
-                  <button onclick="{{ off.playDD.onToggle }}" style="border:1px solid var(--border);border-radius:10px;padding:7px 10px;font-family:inherit;font-size:.8rem;background:var(--panel);color:var(--text);cursor:pointer;display:flex;align-items:center;justify-content:space-between">{{ off.playDD.label }} <span style="font-size:.65rem;opacity:.7">▾</span></button>
-                  <sc-if value="{{ off.playDD.open }}" hint-placeholder-val="{{ false }}">
-                    <div style="position:absolute;top:100%;left:0;margin-top:4px;background:var(--panel2);border:1px solid var(--border);border-radius:10px;box-shadow:0 12px 24px -8px rgba(0,0,0,.5);z-index:46;min-width:100%">
-                      <sc-for list="{{ off.playDD.items }}" as="it" hint-placeholder-count="2"><div onClick="{{ it.onClick }}" style="{{ it.rowStyle }}">{{ it.label }}</div></sc-for>
-                    </div>
-                  </sc-if>
-                </div>
+                <select value="{{ off.playSel.value }}" onchange="{{ off.playSel.onChange }}" style="border:1px solid var(--border);border-radius:10px;padding:8px 10px;font-family:inherit;font-size:.85rem;background:var(--panel);color:var(--text)">
+                  <option value="">Select…</option>
+                  <sc-for list="{{ off.playSel.opts }}" as="o" hint-placeholder-count="2"><option value="{{ o.v }}">{{ o.label }}</option></sc-for>
+                </select>
               </label>
               <label style="display:flex;flex-direction:column;gap:5px;font-size:.72rem;color:var(--text2);font-weight:600">Mulligan count
-                <div style="position:relative;display:inline-block">
-                  <button onclick="{{ off.mullDD.onToggle }}" style="border:1px solid var(--border);border-radius:10px;padding:7px 10px;font-family:inherit;font-size:.8rem;background:var(--panel);color:var(--text);cursor:pointer;display:flex;align-items:center;justify-content:space-between">{{ off.mullDD.label }} <span style="font-size:.65rem;opacity:.7">▾</span></button>
-                  <sc-if value="{{ off.mullDD.open }}" hint-placeholder-val="{{ false }}">
-                    <div style="position:absolute;top:100%;left:0;margin-top:4px;background:var(--panel2);border:1px solid var(--border);border-radius:10px;box-shadow:0 12px 24px -8px rgba(0,0,0,.5);z-index:46;min-width:100%;max-height:200px;overflow-y:auto">
-                      <sc-for list="{{ off.mullDD.items }}" as="it" hint-placeholder-count="8"><div onClick="{{ it.onClick }}" style="{{ it.rowStyle }}">{{ it.label }}</div></sc-for>
-                    </div>
-                  </sc-if>
-                </div>
+                <select value="{{ off.mullSel.value }}" onchange="{{ off.mullSel.onChange }}" style="border:1px solid var(--border);border-radius:10px;padding:8px 10px;font-family:inherit;font-size:.85rem;background:var(--panel);color:var(--text)">
+                  <sc-for list="{{ off.mullSel.opts }}" as="o" hint-placeholder-count="8"><option value="{{ o.v }}">{{ o.label }}</option></sc-for>
+                </select>
               </label>
               <label style="display:flex;flex-direction:column;gap:5px;font-size:.72rem;color:var(--text2);font-weight:600">Your final lore<input type="number" min="0" max="40" value="{{ off.myLore }}" onchange="{{ off.onMyLore }}" style="border:1px solid var(--border);border-radius:10px;padding:7px 10px;font-family:inherit;font-size:.8rem;background:var(--panel);color:var(--text)"></label>
               <label style="display:flex;flex-direction:column;gap:5px;font-size:.72rem;color:var(--text2);font-weight:600">Opponent's final lore<input type="number" min="0" max="40" value="{{ off.oppLore }}" onchange="{{ off.onOppLore }}" style="border:1px solid var(--border);border-radius:10px;padding:7px 10px;font-family:inherit;font-size:.8rem;background:var(--panel);color:var(--text)"></label>
               <label style="display:flex;flex-direction:column;gap:5px;font-size:.72rem;color:var(--text2);font-weight:600">Total game length (turns)<input type="number" min="1" max="60" value="{{ off.gameTurns }}" onchange="{{ off.onGameTurns }}" style="border:1px solid var(--border);border-radius:10px;padding:7px 10px;font-family:inherit;font-size:.8rem;background:var(--panel);color:var(--text)"></label>
               <label style="display:flex;flex-direction:column;gap:5px;font-size:.72rem;color:var(--text2);font-weight:600">First quest — your turn #<input type="number" min="0" max="20" value="{{ off.firstQuestMyTurn }}" onchange="{{ off.onFirstQuest }}" placeholder="optional" style="border:1px solid var(--border);border-radius:10px;padding:7px 10px;font-family:inherit;font-size:.8rem;background:var(--panel);color:var(--text)"></label>
               <label style="display:flex;flex-direction:column;gap:5px;font-size:.72rem;color:var(--text2);font-weight:600">Crossed 10 lore — your turn #<input type="number" min="0" max="20" value="{{ off.cross10MyTurn }}" onchange="{{ off.onCross10 }}" placeholder="optional" style="border:1px solid var(--border);border-radius:10px;padding:7px 10px;font-family:inherit;font-size:.8rem;background:var(--panel);color:var(--text)"></label>
-              <label style="display:flex;flex-direction:column;gap:5px;font-size:.72rem;color:var(--text2);font-weight:600">Opponent archetype
-                <div style="position:relative;display:inline-block">
-                  <button onclick="{{ off.archDD.onToggle }}" style="border:1px solid var(--border);border-radius:10px;padding:7px 10px;font-family:inherit;font-size:.8rem;background:var(--panel);color:var(--text);cursor:pointer;display:flex;align-items:center;justify-content:space-between">{{ off.archDD.label }} <span style="font-size:.65rem;opacity:.7">▾</span></button>
-                  <sc-if value="{{ off.archDD.open }}" hint-placeholder-val="{{ false }}">
-                    <div style="position:absolute;top:100%;left:0;margin-top:4px;background:var(--panel2);border:1px solid var(--border);border-radius:10px;box-shadow:0 12px 24px -8px rgba(0,0,0,.5);z-index:46;min-width:100%;max-height:220px;overflow-y:auto">
-                      <sc-for list="{{ off.archDD.items }}" as="it" hint-placeholder-count="5"><div onClick="{{ it.onClick }}" style="{{ it.rowStyle }}">{{ it.label }}</div></sc-for>
-                    </div>
-                  </sc-if>
-                </div>
+              <label style="display:flex;flex-direction:column;gap:5px;font-size:.72rem;color:var(--text2);font-weight:600">Opponent deck
+                <select value="{{ off.archSel.value }}" onchange="{{ off.archSel.onChange }}" style="border:1px solid var(--border);border-radius:10px;padding:8px 10px;font-family:inherit;font-size:.85rem;background:var(--panel);color:var(--text)">
+                  <option value="">Select…</option>
+                  <sc-for list="{{ off.archSel.opts }}" as="o" hint-placeholder-count="5"><option value="{{ o.v }}">{{ o.label }}</option></sc-for>
+                </select>
                 <input type="text" onchange="{{ off.onArchCustom }}" placeholder="Not listed? Type the colors" style="margin-top:2px;border:1px solid var(--border);border-radius:8px;padding:5px 8px;font-family:inherit;font-size:.7rem;background:var(--panel);color:var(--text)">
               </label>
               <label style="display:flex;flex-direction:column;gap:5px;font-size:.72rem;color:var(--text2);font-weight:600">Venue<input type="text" onchange="{{ off.onVenue }}" placeholder="Online ladder" style="border:1px solid var(--border);border-radius:10px;padding:7px 10px;font-family:inherit;font-size:.8rem;background:var(--panel);color:var(--text)"></label>
@@ -712,30 +691,18 @@
             <sc-for list="{{ parsedView.chips }}" as="ch" hint-placeholder-count="2"><span style="font-size:.72rem;font-weight:600;padding:4px 9px;border-radius:999px;background:var(--chip-bg);color:var(--text)">{{ ch }}</span></sc-for>
           </div>
           <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;margin-top:13px">
-            <label style="display:flex;flex-direction:column;gap:5px;font-size:.72rem;color:var(--text2);font-weight:600">Opponent
-              <div style="position:relative;display:inline-block">
-                <button onclick="{{ parsedView.archDD.onToggle }}" style="border:1px solid var(--border);border-radius:10px;padding:7px 10px;font-family:inherit;font-size:.78rem;background:var(--panel2);color:var(--text);cursor:pointer;display:flex;align-items:center;gap:6px;min-width:160px;justify-content:space-between">{{ parsedView.archDD.label }} <span style="font-size:.65rem;opacity:.7">▾</span></button>
-                <sc-if value="{{ parsedView.archDD.open }}" hint-placeholder-val="{{ false }}">
-                  <div style="position:absolute;top:100%;left:0;margin-top:4px;background:var(--panel2);border:1px solid var(--border);border-radius:10px;box-shadow:0 12px 24px -8px rgba(0,0,0,.5);z-index:46;max-height:240px;overflow-y:auto;min-width:220px">
-                    <sc-for list="{{ parsedView.archDD.items }}" as="it" hint-placeholder-count="5">
-                      <div onClick="{{ it.onClick }}" style="{{ it.rowStyle }}">{{ it.label }}</div>
-                    </sc-for>
-                  </div>
-                </sc-if>
-              </div>
+            <label style="display:flex;flex-direction:column;gap:5px;font-size:.72rem;color:var(--text2);font-weight:600">Opponent deck
+              <select value="{{ parsedView.archSel.value }}" onchange="{{ parsedView.archSel.onChange }}" style="border:1px solid var(--border);border-radius:10px;padding:8px 10px;font-family:inherit;font-size:.82rem;background:var(--panel2);color:var(--text);min-width:160px">
+                <option value="">Select…</option>
+                <sc-for list="{{ parsedView.archSel.opts }}" as="o" hint-placeholder-count="5"><option value="{{ o.v }}">{{ o.label }}</option></sc-for>
+              </select>
               <input type="text" onchange="{{ parsedView.onArchCustom }}" placeholder="Not listed? Type the colors" style="margin-top:4px;border:1px solid var(--border);border-radius:8px;padding:5px 8px;font-family:inherit;font-size:.7rem;background:var(--panel2);color:var(--text);width:160px">
             </label>
             <label style="display:flex;flex-direction:column;gap:5px;font-size:.72rem;color:var(--text2);font-weight:600">{{ parsedView.catLabel }}
-              <div style="position:relative;display:inline-block">
-                <button onclick="{{ parsedView.catDD.onToggle }}" style="border:1px solid var(--border);border-radius:10px;padding:7px 10px;font-family:inherit;font-size:.78rem;background:var(--panel2);color:var(--text);cursor:pointer;display:flex;align-items:center;gap:6px;min-width:160px;justify-content:space-between">{{ parsedView.catDD.label }} <span style="font-size:.65rem;opacity:.7">▾</span></button>
-                <sc-if value="{{ parsedView.catDD.open }}" hint-placeholder-val="{{ false }}">
-                  <div style="position:absolute;top:100%;left:0;margin-top:4px;background:var(--panel2);border:1px solid var(--border);border-radius:10px;box-shadow:0 12px 24px -8px rgba(0,0,0,.5);z-index:46;max-height:240px;overflow-y:auto;min-width:220px">
-                    <sc-for list="{{ parsedView.catDD.items }}" as="it" hint-placeholder-count="5">
-                      <div onClick="{{ it.onClick }}" style="{{ it.rowStyle }}">{{ it.label }}</div>
-                    </sc-for>
-                  </div>
-                </sc-if>
-              </div>
+              <select value="{{ parsedView.catSel.value }}" onchange="{{ parsedView.catSel.onChange }}" style="border:1px solid var(--border);border-radius:10px;padding:8px 10px;font-family:inherit;font-size:.82rem;background:var(--panel2);color:var(--text);min-width:160px">
+                <option value="">Select…</option>
+                <sc-for list="{{ parsedView.catSel.opts }}" as="o" hint-placeholder-count="5"><option value="{{ o.v }}">{{ o.label }}</option></sc-for>
+              </select>
             </label>
             <label style="display:flex;flex-direction:column;gap:5px;font-size:.72rem;color:var(--text2);font-weight:600">Venue<input type="text" onchange="{{ onPvVenue }}" placeholder="Online ladder" style="border:1px solid var(--border);border-radius:10px;padding:7px 10px;font-family:inherit;font-size:.78rem;background:var(--panel2);color:var(--text)"></label>
           </div>
@@ -809,28 +776,16 @@
               <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:7px">
                 <sc-for list="{{ g.chips }}" as="ch" hint-placeholder-count="2"><span style="font-size:.71rem;font-weight:600;padding:3px 9px;border-radius:999px;background:{{ ch.bg }};color:{{ ch.color }}">{{ ch.label }}</span></sc-for>
               </div>
-              <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:10px">
-                <div style="position:relative;display:inline-block">
-                  <button onclick="{{ g.archDD.onToggle }}" style="border:1px solid var(--border);border-radius:10px;padding:6px 9px;font-family:inherit;font-size:.76rem;background:var(--panel2);color:var(--text);cursor:pointer;display:flex;align-items:center;gap:6px">{{ g.archDD.label }} <span style="font-size:.6rem;opacity:.7">▾</span></button>
-                  <sc-if value="{{ g.archDD.open }}" hint-placeholder-val="{{ false }}">
-                    <div style="position:absolute;top:100%;left:0;margin-top:4px;background:var(--panel2);border:1px solid var(--border);border-radius:10px;box-shadow:0 12px 24px -8px rgba(0,0,0,.5);z-index:46;max-height:220px;overflow-y:auto;min-width:200px">
-                      <sc-for list="{{ g.archDD.items }}" as="it" hint-placeholder-count="5">
-                        <div onClick="{{ it.onClick }}" style="{{ it.rowStyle }}">{{ it.label }}</div>
-                      </sc-for>
-                    </div>
-                  </sc-if>
-                </div>
+              <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;align-items:center">
+                <select value="{{ g.archSel.value }}" onchange="{{ g.archSel.onChange }}" style="border:1px solid var(--border);border-radius:10px;padding:6px 9px;font-family:inherit;font-size:.76rem;background:var(--panel2);color:var(--text)">
+                  <option value="">Opponent deck…</option>
+                  <sc-for list="{{ g.archSel.opts }}" as="o" hint-placeholder-count="5"><option value="{{ o.v }}">{{ o.label }}</option></sc-for>
+                </select>
                 <input type="text" onchange="{{ g.onArchCustom }}" placeholder="Not listed? type colors" style="border:1px solid var(--border);border-radius:8px;padding:5px 8px;font-family:inherit;font-size:.68rem;background:var(--panel2);color:var(--text);width:130px">
-                <div style="position:relative;display:inline-block">
-                  <button onclick="{{ g.catDD.onToggle }}" style="border:1px solid var(--border);border-radius:10px;padding:6px 9px;font-family:inherit;font-size:.76rem;background:var(--panel2);color:var(--text);cursor:pointer;display:flex;align-items:center;gap:6px">{{ g.catDD.label }} <span style="font-size:.6rem;opacity:.7">▾</span></button>
-                  <sc-if value="{{ g.catDD.open }}" hint-placeholder-val="{{ false }}">
-                    <div style="position:absolute;top:100%;left:0;margin-top:4px;background:var(--panel2);border:1px solid var(--border);border-radius:10px;box-shadow:0 12px 24px -8px rgba(0,0,0,.5);z-index:46;max-height:220px;overflow-y:auto;min-width:200px">
-                      <sc-for list="{{ g.catDD.items }}" as="it" hint-placeholder-count="5">
-                        <div onClick="{{ it.onClick }}" style="{{ it.rowStyle }}">{{ it.label }}</div>
-                      </sc-for>
-                    </div>
-                  </sc-if>
-                </div>
+                <select value="{{ g.catSel.value }}" onchange="{{ g.catSel.onChange }}" style="border:1px solid var(--border);border-radius:10px;padding:6px 9px;font-family:inherit;font-size:.76rem;background:var(--panel2);color:var(--text)">
+                  <option value="">Reason…</option>
+                  <sc-for list="{{ g.catSel.opts }}" as="o" hint-placeholder-count="5"><option value="{{ o.v }}">{{ o.label }}</option></sc-for>
+                </select>
                 <button onclick="{{ g.onDelete }}" style="border:0;background:transparent;color:#B3232C;font-family:inherit;font-weight:600;font-size:.76rem;padding:5px 6px;cursor:pointer">Delete</button>
               </div>
             </div>
@@ -1119,6 +1074,17 @@ class Component extends DCLogic {
       triggerStyle: triggerStyle||'',
       onToggle:()=>this.setState({openDD: s.openDD===id?null:id})
     };
+  }
+  // Plain, native <select> — easiest to use on touch/mobile and with a keyboard; used for
+  // fields where speed and familiarity matter more than custom theming (Win/Loss, opponent
+  // deck, etc).
+  nativeSel(value, options, onChange){
+    const opts=(options||[]).map(o=>{
+      const v=(o&&typeof o==='object')?o.v:o;
+      const label=(o&&typeof o==='object')?o.label:o;
+      return { v, label };
+    });
+    return { value: value!=null?value:'', opts, onChange };
   }
   componentDidMount(){
     let theme='dark'; try{ theme=localStorage.getItem('lorcanaAtlas_theme_v1')||'dark'; }catch(e){}
@@ -1883,9 +1849,9 @@ class Component extends DCLogic {
         archetype:g.archetype||'Other / Unknown', archOptions:ARCH,
         catValue:(g.result==='W'?g.winCat:g.lossCat)||'', catOptions:(g.result==='W'?WIN:LOSS),
         onArch:this.requireAdmin((e)=>this.setArch(idx,e.target.value)), onCat:this.requireAdmin((e)=>this.setCat(idx,e.target.value)), onDelete:this.requireAdmin(()=>this.delGame(g.id)),
-        archDD:this.buildDD('gameArch'+g.id, g.archetype||'Other / Unknown', ARCH, this.requireAdmin((e)=>this.setArch(idx,e.target.value))),
+        archSel:this.nativeSel(g.archetype||'', ARCH, this.requireAdmin((e)=>this.setArch(idx,e.target.value))),
         onArchCustom:this.requireAdmin((e)=>{ const v=(e.target.value||'').trim(); if(v) this.setArch(idx,v); }),
-        catDD:this.buildDD('gameCat'+g.id, (g.result==='W'?g.winCat:g.lossCat)||'', (g.result==='W'?WIN:LOSS), this.requireAdmin((e)=>this.setCat(idx,e.target.value))),
+        catSel:this.nativeSel((g.result==='W'?g.winCat:g.lossCat)||'', (g.result==='W'?WIN:LOSS), this.requireAdmin((e)=>this.setCat(idx,e.target.value))),
         hasCoach:!!coach, coachHeadline:coach?coach.headline:'',
         planScoreVal:planScore?planScore.score:null,
         planScoreColor:planScore?(planScore.score>=80?'#4ADE80':planScore.score>=50?'#F5C542':'#F87171'):'var(--text2)'
@@ -1898,11 +1864,11 @@ class Component extends DCLogic {
     const off={
       open:!!s.offlineOpen, toggleLabel: s.offlineOpen?'✕ Cancel offline entry':'+ Log an offline game',
       onToggle:()=>this.setState(st=>({offlineOpen:!st.offlineOpen})),
-      resultDD:this.buildDD('offResult', oState.result, [{v:'W',label:'Win'},{v:'L',label:'Loss'}], (e)=>this.offField('result',e.target.value)),
-      methodDD:this.buildDD('offMethod', oState.method, [{v:'concession',label:'Opponent conceded'},{v:'20 lore',label:'20 lore reached'},{v:'other',label:'Other / timed out'}], (e)=>this.offField('method',e.target.value)),
-      playDD:this.buildDD('offPlay', oState.onPlay, [{v:'yes',label:'On the play'},{v:'no',label:'On the draw'}], (e)=>this.offField('onPlay',e.target.value)),
-      mullDD:this.buildDD('offMull', oState.mulligan, ['0','1','2','3','4','5','6','7'].map(v=>({v,label:v})), (e)=>this.offField('mulligan',e.target.value)),
-      archDD:this.buildDD('offArch', oState.archetype, ARCH, (e)=>this.offField('archetype',e.target.value)),
+      resultSel:this.nativeSel(oState.result, [{v:'W',label:'Win'},{v:'L',label:'Loss'}], (e)=>this.offField('result',e.target.value)),
+      methodSel:this.nativeSel(oState.method, [{v:'concession',label:'Opponent conceded'},{v:'20 lore',label:'20 lore reached'},{v:'other',label:'Other / timed out'}], (e)=>this.offField('method',e.target.value)),
+      playSel:this.nativeSel(oState.onPlay, [{v:'yes',label:'On the play'},{v:'no',label:'On the draw'}], (e)=>this.offField('onPlay',e.target.value)),
+      mullSel:this.nativeSel(oState.mulligan, ['0','1','2','3','4','5','6','7'].map(v=>({v,label:v})), (e)=>this.offField('mulligan',e.target.value)),
+      archSel:this.nativeSel(oState.archetype, ARCH, (e)=>this.offField('archetype',e.target.value)),
       onArchCustom:(e)=>{ const v=(e.target.value||'').trim(); if(v) this.offField('archetype',v); },
       myLore:oState.myLore, onMyLore:(e)=>this.offField('myLore',e.target.value),
       oppLore:oState.oppLore, onOppLore:(e)=>this.offField('oppLore',e.target.value),
@@ -1926,9 +1892,9 @@ class Component extends DCLogic {
         archetype:p.archetype, archOptions:ARCH,
         catLabel:p.result==='W'?'Win reason':'Loss reason',
         catValue:p.result==='W'?p.winCat:p.lossCat, catOptions:p.result==='W'?WIN:LOSS,
-        archDD:this.buildDD('parsedArch', p.archetype, ARCH, (e)=>{ const q={...s.parsed,archetype:e.target.value}; this.setState({parsed:q}); }),
+        archSel:this.nativeSel(p.archetype, ARCH, (e)=>{ const q={...s.parsed,archetype:e.target.value}; this.setState({parsed:q}); }),
         onArchCustom:(e)=>{ const v=(e.target.value||'').trim(); if(!v) return; const q={...s.parsed,archetype:v}; this.setState({parsed:q}); },
-        catDD:this.buildDD('parsedCat', p.result==='W'?p.winCat:p.lossCat, p.result==='W'?WIN:LOSS, (e)=>{ const q={...s.parsed}; if(q.result==='W')q.winCat=e.target.value; else q.lossCat=e.target.value; this.setState({parsed:q}); }),
+        catSel:this.nativeSel(p.result==='W'?p.winCat:p.lossCat, p.result==='W'?WIN:LOSS, (e)=>{ const q={...s.parsed}; if(q.result==='W')q.winCat=e.target.value; else q.lossCat=e.target.value; this.setState({parsed:q}); }),
         isDuplicate:!!p.isDuplicateOfId, confirmDuplicate:!!s.confirmDuplicate,
         saveLabel:(p.isDuplicateOfId&&!s.confirmDuplicate)?'Looks like a duplicate — save anyway?':'Save game',
         hasCoach:!!planScore,
