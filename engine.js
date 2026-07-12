@@ -209,12 +209,91 @@
       questers: questers[me], combos,
       loreByTurn: loreByTurn[me], oppLoreByTurn: loreByTurn[opp],
       oppCards: [...oppCards].sort(),
-      archetype: arch, winCat, lossCat, venue:"", notes:""
+      archetype: arch, winCat, lossCat, venue:"", notes:"",
+      rawLog: raw
     };
 
     // ---- Match coach layer (parserVersion 2) — deterministic, no external AI ----
     attachCoachLayer(game, raw, options);
     return game;
+  }
+
+  // ---------- Replay: turn-by-turn event breakdown from a raw log ----------
+  // Only surfaces what the log actually contains — plays, quests, challenges,
+  // banishes, ink-from-field, mulligans, concede/win. No inferred hand/ink state.
+  function buildReplay(raw, deckList){
+    const lines = String(raw||"").replace(/\r/g,"").split("\n").map(l=>l.trim()).filter(Boolean);
+    const cards = {1:new Set(),2:new Set()};
+    const add=(p,c)=>{ if(c) cards[p].add(c.trim()); };
+
+    const reHand=/^Player (\d)'s starting hand:\s*(.+)$/;
+    const reMull=/^Player (\d) mulliganed (\d+) cards?:\s*(.+?)\. Drew:\s*(.+)$/;
+    const reTurn=/^--- Turn (\d+) ---$/;
+    const reBegin=/^Player (\d)'s turn begins$/;
+    const rePlay=/^Player (\d) played (.+?) \(cost (\d+)\)$/;
+    const reShift=/^Player (\d) shifted (.+?) onto (.+)$/;
+    const reQuest=/^Player (\d) quested with (.+?) \(\+(\d+) \[LORE\], (\d+) -> (\d+)\)/;
+    const reBan=/^(.+?) was banished$/;
+    const reChal=/^Player (\d) challenged (.+?) with (.+?)(?: \||$)/;
+    const reInkField=/^(.+?) was put into Player (\d)'s inkwell from field$/;
+    const reWon=/^Player (\d) won/;
+    const reConcede=/^Player (\d) conceded$/;
+    const reWon20=/Player (\d) won with (\d+) \[LORE\]/;
+
+    const startingHands={1:[],2:[]};
+    const mulligans={1:null,2:null};
+    const turns=[]; // {turn, player, events:[{type,text}]}
+    let curTurnObj=null, curPlayer=null, curTurn=0;
+    const lore={1:0,2:0};
+    const pushEvt=(type,text)=>{ if(curTurnObj) curTurnObj.events.push({type,text}); };
+
+    for(const ln of lines){
+      let m;
+      if(m=ln.match(reHand)){ const p=+m[1]; const list=m[2].split(",").map(c=>c.trim()).filter(Boolean); startingHands[p]=list; list.forEach(c=>add(p,c)); continue; }
+      if(m=ln.match(reMull)){
+        const p=+m[1], n=+m[2], drew=m[4].split(",").map(c=>c.trim()).filter(Boolean);
+        mulligans[p]={count:n, mulliganed:m[3].split(",").map(c=>c.trim()).filter(Boolean), drew};
+        drew.forEach(c=>add(p,c));
+        continue;
+      }
+      if(m=ln.match(reTurn)){
+        curTurn=+m[1];
+        curTurnObj={ turn:curTurn, player:null, events:[], loreSnapshot:null };
+        turns.push(curTurnObj);
+        continue;
+      }
+      if(m=ln.match(reBegin)){ curPlayer=+m[1]; if(curTurnObj) curTurnObj.player=curPlayer; continue; }
+      if(m=ln.match(rePlay)){ const p=+m[1]; add(p,m[2]); pushEvt('play', 'Player '+p+' played '+m[2].trim()+' (cost '+m[3]+')'); continue; }
+      if(m=ln.match(reShift)){ const p=+m[1]; add(p,m[2]); pushEvt('play', 'Player '+p+' shifted '+m[2].trim()+' onto '+m[3].trim()); continue; }
+      if(m=ln.match(reQuest)){
+        const p=+m[1], name=m[2].trim(), gained=+m[3], nv=+m[5];
+        lore[p]=nv;
+        pushEvt('quest', 'Player '+p+' quested with '+name+' (+'+gained+' lore, now '+nv+')');
+        continue;
+      }
+      if(m=ln.match(reChal)){ pushEvt('challenge', 'Player '+m[1]+' challenged '+m[2].trim()+' with '+m[3].trim().replace(/ \|.*$/,'')); continue; }
+      if(m=ln.match(reInkField)){ pushEvt('ink', m[1].trim()+' was put into Player '+m[2]+"'s inkwell from field"); continue; }
+      if(m=ln.match(reBan)){ pushEvt('banish', m[1].trim()+' was banished'); continue; }
+      if(m=ln.match(reConcede)){ pushEvt('concede', 'Player '+m[1]+' conceded'); continue; }
+      if(m=ln.match(reWon20)){ pushEvt('win', 'Player '+m[1]+' won with '+m[2]+' lore'); continue; }
+      if(m=ln.match(reWon)){ pushEvt('win', 'Player '+m[1]+' won'); continue; }
+    }
+    // stamp cumulative lore at end of each turn for a running scoreline
+    let l1=0,l2=0;
+    turns.forEach(t=>{
+      t.events.forEach(e=>{
+        const mq=e.text.match(/^Player (\d) quested.*now (\d+)\)$/);
+        if(mq){ if(+mq[1]===1) l1=+mq[2]; else l2=+mq[2]; }
+      });
+      t.loreSnapshot={1:l1,2:l2};
+    });
+
+    const DL=(deckList&&deckList.length)?deckList:DECK;
+    const inDL=c=>DL.some(d=>c===d||c.split(" - ")[0].trim()===d.split(" - ")[0].trim());
+    const score=p=>[...cards[p]].filter(inDL).length;
+    const me = score(1)>=score(2)?1:2;
+
+    return { me, startingHands, mulligans, turns };
   }
 
   // ---------- rawHash: deterministic, non-crypto, used only for dup detection ----------
@@ -733,7 +812,7 @@
 
   root.LORCANA = { parseLog, parseManyLogs, DECK, ARCHETYPES, WIN_CATS, LOSS_CATS, COMBO_DEFS,
     parseStrategyHints, classifyWinCondition, classifyLossCondition, computePlanScore, buildCoachReport,
-    keyTurningPoints, rawHash, runParserSelfTest };
+    keyTurningPoints, rawHash, runParserSelfTest, buildReplay };
   if (typeof module!=="undefined" && module.exports) module.exports = root.LORCANA;
 })(typeof globalThis!=="undefined"?globalThis:this);
 ;(function(root){ root.LORCANA_SEED = [
