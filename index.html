@@ -8,6 +8,7 @@
 <body>
 <x-dc>
 <helmet>
+<title>The Construct</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
 <link rel="preconnect" href="https://luiscredie.github.io" crossorigin="">
@@ -1672,7 +1673,7 @@ class Component extends DCLogic {
     if(this._cardDbLoading || (typeof window!=='undefined'&&window.LORCANA_CARD_DB)) return;
     this._cardDbLoading=true; this._cardDbError=false;
     const el=document.createElement('script');
-    el.src='card-db.js';
+    el.src='card-db.js?v='+Date.now();
     el.onload=()=>{ this._cbList=null; this._cardDbLoading=false; this.forceUpdate(); };
     el.onerror=()=>{ this._cardDbLoading=false; this._cardDbError=true; this.forceUpdate(); };
     document.head.appendChild(el);
