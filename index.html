@@ -2080,7 +2080,7 @@ class Component extends DCLogic {
       return a.n.localeCompare(b.n);
     });
     const cbTotal=cbFiltered.length;
-    const cbCapped=cbFiltered.slice(0,60);
+    const cbCapped=cbFiltered;
     const cbResults=cbCapped.map(c=>{
       const im=this.imgUrl(c.n);
       const chips=[c.setNum!=null?('Set '+c.setNum):'', c.t||'', c.c!=null?('Cost '+c.c):'', c.i||'', c.l!=null?(c.l+' lore'):'', c.r||'', c.ik===1?'Inkable':(c.ik===0?'Uninkable':'')].filter(Boolean);
