@@ -14,7 +14,6 @@
 <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;500;600;700&amp;family=Space+Grotesk:wght@400;500;600;700&amp;family=Hanken+Grotesk:wght@400;500;600;700;800&amp;family=Space+Mono:wght@400;700&amp;display=swap" rel="stylesheet">
 <script src="engine.js"></script>
 <script src="card-index.js"></script>
-<script src="card-db.js"></script>
 <style>
   html,body{margin:0}
   body{background:#0B0D10}
@@ -590,6 +589,9 @@
         </div>
       </div>
       <div style="margin-top:16px">
+        <sc-if value="{{ cardBase.loading }}" hint-placeholder-val="{{ false }}">
+          <p style="color:var(--text2);font-size:.88rem;margin:6px 0 0;line-height:1.55">Loading card database…</p>
+        </sc-if>
         <sc-if value="{{ cardBase.noDb }}" hint-placeholder-val="{{ false }}">
           <p style="color:var(--text2);font-size:.88rem;margin:6px 0 0;line-height:1.55">Card database not loaded (card-db.js missing).</p>
         </sc-if>
@@ -1192,6 +1194,7 @@ class Component extends DCLogic {
     if(!lib.find(d=>d.id===deck)) deck=lib[0].id;
     try{ tab=localStorage.getItem(this.TKEY)||'overview'; }catch(e){}
     if(!this.tabAllowed(tab,deck,lib)) tab='overview';
+    if(tab==='cardbase') this.ensureCardDb();
     let collection={};
     try{ const c=JSON.parse(localStorage.getItem(this.CKEY)); if(c&&typeof c==='object'&&!Array.isArray(c)) collection=c; }catch(e){}
     let variants={};
@@ -1660,7 +1663,18 @@ class Component extends DCLogic {
   load(){ try{ const d=JSON.parse(localStorage.getItem(this.KEY)); return (d&&typeof d==='object'&&Array.isArray(d.dale))?d:null; }catch(e){ return null; } }
   persist(s){ try{ localStorage.setItem(this.KEY, JSON.stringify(s||this.state.store)); }catch(e){} this.queueSync(); }
   toast(t){ this.setState({toast:t}); clearTimeout(this._tt); this._tt=setTimeout(()=>this.setState({toast:''}),1700); }
-  setTab(k){ this.setState({tab:k}); try{ localStorage.setItem(this.TKEY,k); }catch(e){} }
+  setTab(k){ this.setState({tab:k}); try{ localStorage.setItem(this.TKEY,k); }catch(e){} if(k==='cardbase') this.ensureCardDb(); }
+  // The full card database (~1000 KB) is only needed by the Card Base tab — load it lazily
+  // on first visit instead of blocking every page load with it.
+  ensureCardDb(){
+    if(this._cardDbLoading || (typeof window!=='undefined'&&window.LORCANA_CARD_DB)) return;
+    this._cardDbLoading=true;
+    const el=document.createElement('script');
+    el.src='card-db.js';
+    el.onload=()=>{ this._cbList=null; this.forceUpdate(); };
+    el.onerror=()=>{ this._cardDbLoading=false; this.forceUpdate(); };
+    document.head.appendChild(el);
+  }
   setDeck(id){
     let tab=this.state.tab;
     if(!this.tabAllowed(tab,id)) tab='overview';
@@ -2001,6 +2015,12 @@ class Component extends DCLogic {
     };
 
     // ---------- Card Base (advanced card search) ----------
+    // Expensive over ~2500 records — only compute while that tab is actually open, and only
+    // once the (lazily loaded) database script has landed.
+    const cardBase=(()=>{
+    if(s.tab!=='cardbase') return {loading:false, noDb:false, hasResults:false, noResults:false, total:0, shown:0};
+    const dbLoaded=typeof window!=='undefined'&&!!window.LORCANA_CARD_DB;
+    if(!dbLoaded) return {loading:true, noDb:false, hasResults:false, noResults:false, total:0, shown:0};
     const cbAll=this.cardBaseList();
     const cbSetMeta={};
     cbAll.forEach(c=>{ if(c.setName && !cbSetMeta[c.setName]) cbSetMeta[c.setName]=c.setNum||9999; });
@@ -2062,7 +2082,8 @@ class Component extends DCLogic {
       return { name:c.n, img:im, noImg:!im, imgEl:this.imgEl(im,c.n,{borderRadius:'10px'}), chips, setName:c.setName||'', onZoom:()=>this.zoomCard(c.n) };
     });
     const cbChipStyle=(on)=>`border:1px solid ${on?'#CC785C':'var(--border)'};border-radius:999px;padding:6px 13px;font-family:inherit;font-weight:600;font-size:.78rem;cursor:pointer;background:${on?'#CC785C':'var(--panel2)'};color:${on?'#fff':'var(--text2)'}`;
-    const cardBase={
+    return {
+      loading:false,
       query:s.cbQuery||'', onQuery:(e)=>this.onCbQuery(e),
       rarityChips:cbRarityOptions.map(ro=>({label:ro, on:!!cbRaritySelObj[ro], onClick:()=>this.onToggleCbRarity(ro), style:cbChipStyle(!!cbRaritySelObj[ro])})),
       typeChips:CB_TYPES.map(tp=>({label:tp, on:!!cbTypeSel[tp], onClick:()=>this.onToggleCbType(tp), style:cbChipStyle(!!cbTypeSel[tp])})),
@@ -2075,6 +2096,7 @@ class Component extends DCLogic {
       total:cbTotal, shown:cbCapped.length, capped:cbTotal>cbCapped.length,
       results:cbResults, hasResults:cbResults.length>0, noResults:cbAll.length>0&&cbResults.length===0, noDb:cbAll.length===0
     };
+    })();
 
     // hero art frames + picker
     const heroArts=D.heroArts||[];
