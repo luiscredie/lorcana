@@ -2047,7 +2047,13 @@ class Component extends DCLogic {
       }
       return true;
     });
-    cbFiltered.sort((a,b)=>a.n.localeCompare(b.n));
+    cbFiltered.sort((a,b)=>{
+      const asn=a.setNum!=null?a.setNum:9999, bsn=b.setNum!=null?b.setNum:9999;
+      if(asn!==bsn) return asn-bsn;
+      const an=a.num!=null?a.num:999999, bn=b.num!=null?b.num:999999;
+      if(an!==bn) return an-bn;
+      return a.n.localeCompare(b.n);
+    });
     const cbTotal=cbFiltered.length;
     const cbCapped=cbFiltered.slice(0,60);
     const cbResults=cbCapped.map(c=>{
