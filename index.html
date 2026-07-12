@@ -1553,7 +1553,7 @@ class Component extends DCLogic {
     try{ localStorage.setItem(this.DKEY,deck); }catch(e){}
     this.toast('Deck removed');
   }
-  colKey(n){ return String(n||'').toLowerCase().replace(/[\u2018\u2019\u02BC]/g,"'").replace(/[\\/:*?"<>|]/g,'').replace(/\s+/g,' ').trim(); }
+  colKey(n){ return String(n||'').toLowerCase().replace(/[\u2018\u2019\u02BC]/g,"'").replace(/[\\/:*?"<>|]/g,'').replace(/\s+/g,' ').trim().replace(/^4\s*-\s*town\b/,'4town'); }
   // ---------- Card Base (full searchable card database) ----------
   cardDb(){ return (typeof window!=='undefined'&&window.LORCANA_CARD_DB)||{}; }
   cardBaseList(){
