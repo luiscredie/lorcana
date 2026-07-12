@@ -907,6 +907,7 @@
   </div>
   </sc-if>
 
+  <sc-if value="{{ vp.open }}" hint-placeholder-val="{{ false }}">
   <div onClick="{{ vp.onClose }}" style="position:fixed;inset:0;z-index:85;background:rgba(37,29,20,.45);backdrop-filter:blur(3px);display:flex;align-items:center;justify-content:center;padding:20px">
     <div onClick="{{ stopClick }}" style="background:var(--panel2);border:1px solid var(--border-soft);border-radius:20px;box-shadow:0 30px 60px -20px rgba(0,0,0,.5);backdrop-filter:blur(28px);max-width:620px;width:100%;max-height:84vh;overflow:auto;padding:22px">
       <div style="display:flex;justify-content:space-between;align-items:center;gap:10px">
