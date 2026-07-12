@@ -791,6 +791,9 @@
                   <option value="">Reason…</option>
                   <sc-for list="{{ g.catSel.opts }}" as="o" hint-placeholder-count="5"><option value="{{ o.v }}">{{ o.label }}</option></sc-for>
                 </select>
+                <sc-if value="{{ g.canReplay }}" hint-placeholder-val="{{ false }}">
+                  <button onclick="{{ g.onReplay }}" style="border:1px solid var(--border);border-radius:8px;background:var(--chip-bg);color:var(--text);font-family:inherit;font-weight:600;font-size:.74rem;padding:5px 10px;cursor:pointer">▶ Replay</button>
+                </sc-if>
                 <button onclick="{{ g.onDelete }}" style="border:0;background:transparent;color:#B3232C;font-family:inherit;font-weight:600;font-size:.76rem;padding:5px 6px;cursor:pointer">Delete</button>
               </div>
             </div>
@@ -860,7 +863,50 @@
   </div>
   </sc-if>
 
-  <sc-if value="{{ vp.open }}" hint-placeholder-val="{{ false }}">
+  <sc-if value="{{ replayView.open }}" hint-placeholder-val="{{ false }}">
+  <div onClick="{{ replayView.onClose }}" style="position:fixed;inset:0;z-index:85;background:rgba(37,29,20,.45);backdrop-filter:blur(3px);display:flex;align-items:center;justify-content:center;padding:20px">
+    <div onClick="{{ stopClick }}" style="background:var(--panel2);border:1px solid var(--border-soft);border-radius:20px;box-shadow:0 30px 60px -20px rgba(0,0,0,.5);backdrop-filter:blur(28px);max-width:600px;width:100%;max-height:86vh;overflow:auto;padding:22px">
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:10px">
+        <h3 style="font-family:'Chakra Petch',sans-serif;font-weight:600;font-size:1.15rem;margin:0;letter-spacing:-.01em">Game replay</h3>
+        <button onclick="{{ replayView.onClose }}" style="border:1px solid var(--border);border-radius:10px;padding:7px 12px;font-family:inherit;font-weight:700;font-size:.78rem;cursor:pointer;background:var(--panel2);color:var(--text2)">✕ Close</button>
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:baseline;margin-top:14px">
+        <div style="font-family:'Space Mono',monospace;font-size:.7rem;letter-spacing:.1em;text-transform:uppercase;color:var(--text3)">Turn {{ replayView.turnNum }} of {{ replayView.max }}</div>
+        <div style="font-size:.82rem;font-weight:700;color:var(--text)">You {{ replayView.loreMe }} — {{ replayView.loreOpp }} Opponent</div>
+      </div>
+      <input type="range" min="0" max="{{ replayView.max }}" value="{{ replayView.idx }}" onchange="{{ replayView.onScrub }}" style="width:100%;margin-top:10px">
+      <div style="display:flex;gap:8px;margin-top:6px">
+        <button onclick="{{ replayView.onPrev }}" disabled="{{ replayView.atStart }}" style="flex:1;border:1px solid var(--border);border-radius:10px;padding:8px;font-family:inherit;font-weight:700;font-size:.8rem;cursor:pointer;background:var(--panel2);color:var(--text)">◂ Prev</button>
+        <button onclick="{{ replayView.onToggleAutoplay }}" style="flex:1;border:0;border-radius:10px;padding:8px;font-family:inherit;font-weight:700;font-size:.8rem;cursor:pointer;background:#CC785C;color:#fff">{{ replayView.playLabel }}</button>
+        <button onclick="{{ replayView.onNext }}" disabled="{{ replayView.atEnd }}" style="flex:1;border:1px solid var(--border);border-radius:10px;padding:8px;font-family:inherit;font-weight:700;font-size:.8rem;cursor:pointer;background:var(--panel2);color:var(--text)">Next ▸</button>
+      </div>
+      <sc-if value="{{ replayView.isMyTurn }}" hint-placeholder-val="{{ false }}">
+        <div style="margin-top:14px;font-size:.72rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#4ADE80">Your turn</div>
+      </sc-if>
+      <div style="margin-top:14px;display:flex;flex-direction:column;gap:9px">
+        <sc-if value="{{ replayView.hasEvents }}" hint-placeholder-val="{{ true }}">
+          <sc-for list="{{ replayView.events }}" as="ev" hint-placeholder-count="3">
+            <div style="display:flex;gap:9px;align-items:flex-start;padding:9px 11px;border:1px solid var(--border-soft);border-radius:12px;background:var(--panel)">
+              <span style="color:{{ ev.color }};font-size:.9rem;line-height:1;flex:0 0 auto">{{ ev.icon }}</span>
+              <span style="font-size:.82rem;color:var(--text);line-height:1.4">{{ ev.text }}</span>
+            </div>
+          </sc-for>
+        </sc-if>
+      </div>
+      <sc-if value="{{ replayView.hasMull1 }}" hint-placeholder-val="{{ false }}">
+        <div style="margin-top:12px;font-size:.74rem;color:var(--text2)">P1: {{ replayView.mullText1 }}</div>
+      </sc-if>
+      <sc-if value="{{ replayView.hasMull2 }}" hint-placeholder-val="{{ false }}">
+        <div style="margin-top:4px;font-size:.74rem;color:var(--text2)">P2: {{ replayView.mullText2 }}</div>
+      </sc-if>
+      <div style="margin-top:16px;padding-top:14px;border-top:1px solid var(--border-soft);font-size:.72rem;color:var(--text3)">
+        <div>P1 opening hand: {{ replayView.startHand1 }}</div>
+        <div style="margin-top:3px">P2 opening hand: {{ replayView.startHand2 }}</div>
+      </div>
+    </div>
+  </div>
+  </sc-if>
+
   <div onClick="{{ vp.onClose }}" style="position:fixed;inset:0;z-index:85;background:rgba(37,29,20,.45);backdrop-filter:blur(3px);display:flex;align-items:center;justify-content:center;padding:20px">
     <div onClick="{{ stopClick }}" style="background:var(--panel2);border:1px solid var(--border-soft);border-radius:20px;box-shadow:0 30px 60px -20px rgba(0,0,0,.5);backdrop-filter:blur(28px);max-width:620px;width:100%;max-height:84vh;overflow:auto;padding:22px">
       <div style="display:flex;justify-content:space-between;align-items:center;gap:10px">
@@ -1872,10 +1918,43 @@ class Component extends DCLogic {
         catSel:this.nativeSel((g.result==='W'?g.winCat:g.lossCat)||'', (g.result==='W'?WIN:LOSS), this.requireAdmin((e)=>this.setCat(idx,e.target.value))),
         hasCoach:!!coach, coachHeadline:coach?coach.headline:'',
         planScoreVal:planScore?planScore.score:null,
-        planScoreColor:planScore?(planScore.score>=80?'#4ADE80':planScore.score>=50?'#F5C542':'#F87171'):'var(--text2)'
+        planScoreColor:planScore?(planScore.score>=80?'#4ADE80':planScore.score>=50?'#F5C542':'#F87171'):'var(--text2)',
+        canReplay:!!g.rawLog, onReplay:()=>this.openReplay(g.id)
       };
     });
     const gm={ logText:s.logText, count:G.length, games:gmGames };
+
+    // REPLAY MODAL
+    const replayView=(()=>{
+      const r=s.replay; if(!r) return {open:false};
+      const rep=r.rep, t=rep.turns[r.idx]||{turn:0,player:null,events:[]};
+      const me=rep.me, opp=me===1?2:1;
+      const snap=t.loreSnapshot||{1:0,2:0};
+      const evTypeMeta={
+        play:{icon:'▸',color:'var(--text2)'}, quest:{icon:'⟡',color:'#4ADE80'},
+        challenge:{icon:'⚔',color:'#F87171'}, banish:{icon:'✕',color:'#F87171'},
+        ink:{icon:'◆',color:'#A78BFA'}, concede:{icon:'⚑',color:'#F5C542'}, win:{icon:'★',color:'#F5C542'}
+      };
+      const events=t.events.map(e=>({...e, icon:(evTypeMeta[e.type]||{}).icon||'•', color:(evTypeMeta[e.type]||{}).color||'var(--text2)'}));
+      const startHand1=(rep.startingHands[1]||[]).join(', ')||'—';
+      const startHand2=(rep.startingHands[2]||[]).join(', ')||'—';
+      const mull=rep.mulligans||{};
+      return {
+        open:true, idx:r.idx, max:rep.turns.length-1, total:rep.turns.length,
+        turnNum:t.turn, activePlayer:t.player, isMyTurn:t.player===me,
+        events, hasEvents:events.length>0,
+        loreMe:snap[me]||0, loreOpp:snap[opp]||0,
+        startHand1, startHand2, hasMull1:!!mull[1], hasMull2:!!mull[2],
+        mullText1:mull[1]?('Mulliganed '+mull[1].count+', drew: '+mull[1].drew.join(', ')):'',
+        mullText2:mull[2]?('Mulliganed '+mull[2].count+', drew: '+mull[2].drew.join(', ')):'',
+        atStart:r.idx<=0, atEnd:r.idx>=rep.turns.length-1,
+        playing:!!r.playing, playLabel:r.playing?'Pause':'Play',
+        onPrev:()=>this.replaySetIdx(r.idx-1), onNext:()=>this.replaySetIdx(r.idx+1),
+        onScrub:(e)=>this.replaySetIdx(+e.target.value),
+        onToggleAutoplay:()=>this.replayToggleAutoplay(),
+        onClose:()=>this.closeReplay()
+      };
+    })();
 
     // OFFLINE GAME FORM
     const oState=s.off||{};
@@ -2228,7 +2307,7 @@ class Component extends DCLogic {
       onEditorCancel:()=>this.setState({editor:null}),
       onEditorDelete:this.requireAdmin(()=>this.deleteEditorDeck()),
       stopClick:(e)=>e.stopPropagation(),
-      ov, mu, ck, cb, gm, off, parsedView, onExportDeckList:this.onExportDeckList.bind(this),
+      ov, mu, ck, cb, gm, off, parsedView, onExportDeckList:this.onExportDeckList.bind(this), replayView,
       goGames:()=>this.setTab('games'),
       onLogInput:(e)=>this.setState({logText:e.target.value}),
       onParse:()=>this.onParse(),
@@ -2294,6 +2373,36 @@ class Component extends DCLogic {
     this.toast('Game saved to '+this.getDeck(this.state.deck).title);
   }
   offField(key,val){ this.setState(s=>({off:{...s.off,[key]:val}})); }
+  // ---------- Replay ----------
+  openReplay(gameId){
+    const g=this.games().find(x=>x.id===gameId);
+    if(!g||!g.rawLog){ this.toast('No saved log for this game — only games parsed after this update can be replayed'); return; }
+    const D=this.getDeck(this.state.deck);
+    const deckCards=D.cards&&D.cards.map(l=>this.parseReq(l).name);
+    let rep;
+    try{ rep=this.E.buildReplay(g.rawLog, deckCards); }
+    catch(e){ this.toast('Could not build replay for this game'); return; }
+    if(this._replayTimer){ clearInterval(this._replayTimer); this._replayTimer=null; }
+    this.setState({replay:{gameId, rep, idx:0, playing:false}});
+  }
+  closeReplay(){ if(this._replayTimer){ clearInterval(this._replayTimer); this._replayTimer=null; } this.setState({replay:null}); }
+  replaySetIdx(i){
+    const s=this.state.replay; if(!s) return;
+    const max=s.rep.turns.length-1;
+    const idx=Math.max(0, Math.min(max, i));
+    this.setState({replay:{...s, idx}});
+  }
+  replayToggleAutoplay(){
+    const s=this.state.replay; if(!s) return;
+    if(s.playing){ if(this._replayTimer){ clearInterval(this._replayTimer); this._replayTimer=null; } this.setState({replay:{...s, playing:false}}); return; }
+    this.setState({replay:{...s, playing:true}});
+    this._replayTimer=setInterval(()=>{
+      const cur=this.state.replay; if(!cur){ clearInterval(this._replayTimer); this._replayTimer=null; return; }
+      const max=cur.rep.turns.length-1;
+      if(cur.idx>=max){ clearInterval(this._replayTimer); this._replayTimer=null; this.setState({replay:{...cur, playing:false}}); return; }
+      this.setState({replay:{...cur, idx:cur.idx+1}});
+    }, 1400);
+  }
   onSaveOffline(){
     const s=this.state, o=s.off||{}, D=this.getDeck(s.deck);
     const myLore=+o.myLore||0, oppLore=+o.oppLore||0, gameTurns=+o.gameTurns||0;
