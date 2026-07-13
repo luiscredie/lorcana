@@ -277,8 +277,8 @@
     const pushEvt=(type,text)=>{ if(curTurnObj) curTurnObj.events.push({type,text}); };
     const steps=[];
     const snapshotBoard=()=>({
-      1:{ playZone:playZone[1].slice(), discardZone:discardZone[1].slice(), inkCount:inkCount[1], handCount:knownHandCount[1], knownHand:knownHand[1].slice() },
-      2:{ playZone:playZone[2].slice(), discardZone:discardZone[2].slice(), inkCount:inkCount[2], handCount:knownHandCount[2], knownHand:knownHand[2].slice() }
+      1:{ playZone:playZone[1].slice(), discardZone:discardZone[1].slice(), inkZone:inkZone[1].slice(), inkCount:inkCount[1], handCount:knownHandCount[1], knownHand:knownHand[1].slice() },
+      2:{ playZone:playZone[2].slice(), discardZone:discardZone[2].slice(), inkZone:inkZone[2].slice(), inkCount:inkCount[2], handCount:knownHandCount[2], knownHand:knownHand[2].slice() }
     });
     const pushStep=(type,text)=>{
       pushEvt(type,text);
@@ -288,6 +288,7 @@
     // Cumulative board state — only advanced by lines the log actually contains.
     const playZone={1:[],2:[]};       // names currently on board (best-effort; shifts don't change count)
     const discardZone={1:[],2:[]};    // banished characters + resolved actions/songs (rules-certain, not guessed)
+    const inkZone={1:[],2:[]};        // cards actually confirmed inked by name (rules-certain events only)
     const inkCount={1:0,2:0};         // known ink events only (log doesn't record routine hand->ink each turn)
     const knownHandCount={1:null,2:null}; // only trustworthy right after starting hand / mulligan; unknown afterward
     const knownHand={1:[],2:[]};      // named cards believed still in hand (best-effort; grows on named draws, shrinks on play/ink)
@@ -345,8 +346,8 @@
       }
       if(m=ln.match(reChal)){ lastChal={who:+m[1], def:m[2].trim(), atk:m[3].trim().replace(/ \|.*$/,"")}; lastRemovalBy=null; pushStep('challenge', 'Player '+m[1]+' challenged '+m[2].trim()+' with '+m[3].trim().replace(/ \|.*$/,'')); continue; }
       if(reBanishes.test(ln)){ lastRemovalBy=curPlayer; continue; }
-      if(m=ln.match(reInkField)){ const owner=+m[2]; inkCount[owner]++; removeFromZone(owner===1?2:1, m[1].trim()); removeFromZone(owner, m[1].trim()); pushStep('ink', m[1].trim()+' was put into Player '+m[2]+"'s inkwell from field"); stampBoard(); continue; }
-      if(m=ln.match(reInkHand)){ const p=+m[1], nm=m[2].trim(); inkCount[p]++; removeFromHand(p,nm); if(knownHandCount[p]!=null) knownHandCount[p]=Math.max(0,knownHandCount[p]-1); pushStep('ink', 'Player '+p+' added '+nm+' to ink'); stampBoard(); continue; }
+      if(m=ln.match(reInkField)){ const owner=+m[2]; inkCount[owner]++; inkZone[owner].push(m[1].trim()); removeFromZone(owner===1?2:1, m[1].trim()); removeFromZone(owner, m[1].trim()); pushStep('ink', m[1].trim()+' was put into Player '+m[2]+"'s inkwell from field"); stampBoard(); continue; }
+      if(m=ln.match(reInkHand)){ const p=+m[1], nm=m[2].trim(); inkCount[p]++; inkZone[p].push(nm); removeFromHand(p,nm); if(knownHandCount[p]!=null) knownHandCount[p]=Math.max(0,knownHandCount[p]-1); pushStep('ink', 'Player '+p+' added '+nm+' to ink'); stampBoard(); continue; }
       if(m=ln.match(reReveal)){ const p=+m[1], nm=m[2].trim(); add(p,nm); knownHand[p].push(nm); if(knownHandCount[p]!=null) knownHandCount[p]++; pushStep('draw', 'Player '+p+' revealed and drew '+nm); stampBoard(); continue; }
       if(m=ln.match(reBoost)){ pushStep('play', 'Player '+m[1]+' boosted '+m[2].trim()+' with a hidden card from hand'); stampBoard(); continue; }
       if(m=ln.match(reBan)){
@@ -374,7 +375,7 @@
       t.loreSnapshot={1:l1,2:l2};
     });
     // forward-fill board snapshots onto turns that had no zone-mutating events
-    let lastBoard={ 1:{playZone:[],discardZone:[],inkCount:0,handCount:null,knownHand:[]}, 2:{playZone:[],discardZone:[],inkCount:0,handCount:null,knownHand:[]} };
+    let lastBoard={ 1:{playZone:[],discardZone:[],inkZone:[],inkCount:0,handCount:null,knownHand:[]}, 2:{playZone:[],discardZone:[],inkZone:[],inkCount:0,handCount:null,knownHand:[]} };
     turns.forEach(t=>{ if(t.board) lastBoard=t.board; else t.board=lastBoard; });
 
     const DL=(deckList&&deckList.length)?deckList:DECK;
