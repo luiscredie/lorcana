@@ -275,6 +275,15 @@
     let curTurnObj=null, curPlayer=null, curTurn=0;
     const lore={1:0,2:0};
     const pushEvt=(type,text)=>{ if(curTurnObj) curTurnObj.events.push({type,text}); };
+    const steps=[];
+    const snapshotBoard=()=>({
+      1:{ playZone:playZone[1].slice(), discardZone:discardZone[1].slice(), inkCount:inkCount[1], handCount:knownHandCount[1], knownHand:knownHand[1].slice() },
+      2:{ playZone:playZone[2].slice(), discardZone:discardZone[2].slice(), inkCount:inkCount[2], handCount:knownHandCount[2], knownHand:knownHand[2].slice() }
+    });
+    const pushStep=(type,text)=>{
+      pushEvt(type,text);
+      steps.push({ turn:curTurn, player:curPlayer, type, text, lore:{1:lore[1],2:lore[2]}, board:snapshotBoard() });
+    };
 
     // Cumulative board state — only advanced by lines the log actually contains.
     const playZone={1:[],2:[]};       // names currently on board (best-effort; shifts don't change count)
@@ -294,7 +303,7 @@
 
     for(const ln of lines){
       let m;
-      if(m=ln.match(reHand)){ const p=+m[1]; const list=splitCardNames(m[2]); startingHands[p]=list; list.forEach(c=>add(p,c)); knownHandCount[p]=list.length; knownHand[p]=list.slice(); continue; }
+      if(m=ln.match(reHand)){ const p=+m[1]; const list=splitCardNames(m[2]); startingHands[p]=list; list.forEach(c=>add(p,c)); knownHandCount[p]=list.length; knownHand[p]=list.slice(); pushStep('hand', 'Player '+p+"'s starting hand: "+list.join(', ')); continue; }
       if(m=ln.match(reMull)){
         const p=+m[1], n=+m[2], mulliganed=splitCardNames(m[3]), drew=splitCardNames(m[4]);
         mulligans[p]={count:n, mulliganed, drew};
@@ -302,6 +311,7 @@
         mulliganed.forEach(c=>removeFromHand(p,c));
         drew.forEach(c=>{ add(p,c); knownHand[p].push(c); });
         knownHandCount[p]=(knownHandCount[p]||0)-n+drew.length;
+        pushStep('mulligan', 'Player '+p+' mulliganed '+n+' card'+(n===1?'':'s')+', drew: '+drew.join(', '));
         continue;
       }
       if(m=ln.match(reTurn)){
@@ -318,22 +328,27 @@
         const ty=cardType(nm);
         if(ty==='Song'||ty==='Action') discardZone[p].push(nm);
         else playZone[p].push(nm);
-        pushEvt('play', 'Player '+p+' played '+nm+' (cost '+m[3]+')'); stampBoard(); continue;
+        pushStep('play', 'Player '+p+' played '+nm+' (cost '+m[3]+')'); stampBoard(); continue;
       }
-      if(m=ln.match(reShift)){ const p=+m[1]; add(p,m[2]); removeFromHand(p,m[2].trim()); playZone[p].push(m[2].trim()); if(knownHandCount[p]!=null) knownHandCount[p]=Math.max(0,knownHandCount[p]-1); pushEvt('play', 'Player '+p+' shifted '+m[2].trim()+' onto '+m[3].trim()); stampBoard(); continue; }
-      if(m=ln.match(reDrew)){ const p=+m[1], nm=m[2].trim(); if(nm && nm.toLowerCase()!=='a card'){ add(p,nm); knownHand[p].push(nm); pushEvt('draw', 'Player '+p+' drew '+nm); } if(knownHandCount[p]!=null) knownHandCount[p]++; stampBoard(); continue; }
+      if(m=ln.match(reShift)){ const p=+m[1]; add(p,m[2]); removeFromHand(p,m[2].trim()); playZone[p].push(m[2].trim()); if(knownHandCount[p]!=null) knownHandCount[p]=Math.max(0,knownHandCount[p]-1); pushStep('play', 'Player '+p+' shifted '+m[2].trim()+' onto '+m[3].trim()); stampBoard(); continue; }
+      if(m=ln.match(reDrew)){
+        const p=+m[1], nm=m[2].trim();
+        if(knownHandCount[p]!=null) knownHandCount[p]++;
+        if(nm && nm.toLowerCase()!=='a card'){ add(p,nm); knownHand[p].push(nm); pushStep('draw', 'Player '+p+' drew '+nm); }
+        continue;
+      }
       if(m=ln.match(reQuest)){
         const p=+m[1], name=m[2].trim(), gained=+m[3], nv=+m[5];
         lore[p]=nv;
-        pushEvt('quest', 'Player '+p+' quested with '+name+' (+'+gained+' lore, now '+nv+')');
+        pushStep('quest', 'Player '+p+' quested with '+name+' (+'+gained+' lore, now '+nv+')');
         continue;
       }
-      if(m=ln.match(reChal)){ lastChal={who:+m[1], def:m[2].trim(), atk:m[3].trim().replace(/ \|.*$/,"")}; lastRemovalBy=null; pushEvt('challenge', 'Player '+m[1]+' challenged '+m[2].trim()+' with '+m[3].trim().replace(/ \|.*$/,'')); continue; }
+      if(m=ln.match(reChal)){ lastChal={who:+m[1], def:m[2].trim(), atk:m[3].trim().replace(/ \|.*$/,"")}; lastRemovalBy=null; pushStep('challenge', 'Player '+m[1]+' challenged '+m[2].trim()+' with '+m[3].trim().replace(/ \|.*$/,'')); continue; }
       if(reBanishes.test(ln)){ lastRemovalBy=curPlayer; continue; }
-      if(m=ln.match(reInkField)){ const owner=+m[2]; inkCount[owner]++; removeFromZone(owner===1?2:1, m[1].trim()); removeFromZone(owner, m[1].trim()); pushEvt('ink', m[1].trim()+' was put into Player '+m[2]+"'s inkwell from field"); stampBoard(); continue; }
-      if(m=ln.match(reInkHand)){ const p=+m[1], nm=m[2].trim(); inkCount[p]++; removeFromHand(p,nm); if(knownHandCount[p]!=null) knownHandCount[p]=Math.max(0,knownHandCount[p]-1); pushEvt('ink', 'Player '+p+' added '+nm+' to ink'); stampBoard(); continue; }
-      if(m=ln.match(reReveal)){ const p=+m[1], nm=m[2].trim(); add(p,nm); knownHand[p].push(nm); if(knownHandCount[p]!=null) knownHandCount[p]++; pushEvt('draw', 'Player '+p+' revealed and drew '+nm); stampBoard(); continue; }
-      if(m=ln.match(reBoost)){ pushEvt('play', 'Player '+m[1]+' boosted '+m[2].trim()+' with a hidden card from hand'); stampBoard(); continue; }
+      if(m=ln.match(reInkField)){ const owner=+m[2]; inkCount[owner]++; removeFromZone(owner===1?2:1, m[1].trim()); removeFromZone(owner, m[1].trim()); pushStep('ink', m[1].trim()+' was put into Player '+m[2]+"'s inkwell from field"); stampBoard(); continue; }
+      if(m=ln.match(reInkHand)){ const p=+m[1], nm=m[2].trim(); inkCount[p]++; removeFromHand(p,nm); if(knownHandCount[p]!=null) knownHandCount[p]=Math.max(0,knownHandCount[p]-1); pushStep('ink', 'Player '+p+' added '+nm+' to ink'); stampBoard(); continue; }
+      if(m=ln.match(reReveal)){ const p=+m[1], nm=m[2].trim(); add(p,nm); knownHand[p].push(nm); if(knownHandCount[p]!=null) knownHandCount[p]++; pushStep('draw', 'Player '+p+' revealed and drew '+nm); stampBoard(); continue; }
+      if(m=ln.match(reBoost)){ pushStep('play', 'Player '+m[1]+' boosted '+m[2].trim()+' with a hidden card from hand'); stampBoard(); continue; }
       if(m=ln.match(reBan)){
         const X=m[1].trim(); let loser=null;
         if(lastRemovalBy){ loser = lastRemovalBy===1?2:1; }
@@ -341,13 +356,13 @@
         else if(lastChal && X===lastChal.atk){ loser = lastChal.who; }
         else { loser = curPlayer ? (curPlayer===1?2:1) : null; }
         if(loser){ removeFromZone(loser, X); removeFromZone(loser===1?2:1, X); discardZone[loser].push(X); }
-        pushEvt('banish', X+' was banished');
+        pushStep('banish', X+' was banished');
         stampBoard();
         continue;
       }
-      if(m=ln.match(reConcede)){ pushEvt('concede', 'Player '+m[1]+' conceded'); continue; }
-      if(m=ln.match(reWon20)){ pushEvt('win', 'Player '+m[1]+' won with '+m[2]+' lore'); continue; }
-      if(m=ln.match(reWon)){ pushEvt('win', 'Player '+m[1]+' won'); continue; }
+      if(m=ln.match(reConcede)){ pushStep('concede', 'Player '+m[1]+' conceded'); continue; }
+      if(m=ln.match(reWon20)){ pushStep('win', 'Player '+m[1]+' won with '+m[2]+' lore'); continue; }
+      if(m=ln.match(reWon)){ pushStep('win', 'Player '+m[1]+' won'); continue; }
     }
     // stamp cumulative lore at end of each turn for a running scoreline
     let l1=0,l2=0;
@@ -367,7 +382,7 @@
     const score=p=>[...cards[p]].filter(inDL).length;
     const me = score(1)>=score(2)?1:2;
 
-    return { me, startingHands, mulligans, turns };
+    return { me, startingHands, mulligans, turns, steps };
   }
 
   // ---------- rawHash: deterministic, non-crypto, used only for dup detection ----------

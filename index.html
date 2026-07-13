@@ -972,7 +972,7 @@
       <div style="font-size:.62rem;color:var(--text3);margin-top:6px;line-height:1.4">Hand contents only list cards the log actually names (starting hand, mulligan draws, named draws) — "unknown" covers draws the log doesn't identify. Ink counts only reflect special effects that move a played card into ink, not routine ink-from-hand each turn.</div>
 
       <div style="display:flex;justify-content:space-between;align-items:baseline;margin-top:16px">
-        <div style="font-family:'Space Mono',monospace;font-size:.7rem;letter-spacing:.1em;text-transform:uppercase;color:var(--text3)">Turn {{ replayView.turnNum }} of {{ replayView.max }}</div>
+        <div style="font-family:'Space Mono',monospace;font-size:.7rem;letter-spacing:.1em;text-transform:uppercase;color:var(--text3)">Turn {{ replayView.turnNum }} · step {{ replayView.stepNum }} of {{ replayView.total }}</div>
         <sc-if value="{{ replayView.isMyTurn }}" hint-placeholder-val="{{ false }}">
           <div style="font-size:.72rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#4ADE80">Your turn</div>
         </sc-if>
@@ -984,11 +984,15 @@
         <button onclick="{{ replayView.onNext }}" disabled="{{ replayView.atEnd }}" style="flex:1;border:1px solid var(--border);border-radius:10px;padding:8px;font-family:inherit;font-weight:700;font-size:.8rem;cursor:pointer;background:var(--panel2);color:var(--text)">Next ▸</button>
       </div>
       <div style="margin-top:14px;display:flex;flex-direction:column;gap:9px">
+        <div style="display:flex;gap:11px;align-items:flex-start;padding:12px 14px;border:1px solid var(--border-soft);border-radius:12px;background:var(--panel2);margin-bottom:10px">
+          <span style="color:{{ replayView.current.color }};font-size:1.15rem;line-height:1;flex:0 0 auto">{{ replayView.current.icon }}</span>
+          <span style="font-size:.92rem;font-weight:600;color:var(--text);line-height:1.4">{{ replayView.current.text }}</span>
+        </div>
         <sc-if value="{{ replayView.hasEvents }}" hint-placeholder-val="{{ true }}">
-          <sc-for list="{{ replayView.events }}" as="ev" hint-placeholder-count="3">
-            <div style="display:flex;gap:9px;align-items:flex-start;padding:9px 11px;border:1px solid var(--border-soft);border-radius:12px;background:var(--panel)">
-              <span style="color:{{ ev.color }};font-size:.9rem;line-height:1;flex:0 0 auto">{{ ev.icon }}</span>
-              <span style="font-size:.82rem;color:var(--text);line-height:1.4">{{ ev.text }}</span>
+          <sc-for list="{{ replayView.stepSeq }}" as="ev" hint-placeholder-count="3">
+            <div onClick="{{ ev.onJump }}" style="display:flex;gap:9px;align-items:flex-start;padding:7px 11px;border-radius:10px;cursor:pointer;{{ ev.rowStyle }}">
+              <span style="color:{{ ev.color }};font-size:.8rem;line-height:1.3;flex:0 0 auto">{{ ev.icon }}</span>
+              <span style="font-size:.76rem;color:var(--text2);line-height:1.3">{{ ev.text }}</span>
             </div>
           </sc-for>
         </sc-if>
@@ -2053,19 +2057,31 @@ class Component extends DCLogic {
     // REPLAY MODAL
     const replayView=(()=>{
       const r=s.replay; if(!r) return {open:false};
-      const rep=r.rep, t=rep.turns[r.idx]||{turn:0,player:null,events:[]};
+      const rep=r.rep;
+      const steps=rep.steps&&rep.steps.length?rep.steps:[{turn:0,player:null,type:'',text:'No events recorded in this log.',lore:{1:0,2:0},board:{1:{playZone:[],discardZone:[],inkCount:0,handCount:null,knownHand:[]},2:{playZone:[],discardZone:[],inkCount:0,handCount:null,knownHand:[]}}}];
+      const idx=Math.max(0,Math.min(steps.length-1, r.idx||0));
+      const st=steps[idx];
       const me=rep.me, opp=me===1?2:1;
-      const snap=t.loreSnapshot||{1:0,2:0};
+      const snap=st.lore||{1:0,2:0};
       const evTypeMeta={
+        hand:{icon:'✋',color:'var(--text2)'}, mulligan:{icon:'↺',color:'var(--text2)'},
         play:{icon:'▸',color:'var(--text2)'}, quest:{icon:'⟡',color:'#4ADE80'},
         challenge:{icon:'⚔',color:'#F87171'}, banish:{icon:'✕',color:'#F87171'},
         ink:{icon:'◆',color:'#A78BFA'}, draw:{icon:'⬇',color:'#60A5FA'}, concede:{icon:'⚑',color:'#F5C542'}, win:{icon:'★',color:'#F5C542'}
       };
-      const events=t.events.map(e=>({...e, icon:(evTypeMeta[e.type]||{}).icon||'•', color:(evTypeMeta[e.type]||{}).color||'var(--text2)'}));
+      const metaFor=(type)=>evTypeMeta[type]||{icon:'•',color:'var(--text2)'};
+      const current={ icon:metaFor(st.type).icon, color:metaFor(st.type).color, text:st.text };
+      // sequence of every step within the CURRENT turn, so "draw, then ink, then play" is visible in order
+      const turnSteps=steps.map((s,i)=>({s,i})).filter(({s})=>s.turn===st.turn);
+      const stepSeq=turnSteps.map(({s,i})=>({
+        icon:metaFor(s.type).icon, color:metaFor(s.type).color, text:s.text, isCurrent:i===idx,
+        rowStyle: i===idx ? 'background:var(--chip-bg);opacity:1' : 'background:transparent;opacity:.62',
+        onJump:()=>this.replaySetIdx(i)
+      }));
       const startHand1=(rep.startingHands[1]||[]).join(', ')||'—';
       const startHand2=(rep.startingHands[2]||[]).join(', ')||'—';
       const mull=rep.mulligans||{};
-      const board=t.board||{1:{playZone:[],discardZone:[],inkCount:0,handCount:null,knownHand:[]},2:{playZone:[],discardZone:[],inkCount:0,handCount:null,knownHand:[]}};
+      const board=st.board||{1:{playZone:[],discardZone:[],inkCount:0,handCount:null,knownHand:[]},2:{playZone:[],discardZone:[],inkCount:0,handCount:null,knownHand:[]}};
       const zoneOf=(p)=>{
         const b=board[p]||{playZone:[],discardZone:[],inkCount:0,handCount:null,knownHand:[]};
         const cardEl=(name,size)=>{
@@ -2099,9 +2115,9 @@ class Component extends DCLogic {
       };
       const meZone=zoneOf(me), oppZone=zoneOf(opp);
       return {
-        open:true, idx:r.idx, max:rep.turns.length-1, total:rep.turns.length,
-        turnNum:t.turn, activePlayer:t.player, isMyTurn:t.player===me,
-        events, hasEvents:events.length>0,
+        open:true, idx, max:steps.length-1, total:steps.length, stepNum:idx+1,
+        turnNum:st.turn, activePlayer:st.player, isMyTurn:st.player===me,
+        current, stepSeq, hasEvents:stepSeq.length>0,
         loreMe:snap[me]||0, loreOpp:snap[opp]||0,
         me:meZone, opp:oppZone,
         discardOpen:!!r.discardOpen,
@@ -2121,7 +2137,7 @@ class Component extends DCLogic {
         startHand1, startHand2, hasMull1:!!mull[1], hasMull2:!!mull[2],
         mullText1:mull[1]?('Mulliganed '+mull[1].count+', drew: '+mull[1].drew.join(', ')):'',
         mullText2:mull[2]?('Mulliganed '+mull[2].count+', drew: '+mull[2].drew.join(', ')):'',
-        atStart:r.idx<=0, atEnd:r.idx>=rep.turns.length-1,
+        atStart:r.idx<=0, atEnd:r.idx>=steps.length-1,
         playing:!!r.playing, playLabel:r.playing?'Pause':'Play',
         onPrev:()=>this.replaySetIdx(r.idx-1), onNext:()=>this.replaySetIdx(r.idx+1),
         onScrub:(e)=>this.replaySetIdx(+e.target.value),
@@ -2562,7 +2578,7 @@ class Component extends DCLogic {
   closeReplay(){ if(this._replayTimer){ clearInterval(this._replayTimer); this._replayTimer=null; } this.setState({replay:null}); }
   replaySetIdx(i){
     const s=this.state.replay; if(!s) return;
-    const max=s.rep.turns.length-1;
+    const max=(s.rep.steps&&s.rep.steps.length?s.rep.steps.length:s.rep.turns.length)-1;
     const idx=Math.max(0, Math.min(max, i));
     this.setState({replay:{...s, idx}});
   }
@@ -2572,7 +2588,7 @@ class Component extends DCLogic {
     this.setState({replay:{...s, playing:true}});
     this._replayTimer=setInterval(()=>{
       const cur=this.state.replay; if(!cur){ clearInterval(this._replayTimer); this._replayTimer=null; return; }
-      const max=cur.rep.turns.length-1;
+      const max=(cur.rep.steps&&cur.rep.steps.length?cur.rep.steps.length:cur.rep.turns.length)-1;
       if(cur.idx>=max){ clearInterval(this._replayTimer); this._replayTimer=null; this.setState({replay:{...cur, playing:false}}); return; }
       this.setState({replay:{...cur, idx:cur.idx+1}});
     }, 1400);
