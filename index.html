@@ -837,7 +837,7 @@
   </sc-if>
 
   <sc-if value="{{ buyPreview.open }}" hint-placeholder-val="{{ false }}">
-  <div onClick="{{ buyPreview.onClose }}" style="position:fixed;inset:0;z-index:85;background:rgba(37,29,20,.45);backdrop-filter:blur(3px);display:flex;align-items:center;justify-content:center;padding:20px">
+  <div onClick="{{ buyPreview.onClose }}" style="position:fixed;inset:0;z-index:98;background:rgba(37,29,20,.45);backdrop-filter:blur(3px);display:flex;align-items:center;justify-content:center;padding:20px">
     <div onClick="{{ stopClick }}" style="background:var(--panel2);border:1px solid var(--border-soft);border-radius:20px;box-shadow:0 30px 60px -20px rgba(0,0,0,.5);backdrop-filter:blur(28px);max-width:340px;width:100%;padding:18px">
       <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:12px">
         <h3 style="font-family:'Chakra Petch',sans-serif;font-weight:600;font-size:1.05rem;margin:0;letter-spacing:-.01em">{{ buyPreview.name }}</h3>
