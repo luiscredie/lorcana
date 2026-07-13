@@ -884,6 +884,8 @@
             </div>
             <span style="font-size:.7rem;color:var(--text2)">Ink <b style="color:var(--text)">{{ replayView.opp.inkStr }}</b></span>
           </button>
+        </div>
+        <sc-if value="{{ replayView.opp.hasHandRow }}" hint-placeholder-val="{{ false }}">
           <div style="display:flex;flex-wrap:wrap;gap:7px;margin-bottom:12px">
             <sc-for list="{{ replayView.opp.knownHandCards }}" as="hc" hint-placeholder-count="2">
               <div title="{{ hc.name }}" onClick="{{ hc.onZoom }}" style="cursor:pointer;{{ hc.boxStyle }}">
@@ -2491,21 +2493,26 @@ class Component extends DCLogic {
       isCollection:s.tab==='collection', isDeckTab:s.tab==='deck', col,
       isCardBase:s.tab==='cardbase', cardBase,
       editorOpen:!!s.editor,
-      ed:s.editor?{
-        heading:s.editor.isNew?'Add a deck':'Edit deck', saveLabel:s.editor.isNew?'Add deck':'Save changes',
-        title:s.editor.title, arch:s.editor.arch, tagline:s.editor.tagline, cards:s.editor.cards, strategy:s.editor.strategy,
-        ink1:s.editor.ink1, ink2:s.editor.ink2, canDelete:!!s.editor.canDelete,
-        inkOptions:['amber','ruby','emerald','sapphire','steel','amethyst'].map(v=>({v,label:this.INKS[v].name})),
-        onTitle:(e)=>this.edField('title',e.target.value),
-        onArch:(e)=>this.edField('arch',e.target.value),
-        onTagline:(e)=>this.edField('tagline',e.target.value),
-        onCards:(e)=>this.edField('cards',e.target.value),
-        onStrategy:(e)=>this.edField('strategy',e.target.value),
-        onInk1:(e)=>this.edField('ink1',e.target.value),
-        onInk2:(e)=>this.edField('ink2',e.target.value),
-        ink1DD:this.buildDD('edInk1', s.editor.ink1, ['amber','ruby','emerald','sapphire','steel','amethyst'].map(v=>({v,label:this.INKS[v].name})), (e)=>this.edField('ink1',e.target.value)),
-        ink2DD:this.buildDD('edInk2', s.editor.ink2, ['amber','ruby','emerald','sapphire','steel','amethyst'].map(v=>({v,label:this.INKS[v].name})), (e)=>this.edField('ink2',e.target.value))
-      }:{},
+      ed:(()=>{
+        if(!s.editor) return {};
+        try{
+          return {
+            heading:s.editor.isNew?'Add a deck':'Edit deck', saveLabel:s.editor.isNew?'Add deck':'Save changes',
+            title:s.editor.title, arch:s.editor.arch, tagline:s.editor.tagline, cards:s.editor.cards, strategy:s.editor.strategy,
+            ink1:s.editor.ink1, ink2:s.editor.ink2, canDelete:!!s.editor.canDelete,
+            inkOptions:['amber','ruby','emerald','sapphire','steel','amethyst'].map(v=>({v,label:this.INKS[v].name})),
+            onTitle:(e)=>this.edField('title',e.target.value),
+            onArch:(e)=>this.edField('arch',e.target.value),
+            onTagline:(e)=>this.edField('tagline',e.target.value),
+            onCards:(e)=>this.edField('cards',e.target.value),
+            onStrategy:(e)=>this.edField('strategy',e.target.value),
+            onInk1:(e)=>this.edField('ink1',e.target.value),
+            onInk2:(e)=>this.edField('ink2',e.target.value),
+            ink1DD:this.buildDD('edInk1', s.editor.ink1, ['amber','ruby','emerald','sapphire','steel','amethyst'].map(v=>({v,label:this.INKS[v].name})), (e)=>this.edField('ink1',e.target.value)),
+            ink2DD:this.buildDD('edInk2', s.editor.ink2, ['amber','ruby','emerald','sapphire','steel','amethyst'].map(v=>({v,label:this.INKS[v].name})), (e)=>this.edField('ink2',e.target.value))
+          };
+        }catch(e){ console.error('[DEBUG] ed construction threw:', e); return {heading:'ERROR', saveLabel:'ERROR'}; }
+      })(),
       onAddDeck:this.requireAdmin(()=>this.openEditor(null)),
       onEditorSave:this.requireAdmin(()=>this.saveEditor()),
       onEditorCancel:()=>this.setState({editor:null}),
