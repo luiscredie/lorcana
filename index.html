@@ -2059,7 +2059,7 @@ class Component extends DCLogic {
       const evTypeMeta={
         play:{icon:'▸',color:'var(--text2)'}, quest:{icon:'⟡',color:'#4ADE80'},
         challenge:{icon:'⚔',color:'#F87171'}, banish:{icon:'✕',color:'#F87171'},
-        ink:{icon:'◆',color:'#A78BFA'}, concede:{icon:'⚑',color:'#F5C542'}, win:{icon:'★',color:'#F5C542'}
+        ink:{icon:'◆',color:'#A78BFA'}, draw:{icon:'⬇',color:'#60A5FA'}, concede:{icon:'⚑',color:'#F5C542'}, win:{icon:'★',color:'#F5C542'}
       };
       const events=t.events.map(e=>({...e, icon:(evTypeMeta[e.type]||{}).icon||'•', color:(evTypeMeta[e.type]||{}).color||'var(--text2)'}));
       const startHand1=(rep.startingHands[1]||[]).join(', ')||'—';
