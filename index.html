@@ -876,24 +876,34 @@
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
           <div style="font-family:'Space Mono',monospace;font-size:.62rem;letter-spacing:.12em;text-transform:uppercase;color:var(--text3)">Opponent</div>
           <div style="display:flex;align-items:center;gap:14px">
+            <button onclick="{{ replayView.onOpenDiscardOpp }}" title="View discard pile" style="border:1px solid var(--border);border-radius:8px;background:var(--panel);color:var(--text2);font-family:inherit;font-size:.68rem;font-weight:600;padding:4px 8px;cursor:pointer">🗑 {{ replayView.opp.discardCount }}</button>
             <span style="font-size:.7rem;color:var(--text2)">Hand <b style="color:var(--text)">{{ replayView.opp.handStr }}</b></span>
             <span style="font-size:.7rem;color:var(--text2)">Ink <b style="color:var(--text)">{{ replayView.opp.inkStr }}</b></span>
             <span style="font-family:'Chakra Petch',sans-serif;font-weight:700;font-size:1.15rem;color:var(--text)">{{ replayView.loreOpp }} <span style="font-size:.62rem;font-weight:600;color:var(--text3);text-transform:uppercase">lore</span></span>
           </div>
         </div>
         <sc-if value="{{ replayView.opp.hasCards }}" hint-placeholder-val="{{ false }}">
-          <div style="display:flex;flex-wrap:wrap;gap:8px">
+          <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px">
             <sc-for list="{{ replayView.opp.playZone }}" as="pc" hint-placeholder-count="3">
-              <div title="{{ pc.name }}" style="width:52px;aspect-ratio:5/7;border-radius:7px;border:1px solid var(--border-soft);background:var(--panel);overflow:hidden;position:relative">
+              <div title="{{ pc.name }}" style="{{ pc.boxStyle }}">
                 {{ pc.imgEl }}
                 <sc-if value="{{ pc.noImg }}" hint-placeholder-val="{{ false }}"><span style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;text-align:center;font-size:.46rem;font-weight:700;color:var(--text2);padding:3px;line-height:1.15">{{ pc.name }}</span></sc-if>
               </div>
             </sc-for>
           </div>
         </sc-if>
-        <sc-if value="{{ replayView.opp.hasCards }}" hint-placeholder-val="{{ false }}"></sc-if>
         <sc-if value="{{ replayView.opp.empty }}" hint-placeholder-val="{{ true }}">
-          <div style="font-size:.72rem;color:var(--text3);font-style:italic">No board yet</div>
+          <div style="font-size:.72rem;color:var(--text3);font-style:italic;margin-bottom:10px">No board yet</div>
+        </sc-if>
+        <sc-if value="{{ replayView.opp.hasKnownHand }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex;flex-wrap:wrap;gap:5px;padding-top:8px;border-top:1px dashed var(--border-soft)">
+            <sc-for list="{{ replayView.opp.knownHandList }}" as="hc" hint-placeholder-count="2">
+              <span style="font-size:.66rem;font-weight:600;padding:3px 8px;border-radius:999px;background:var(--chip-bg);color:var(--text2)">{{ hc.name }}</span>
+            </sc-for>
+            <sc-if value="{{ replayView.opp.hasUnknown }}" hint-placeholder-val="{{ false }}">
+              <span style="font-size:.66rem;font-weight:600;padding:3px 8px;border-radius:999px;background:var(--panel);color:var(--text3);border:1px dashed var(--border)">+{{ replayView.opp.unknownCount }} unknown</span>
+            </sc-if>
+          </div>
         </sc-if>
       </div>
 
@@ -902,7 +912,7 @@
         <sc-if value="{{ replayView.me.hasCards }}" hint-placeholder-val="{{ false }}">
           <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px">
             <sc-for list="{{ replayView.me.playZone }}" as="pc" hint-placeholder-count="3">
-              <div title="{{ pc.name }}" style="width:52px;aspect-ratio:5/7;border-radius:7px;border:1px solid var(--border-soft);background:var(--panel);overflow:hidden;position:relative">
+              <div title="{{ pc.name }}" style="{{ pc.boxStyle }}">
                 {{ pc.imgEl }}
                 <sc-if value="{{ pc.noImg }}" hint-placeholder-val="{{ false }}"><span style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;text-align:center;font-size:.46rem;font-weight:700;color:var(--text2);padding:3px;line-height:1.15">{{ pc.name }}</span></sc-if>
               </div>
@@ -912,9 +922,20 @@
         <sc-if value="{{ replayView.me.empty }}" hint-placeholder-val="{{ true }}">
           <div style="font-size:.72rem;color:var(--text3);font-style:italic;margin-bottom:10px">No board yet</div>
         </sc-if>
+        <sc-if value="{{ replayView.me.hasKnownHand }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex;flex-wrap:wrap;gap:5px;padding-bottom:8px;margin-bottom:10px;border-bottom:1px dashed var(--border-soft)">
+            <sc-for list="{{ replayView.me.knownHandList }}" as="hc" hint-placeholder-count="2">
+              <span style="font-size:.66rem;font-weight:600;padding:3px 8px;border-radius:999px;background:var(--chip-bg);color:var(--text2)">{{ hc.name }}</span>
+            </sc-for>
+            <sc-if value="{{ replayView.me.hasUnknown }}" hint-placeholder-val="{{ false }}">
+              <span style="font-size:.66rem;font-weight:600;padding:3px 8px;border-radius:999px;background:var(--panel);color:var(--text3);border:1px dashed var(--border)">+{{ replayView.me.unknownCount }} unknown</span>
+            </sc-if>
+          </div>
+        </sc-if>
         <div style="display:flex;justify-content:space-between;align-items:center">
           <div style="font-family:'Space Mono',monospace;font-size:.62rem;letter-spacing:.12em;text-transform:uppercase;color:var(--text3)">You</div>
           <div style="display:flex;align-items:center;gap:14px">
+            <button onclick="{{ replayView.onOpenDiscardMe }}" title="View discard pile" style="border:1px solid var(--border);border-radius:8px;background:var(--panel);color:var(--text2);font-family:inherit;font-size:.68rem;font-weight:600;padding:4px 8px;cursor:pointer">🗑 {{ replayView.me.discardCount }}</button>
             <span style="font-size:.7rem;color:var(--text2)">Hand <b style="color:var(--text)">{{ replayView.me.handStr }}</b></span>
             <span style="font-size:.7rem;color:var(--text2)">Ink <b style="color:var(--text)">{{ replayView.me.inkStr }}</b></span>
             <span style="font-family:'Chakra Petch',sans-serif;font-weight:700;font-size:1.15rem;color:var(--text)">{{ replayView.loreMe }} <span style="font-size:.62rem;font-weight:600;color:var(--text3);text-transform:uppercase">lore</span></span>
@@ -922,7 +943,7 @@
         </div>
       </div>
 
-      <div style="font-size:.62rem;color:var(--text3);margin-top:6px;line-height:1.4">Hand and ink counts show "?" where the log doesn't record enough to be sure — e.g. routine ink-from-hand each turn usually isn't logged, only special effects that move a played character into ink.</div>
+      <div style="font-size:.62rem;color:var(--text3);margin-top:6px;line-height:1.4">Hand contents only list cards the log actually names (starting hand, mulligan draws, named draws) — "unknown" covers draws the log doesn't identify. Ink counts only reflect special effects that move a played card into ink, not routine ink-from-hand each turn.</div>
 
       <div style="display:flex;justify-content:space-between;align-items:baseline;margin-top:16px">
         <div style="font-family:'Space Mono',monospace;font-size:.7rem;letter-spacing:.1em;text-transform:uppercase;color:var(--text3)">Turn {{ replayView.turnNum }} of {{ replayView.max }}</div>
@@ -956,6 +977,31 @@
         <div>P1 opening hand: {{ replayView.startHand1 }}</div>
         <div style="margin-top:3px">P2 opening hand: {{ replayView.startHand2 }}</div>
       </div>
+    </div>
+  </div>
+  </sc-if>
+
+  <sc-if value="{{ replayView.discardOpen }}" hint-placeholder-val="{{ false }}">
+  <div onClick="{{ replayView.onCloseDiscard }}" style="position:fixed;inset:0;z-index:90;background:rgba(37,29,20,.5);backdrop-filter:blur(3px);display:flex;align-items:center;justify-content:center;padding:20px">
+    <div onClick="{{ stopClick }}" style="background:var(--panel2);border:1px solid var(--border-soft);border-radius:18px;box-shadow:0 30px 60px -20px rgba(0,0,0,.5);backdrop-filter:blur(28px);max-width:480px;width:100%;max-height:80vh;overflow:auto;padding:20px">
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:14px">
+        <h3 style="font-family:'Chakra Petch',sans-serif;font-weight:600;font-size:1.05rem;margin:0;letter-spacing:-.01em">{{ replayView.discardWho }} discard pile</h3>
+        <button onclick="{{ replayView.onCloseDiscard }}" style="border:1px solid var(--border);border-radius:10px;padding:7px 12px;font-family:inherit;font-weight:700;font-size:.78rem;cursor:pointer;background:var(--panel2);color:var(--text2)">✕ Close</button>
+      </div>
+      <sc-if value="{{ replayView.discardList.length }}" hint-placeholder-val="{{ false }}">
+        <div style="display:flex;flex-wrap:wrap;gap:12px">
+          <sc-for list="{{ replayView.discardList }}" as="dc" hint-placeholder-count="4">
+            <div style="width:64px">
+              <div title="{{ dc.name }}" style="{{ dc.boxStyle }}">
+                {{ dc.imgEl }}
+                <sc-if value="{{ dc.noImg }}" hint-placeholder-val="{{ false }}"><span style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;text-align:center;font-size:.56rem;font-weight:700;color:var(--text2);padding:4px;line-height:1.2">{{ dc.name }}</span></sc-if>
+              </div>
+              <div style="font-size:.64rem;color:var(--text2);margin-top:4px;line-height:1.2;text-align:center">{{ dc.name }}</div>
+            </div>
+          </sc-for>
+        </div>
+      </sc-if>
+      <sc-if value="{{ replayView.discardList.length }}" hint-placeholder-val="{{ false }}"></sc-if>
     </div>
   </div>
   </sc-if>
@@ -1993,14 +2039,32 @@ class Component extends DCLogic {
       const startHand1=(rep.startingHands[1]||[]).join(', ')||'—';
       const startHand2=(rep.startingHands[2]||[]).join(', ')||'—';
       const mull=rep.mulligans||{};
-      const board=t.board||{1:{playZone:[],inkCount:0,handCount:null},2:{playZone:[],inkCount:0,handCount:null}};
+      const board=t.board||{1:{playZone:[],discardZone:[],inkCount:0,handCount:null,knownHand:[]},2:{playZone:[],discardZone:[],inkCount:0,handCount:null,knownHand:[]}};
       const zoneOf=(p)=>{
-        const b=board[p]||{playZone:[],inkCount:0,handCount:null};
-        const playZone=(b.playZone||[]).map(name=>{ const u=this.imgUrl(name); return { name, imgEl:this.imgEl(u,name,{objectFit:'cover',width:'100%',height:'100%'}), noImg:!u }; });
+        const b=board[p]||{playZone:[],discardZone:[],inkCount:0,handCount:null,knownHand:[]};
+        const cardEl=(name)=>{
+          const u=this.imgUrl(name);
+          const meta=this.cardMeta(name);
+          const isLoc=meta&&meta.t==='Location';
+          const boxStyle=isLoc
+            ? 'width:73px;height:52px;border-radius:7px;border:1px solid var(--border-soft);background:var(--panel);overflow:hidden;position:relative;flex:0 0 auto'
+            : 'width:52px;aspect-ratio:5/7;border-radius:7px;border:1px solid var(--border-soft);background:var(--panel);overflow:hidden;position:relative;flex:0 0 auto';
+          const imgStyle=isLoc
+            ? { objectFit:'cover', width:'52px', height:'72.8px', position:'absolute', left:'50%', top:'50%', transform:'translate(-50%,-50%) rotate(90deg)' }
+            : { objectFit:'cover', width:'100%', height:'100%' };
+          const imgEl=this.imgEl(u,name,imgStyle);
+          return { name, imgEl, noImg:!u, isLoc, boxStyle };
+        };
+        const playZone=(b.playZone||[]).map(cardEl);
+        const discardZone=(b.discardZone||[]).map(cardEl);
+        const knownHandList=(b.knownHand||[]).map(n=>({name:n}));
+        const unknownCount=b.handCount!=null ? Math.max(0,b.handCount-knownHandList.length) : null;
         return {
           playZone, hasCards:playZone.length>0, empty:playZone.length===0,
           handStr: b.handCount!=null ? String(b.handCount) : '?',
-          inkStr: String(b.inkCount||0)
+          inkStr: String(b.inkCount||0),
+          discardCount: discardZone.length, discardZone, hasDiscard: discardZone.length>0,
+          knownHandList, hasKnownHand: knownHandList.length>0, unknownCount, hasUnknown: !!unknownCount
         };
       };
       const meZone=zoneOf(me), oppZone=zoneOf(opp);
@@ -2010,6 +2074,12 @@ class Component extends DCLogic {
         events, hasEvents:events.length>0,
         loreMe:snap[me]||0, loreOpp:snap[opp]||0,
         me:meZone, opp:oppZone,
+        discardOpen:!!r.discardOpen,
+        discardWho: r.discardOpen==='me'?'Your':(r.discardOpen==='opp'?"Opponent's":''),
+        discardList: r.discardOpen==='me'?meZone.discardZone:(r.discardOpen==='opp'?oppZone.discardZone:[]),
+        onOpenDiscardMe:()=>this.setState(st=>({replay:{...st.replay, discardOpen:'me'}})),
+        onOpenDiscardOpp:()=>this.setState(st=>({replay:{...st.replay, discardOpen:'opp'}})),
+        onCloseDiscard:()=>this.setState(st=>({replay:{...st.replay, discardOpen:null}})),
         startHand1, startHand2, hasMull1:!!mull[1], hasMull2:!!mull[2],
         mullText1:mull[1]?('Mulliganed '+mull[1].count+', drew: '+mull[1].drew.join(', ')):'',
         mullText2:mull[2]?('Mulliganed '+mull[2].count+', drew: '+mull[2].drew.join(', ')):'',

@@ -243,6 +243,7 @@
     const reWon=/^Player (\d) won/;
     const reConcede=/^Player (\d) conceded$/;
     const reWon20=/Player (\d) won with (\d+) \[LORE\]/;
+    const reDrew=/^Player (\d) drew (.+)$/;
 
     const startingHands={1:[],2:[]};
     const mulligans={1:null,2:null};
@@ -253,23 +254,29 @@
 
     // Cumulative board state — only advanced by lines the log actually contains.
     const playZone={1:[],2:[]};       // names currently on board (best-effort; shifts don't change count)
+    const discardZone={1:[],2:[]};    // banished characters + resolved actions/songs (rules-certain, not guessed)
     const inkCount={1:0,2:0};         // known ink events only (log doesn't record routine hand->ink each turn)
     const knownHandCount={1:null,2:null}; // only trustworthy right after starting hand / mulligan; unknown afterward
+    const knownHand={1:[],2:[]};      // named cards believed still in hand (best-effort; grows on named draws, shrinks on play/ink)
+    const CARD_DB=(typeof window!=='undefined'&&window.LORCANA_CARD_DB)||{};
+    const cardType=(name)=>{ const rec=CARD_DB[String(name||'').toLowerCase().trim()]; return rec?rec.t:''; };
     let lastChal=null, lastRemovalBy=null;
     const removeFromZone=(p,name)=>{ const i=playZone[p].indexOf(name); if(i>=0) playZone[p].splice(i,1); };
+    const removeFromHand=(p,name)=>{ const i=knownHand[p].indexOf(name); if(i>=0) knownHand[p].splice(i,1); };
     const stampBoard=()=>{ if(!curTurnObj) return; curTurnObj.board = {
-      1:{ playZone:playZone[1].slice(), inkCount:inkCount[1], handCount:knownHandCount[1] },
-      2:{ playZone:playZone[2].slice(), inkCount:inkCount[2], handCount:knownHandCount[2] }
+      1:{ playZone:playZone[1].slice(), discardZone:discardZone[1].slice(), inkCount:inkCount[1], handCount:knownHandCount[1], knownHand:knownHand[1].slice() },
+      2:{ playZone:playZone[2].slice(), discardZone:discardZone[2].slice(), inkCount:inkCount[2], handCount:knownHandCount[2], knownHand:knownHand[2].slice() }
     }; };
 
     for(const ln of lines){
       let m;
-      if(m=ln.match(reHand)){ const p=+m[1]; const list=m[2].split(",").map(c=>c.trim()).filter(Boolean); startingHands[p]=list; list.forEach(c=>add(p,c)); knownHandCount[p]=list.length; continue; }
+      if(m=ln.match(reHand)){ const p=+m[1]; const list=m[2].split(",").map(c=>c.trim()).filter(Boolean); startingHands[p]=list; list.forEach(c=>add(p,c)); knownHandCount[p]=list.length; knownHand[p]=list.slice(); continue; }
       if(m=ln.match(reMull)){
         const p=+m[1], n=+m[2], drew=m[4].split(",").map(c=>c.trim()).filter(Boolean);
         mulligans[p]={count:n, mulliganed:m[3].split(",").map(c=>c.trim()).filter(Boolean), drew};
         drew.forEach(c=>add(p,c));
         knownHandCount[p]=(knownHandCount[p]||0)-n+drew.length;
+        knownHand[p]=drew.slice();
         continue;
       }
       if(m=ln.match(reTurn)){
@@ -280,8 +287,16 @@
         continue;
       }
       if(m=ln.match(reBegin)){ curPlayer=+m[1]; if(curTurnObj) curTurnObj.player=curPlayer; continue; }
-      if(m=ln.match(rePlay)){ const p=+m[1]; add(p,m[2]); playZone[p].push(m[2].trim()); if(knownHandCount[p]!=null) knownHandCount[p]=Math.max(0,knownHandCount[p]-1); pushEvt('play', 'Player '+p+' played '+m[2].trim()+' (cost '+m[3]+')'); stampBoard(); continue; }
-      if(m=ln.match(reShift)){ const p=+m[1]; add(p,m[2]); playZone[p].push(m[2].trim()); if(knownHandCount[p]!=null) knownHandCount[p]=Math.max(0,knownHandCount[p]-1); pushEvt('play', 'Player '+p+' shifted '+m[2].trim()+' onto '+m[3].trim()); stampBoard(); continue; }
+      if(m=ln.match(rePlay)){
+        const p=+m[1], nm=m[2].trim(); add(p,nm); removeFromHand(p,nm);
+        if(knownHandCount[p]!=null) knownHandCount[p]=Math.max(0,knownHandCount[p]-1);
+        const ty=cardType(nm);
+        if(ty==='Song'||ty==='Action') discardZone[p].push(nm);
+        else playZone[p].push(nm);
+        pushEvt('play', 'Player '+p+' played '+nm+' (cost '+m[3]+')'); stampBoard(); continue;
+      }
+      if(m=ln.match(reShift)){ const p=+m[1]; add(p,m[2]); removeFromHand(p,m[2].trim()); playZone[p].push(m[2].trim()); if(knownHandCount[p]!=null) knownHandCount[p]=Math.max(0,knownHandCount[p]-1); pushEvt('play', 'Player '+p+' shifted '+m[2].trim()+' onto '+m[3].trim()); stampBoard(); continue; }
+      if(m=ln.match(reDrew)){ const p=+m[1], nm=m[2].trim(); if(nm && nm.toLowerCase()!=='a card'){ add(p,nm); knownHand[p].push(nm); } if(knownHandCount[p]!=null) knownHandCount[p]++; stampBoard(); continue; }
       if(m=ln.match(reQuest)){
         const p=+m[1], name=m[2].trim(), gained=+m[3], nv=+m[5];
         lore[p]=nv;
@@ -291,14 +306,14 @@
       if(m=ln.match(reChal)){ lastChal={who:+m[1], def:m[2].trim(), atk:m[3].trim().replace(/ \|.*$/,"")}; lastRemovalBy=null; pushEvt('challenge', 'Player '+m[1]+' challenged '+m[2].trim()+' with '+m[3].trim().replace(/ \|.*$/,'')); continue; }
       if(reBanishes.test(ln)){ lastRemovalBy=curPlayer; continue; }
       if(m=ln.match(reInkField)){ const owner=+m[2]; inkCount[owner]++; removeFromZone(owner===1?2:1, m[1].trim()); removeFromZone(owner, m[1].trim()); pushEvt('ink', m[1].trim()+' was put into Player '+m[2]+"'s inkwell from field"); stampBoard(); continue; }
-      if(m=ln.match(reInkHand)){ const p=+m[1]; inkCount[p]++; if(knownHandCount[p]!=null) knownHandCount[p]=Math.max(0,knownHandCount[p]-1); pushEvt('ink', 'Player '+p+' put '+m[2].trim()+' into their inkwell'); stampBoard(); continue; }
+      if(m=ln.match(reInkHand)){ const p=+m[1], nm=m[2].trim(); inkCount[p]++; removeFromHand(p,nm); if(knownHandCount[p]!=null) knownHandCount[p]=Math.max(0,knownHandCount[p]-1); pushEvt('ink', 'Player '+p+' put '+nm+' into their inkwell'); stampBoard(); continue; }
       if(m=ln.match(reBan)){
         const X=m[1].trim(); let loser=null;
         if(lastRemovalBy){ loser = lastRemovalBy===1?2:1; }
         else if(lastChal && X===lastChal.def){ loser = lastChal.who===1?2:1; }
         else if(lastChal && X===lastChal.atk){ loser = lastChal.who; }
         else { loser = curPlayer ? (curPlayer===1?2:1) : null; }
-        if(loser){ removeFromZone(loser, X); removeFromZone(loser===1?2:1, X); }
+        if(loser){ removeFromZone(loser, X); removeFromZone(loser===1?2:1, X); discardZone[loser].push(X); }
         pushEvt('banish', X+' was banished');
         stampBoard();
         continue;
@@ -317,7 +332,7 @@
       t.loreSnapshot={1:l1,2:l2};
     });
     // forward-fill board snapshots onto turns that had no zone-mutating events
-    let lastBoard={ 1:{playZone:[],inkCount:0,handCount:knownHandCount[1]}, 2:{playZone:[],inkCount:0,handCount:knownHandCount[2]} };
+    let lastBoard={ 1:{playZone:[],discardZone:[],inkCount:0,handCount:null,knownHand:[]}, 2:{playZone:[],discardZone:[],inkCount:0,handCount:null,knownHand:[]} };
     turns.forEach(t=>{ if(t.board) lastBoard=t.board; else t.board=lastBoard; });
 
     const DL=(deckList&&deckList.length)?deckList:DECK;
