@@ -878,9 +878,12 @@
       <div style="margin-top:16px;border:1px solid var(--border-soft);border-radius:16px;background:linear-gradient(160deg, rgba(120,90,200,.08), transparent 60%);padding:14px">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
           <div style="font-family:'Space Mono',monospace;font-size:.62rem;letter-spacing:.12em;text-transform:uppercase;color:var(--text3)">Opponent's hand</div>
-          <span style="font-size:.7rem;color:var(--text2)">Ink <b style="color:var(--text)">{{ replayView.opp.inkStr }}</b></span>
-        </div>
-        <sc-if value="{{ replayView.opp.hasHandRow }}" hint-placeholder-val="{{ false }}">
+          <button onclick="{{ replayView.onOpenInkOpp }}" title="View inked cards" style="border:0;background:transparent;cursor:pointer;padding:0;display:flex;align-items:center;gap:6px">
+            <div style="width:26px;aspect-ratio:5/7;border-radius:4px;border:1px solid var(--border-soft);background:var(--panel);overflow:hidden;position:relative">
+              <sc-if value="{{ replayView.opp.hasInkPile }}" hint-placeholder-val="{{ false }}">{{ replayView.opp.lastInk.imgEl }}</sc-if>
+            </div>
+            <span style="font-size:.7rem;color:var(--text2)">Ink <b style="color:var(--text)">{{ replayView.opp.inkStr }}</b></span>
+          </button>
           <div style="display:flex;flex-wrap:wrap;gap:7px;margin-bottom:12px">
             <sc-for list="{{ replayView.opp.knownHandCards }}" as="hc" hint-placeholder-count="2">
               <div title="{{ hc.name }}" style="{{ hc.boxStyle }}">
@@ -965,7 +968,12 @@
         </sc-if>
         <div style="display:flex;justify-content:space-between;align-items:center">
           <div style="font-family:'Space Mono',monospace;font-size:.62rem;letter-spacing:.12em;text-transform:uppercase;color:var(--text3)">Your hand</div>
-          <span style="font-size:.7rem;color:var(--text2)">Ink <b style="color:var(--text)">{{ replayView.me.inkStr }}</b></span>
+          <button onclick="{{ replayView.onOpenInkMe }}" title="View inked cards" style="border:0;background:transparent;cursor:pointer;padding:0;display:flex;align-items:center;gap:6px">
+            <div style="width:26px;aspect-ratio:5/7;border-radius:4px;border:1px solid var(--border-soft);background:var(--panel);overflow:hidden;position:relative">
+              <sc-if value="{{ replayView.me.hasInkPile }}" hint-placeholder-val="{{ false }}">{{ replayView.me.lastInk.imgEl }}</sc-if>
+            </div>
+            <span style="font-size:.7rem;color:var(--text2)">Ink <b style="color:var(--text)">{{ replayView.me.inkStr }}</b></span>
+          </button>
         </div>
       </div>
 
@@ -1015,7 +1023,7 @@
   <div onClick="{{ replayView.onCloseDiscard }}" style="position:fixed;inset:0;z-index:90;background:rgba(37,29,20,.5);backdrop-filter:blur(3px);display:flex;align-items:center;justify-content:center;padding:20px">
     <div onClick="{{ stopClick }}" style="background:var(--panel2);border:1px solid var(--border-soft);border-radius:18px;box-shadow:0 30px 60px -20px rgba(0,0,0,.5);backdrop-filter:blur(28px);max-width:480px;width:100%;max-height:80vh;overflow:auto;padding:20px">
       <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:14px">
-        <h3 style="font-family:'Chakra Petch',sans-serif;font-weight:600;font-size:1.05rem;margin:0;letter-spacing:-.01em">{{ replayView.discardWho }} discard pile</h3>
+        <h3 style="font-family:'Chakra Petch',sans-serif;font-weight:600;font-size:1.05rem;margin:0;letter-spacing:-.01em">{{ replayView.discardWho }} {{ replayView.discardTitle }}</h3>
         <button onclick="{{ replayView.onCloseDiscard }}" style="border:1px solid var(--border);border-radius:10px;padding:7px 12px;font-family:inherit;font-weight:700;font-size:.78rem;cursor:pointer;background:var(--panel2);color:var(--text2)">✕ Close</button>
       </div>
       <sc-if value="{{ replayView.discardList.length }}" hint-placeholder-val="{{ false }}">
@@ -2101,14 +2109,17 @@ class Component extends DCLogic {
         };
         const playZone=(b.playZone||[]).map(n=>cardEl(n,52));
         const discardZone=(b.discardZone||[]).map(n=>cardEl(n,40));
+        const inkZone=(b.inkZone||[]).map(n=>cardEl(n,40));
         const knownHandCards=(b.knownHand||[]).map(n=>cardEl(n,40));
         const unknownCount=b.handCount!=null ? Math.max(0,b.handCount-knownHandCards.length) : null;
         const lastDiscard=discardZone.length?discardZone[discardZone.length-1]:null;
+        const lastInk=inkZone.length?inkZone[inkZone.length-1]:null;
         return {
           playZone, hasCards:playZone.length>0, empty:playZone.length===0,
           handStr: b.handCount!=null ? String(b.handCount) : '?',
           inkStr: String(b.inkCount||0),
           discardCount: discardZone.length, discardZone, hasDiscard: discardZone.length>0, lastDiscard,
+          inkZone, inkPileCount: inkZone.length, hasInkPile: inkZone.length>0, lastInk,
           knownHandCards, hasKnownHand: knownHandCards.length>0, unknownCount, hasUnknown: !!unknownCount,
           hasHandRow: knownHandCards.length>0 || !!unknownCount
         };
@@ -2121,10 +2132,13 @@ class Component extends DCLogic {
         loreMe:snap[me]||0, loreOpp:snap[opp]||0,
         me:meZone, opp:oppZone,
         discardOpen:!!r.discardOpen,
-        discardWho: r.discardOpen==='me'?'Your':(r.discardOpen==='opp'?"Opponent's":''),
-        discardList: r.discardOpen==='me'?meZone.discardZone:(r.discardOpen==='opp'?oppZone.discardZone:[]),
+        discardWho: (r.discardOpen==='me'||r.discardOpen==='meInk')?'Your':((r.discardOpen==='opp'||r.discardOpen==='oppInk')?"Opponent's":''),
+        discardTitle: (r.discardOpen==='meInk'||r.discardOpen==='oppInk')?'inked cards':'discard pile',
+        discardList: r.discardOpen==='me'?meZone.discardZone:(r.discardOpen==='opp'?oppZone.discardZone:(r.discardOpen==='meInk'?meZone.inkZone:(r.discardOpen==='oppInk'?oppZone.inkZone:[]))),
         onOpenDiscardMe:()=>this.setState(st=>({replay:{...st.replay, discardOpen:'me'}})),
         onOpenDiscardOpp:()=>this.setState(st=>({replay:{...st.replay, discardOpen:'opp'}})),
+        onOpenInkMe:()=>this.setState(st=>({replay:{...st.replay, discardOpen:'meInk'}})),
+        onOpenInkOpp:()=>this.setState(st=>({replay:{...st.replay, discardOpen:'oppInk'}})),
         onCloseDiscard:()=>this.setState(st=>({replay:{...st.replay, discardOpen:null}})),
         fullscreen:!!r.fullscreen, fullscreenLabel:r.fullscreen?'⤢ Exit fullscreen':'⤢ Fullscreen',
         onToggleFullscreen:()=>this.setState(st=>({replay:{...st.replay, fullscreen:!st.replay.fullscreen}})),
