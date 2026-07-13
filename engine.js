@@ -44,6 +44,39 @@
 
   function firstName(c){ return c.split(" - ")[0].trim(); }
 
+  const INK_LIST = ["Amber","Amethyst","Emerald","Ruby","Sapphire","Steel"];
+  // Derive the opponent's real deck identity from the cards they actually revealed, using the
+  // full card database (ink, cost, type). Ink pair is authoritative — it's how every Lorcana
+  // deck is named — so this is far more reliable than the small hardcoded name pools below.
+  function deriveOppProfile(oppCardsArr){
+    const db = cardDb();
+    const inkCount={}; const costs=[];
+    let matched=0, chars=0, actions=0, songs=0, items=0, locs=0;
+    (oppCardsArr||[]).forEach(full=>{
+      const rec = db[String(full||'').toLowerCase().trim()];
+      if(!rec) return;
+      matched++;
+      String(rec.i||'').split(/[^A-Za-z]+/).filter(Boolean).forEach(ink=>{ if(INK_LIST.includes(ink)) inkCount[ink]=(inkCount[ink]||0)+1; });
+      if(typeof rec.c==='number') costs.push(rec.c);
+      const t=rec.t||'';
+      if(t==='Character') chars++; else if(t==='Action') actions++; else if(t==='Song') songs++; else if(t==='Item') items++; else if(t==='Location') locs++;
+    });
+    const ranked = Object.keys(inkCount).sort((a,b)=>inkCount[b]-inkCount[a]);
+    const strong = ranked.filter(k=>inkCount[k]>=2).slice(0,2);
+    const inkPair = (strong.length?strong:ranked.slice(0,2));
+    const avgCost = costs.length? +(costs.reduce((a,b)=>a+b,0)/costs.length).toFixed(2) : null;
+    const lowCost = costs.filter(c=>c<=2).length;
+    const highCost = costs.filter(c=>c>=5).length;
+    // deterministic tempo lean from the revealed curve/composition
+    let lean='midrange';
+    if(avgCost!=null){
+      if(avgCost<=2.6 && lowCost>=highCost) lean='aggro/tempo';
+      else if(avgCost>=3.8 || (highCost>=3 && highCost>lowCost)) lean='control/midrange';
+    }
+    return { inks:inkPair, inkLabel:inkPair.join('/'), avgCost, matched, sampleSize:(oppCardsArr||[]).length,
+      chars, actions, songs, items, locs, lowCost, highCost, lean };
+  }
+
   // A handful of real cards have a comma IN the name ("Besties, Assemble!", "Fix-It Felix, Jr. - ...").
   // Naively splitting a comma-separated hand/mulligan list breaks those apart — reassemble using
   // the card database so multi-fragment names are recognized and rejoined before falling back
@@ -199,9 +232,18 @@
     else if(PRINCESS.some(pp=>ocFull.some(o=>o===pp||o.startsWith(firstName(pp))))) arch="Princesses";
     else if(DETECTIVE.filter(d=>oc.includes(d)).length>=2) arch="Detective";
 
+    // Opponent deck identity from the real card DB (ink pair = authoritative deck name).
+    const oppProfile = deriveOppProfile(ocFull);
+    // If no named archetype matched, name the deck by its actual ink pair instead of "Other / Unknown".
+    if(arch==="Other / Unknown" && oppProfile.inkLabel) arch = oppProfile.inkLabel;
+
     const myTurns=turnsTaken[me]||1;
     const cross10MyTurn = cross[me].c10? Math.ceil(cross[me].c10/2):null;
     const firstQuestMyTurn = firstQuest[me]? Math.ceil(firstQuest[me]/2):null;
+    // opponent clock (was parsed all along, never surfaced) — lets the coach compare races head-to-head
+    const oppTurns=turnsTaken[opp]||1;
+    const oppCross10MyTurn = cross[opp].c10? Math.ceil(cross[opp].c10/2):null;
+    const oppFirstQuestMyTurn = firstQuest[opp]? Math.ceil(firstQuest[opp]/2):null;
 
     // category guess
     let winCat="", lossCat="";
@@ -225,6 +267,8 @@
       cross10: cross[me].c10, cross20: cross[me].c20,
       cross10MyTurn, firstQuest: firstQuest[me], firstQuestMyTurn,
       myTurns, gameTurns: curTurn, lorePerTurn:+(lore[me]/myTurns).toFixed(2),
+      oppFirstQuest: firstQuest[opp], oppFirstQuestMyTurn, oppCross10: cross[opp].c10, oppCross10MyTurn,
+      oppTurns, oppLorePerTurn:+(lore[opp]/oppTurns).toFixed(2), oppProfile,
       result, method,
       removedByMe: loserBanish[opp], myLost: loserBanish[me],
       questers: questers[me], combos,
@@ -497,15 +541,27 @@
     const ev=[];
     if(game.result!=="L") return { primary:"", secondary:"", evidence:[], confidence:0 };
 
+    // Head-to-head clock read — the most honest signal in a lore-race game.
+    const oppFaster = game.oppCross10MyTurn!=null && (game.cross10MyTurn==null || game.oppCross10MyTurn < game.cross10MyTurn);
     if(game.myLore<5){
       ev.push(`Finished at only ${game.myLore} lore — the clock never really started.`);
       if(hints.targetCross10Turn) ev.push(`Strategy targets crossing 10 by turn ${hints.targetCross10Turn}; you never crossed 10.`);
-      return { primary:"Never built a lore clock", secondary:"", evidence:ev, confidence:0.75 };
+      if(game.oppCross10MyTurn) ev.push(`Opponent crossed 10 by their turn ${game.oppCross10MyTurn} — they were racing while you stalled.`);
+      return { primary:"Never built a lore clock", secondary:"", evidence:ev, confidence:0.78 };
     }
 
     if(game.removedByMe>=4 && game.myLore<12){
       ev.push(`Removed ${game.removedByMe} bodies but only reached ${game.myLore} lore — winning combat, not the race.`);
-      return { primary:"Too much control, not enough questing", secondary:"", evidence:ev, confidence:0.65 };
+      if(oppFaster) ev.push(`Opponent's lore clock (10 by their turn ${game.oppCross10MyTurn}) beat yours while you traded.`);
+      return { primary:"Too much control, not enough questing", secondary:"", evidence:ev, confidence:0.68 };
+    }
+
+    // Prefer the measured clock over the archetype guess when the opponent was demonstrably faster.
+    if(oppFaster && game.oppLorePerTurn > (game.lorePerTurn||0)){
+      const lean=(game.oppProfile&&game.oppProfile.lean)||'';
+      ev.push(`Opponent out-raced you: 10 lore by their turn ${game.oppCross10MyTurn} vs ${game.cross10MyTurn||'never'} for you (${game.oppLorePerTurn} vs ${game.lorePerTurn} lore/turn).`);
+      if(/aggro|tempo/.test(lean)) return { primary:"Out-raced by aggro", secondary:"", evidence:ev, confidence:0.68 };
+      return { primary:"Out-raced on the lore clock", secondary:"", evidence:ev, confidence:0.62 };
     }
 
     if(AGGRO_ARCH[game.archetype]){
@@ -653,15 +709,21 @@
     const whatWorked=[], whatFailed=[], nextGameFocus=[], deckImprovementIdeas=[];
     let headline='', summary='', mulliganAdvice='', matchupAdvice='';
 
+    const oppLean = (game.oppProfile && game.oppProfile.lean) ? game.oppProfile.lean : '';
+    const oppCurve = (game.oppProfile && game.oppProfile.avgCost!=null) ? ` (avg cost ${game.oppProfile.avgCost}, ${oppLean})` : '';
+    const clockLine = (game.oppCross10MyTurn || game.cross10MyTurn)
+      ? ` Clock: you hit 10 lore ${game.cross10MyTurn?('on turn '+game.cross10MyTurn):'never'}, they hit 10 ${game.oppCross10MyTurn?('on turn '+game.oppCross10MyTurn):'never'}.`
+      : '';
+
     if(game.result==="W"){
       headline = `Win via ${winCond.primary||'unclear conditions'}`;
-      summary = `You beat ${game.archetype} at ${game.myLore}-${game.oppLore}. ${(winCond.evidence||[])[0]||''}`.trim();
+      summary = `You beat ${game.archetype}${oppCurve} at ${game.myLore}-${game.oppLore}. ${(winCond.evidence||[])[0]||''}${clockLine}`.trim();
       whatWorked.push(...(winCond.evidence||[]));
       if(planScore.score<70) whatFailed.push("Won, but off the plan's own targets — see plan score reasons.");
       nextGameFocus.push(planScore.score<70 ? "Tighten execution toward your saved strategy's turn targets next game." : "Keep repeating this line — it matched your saved strategy.");
     } else {
       headline = `Loss via ${lossCond.primary||'unclear conditions'}`;
-      summary = `You lost to ${game.archetype} at ${game.myLore}-${game.oppLore}. ${(lossCond.evidence||[])[0]||''}`.trim();
+      summary = `You lost to ${game.archetype}${oppCurve} at ${game.myLore}-${game.oppLore}. ${(lossCond.evidence||[])[0]||''}${clockLine}`.trim();
       whatFailed.push(...(lossCond.evidence||[]));
       if(game.removedByMe>=2) whatWorked.push(`Still removed ${game.removedByMe} opposing bodies before losing.`);
       if(game.cross10MyTurn) whatWorked.push(`Did cross 10 lore (your turn ${game.cross10MyTurn}) before losing.`);
@@ -677,7 +739,14 @@
         ? "Kept the opening hand with no mulligan but still had a slow start — worth mulliganing more aggressively for early plays."
         : "Mulligan count looked reasonable for this game.";
 
-    matchupAdvice = MATCHUP_TIPS[game.archetype] || "Log a few more games against this archetype to build a specific read.";
+    matchupAdvice = MATCHUP_TIPS[game.archetype];
+    if(!matchupAdvice){
+      // ink-pair / unnamed deck — give advice off the measured tempo lean instead of a generic line
+      const lean = oppLean;
+      if(/aggro|tempo/.test(lean)) matchupAdvice = `${game.archetype} played as a low-curve tempo deck (avg cost ${game.oppProfile&&game.oppProfile.avgCost}) — stabilize the board by turn 4-5, then take over; don't trade down into their wider board.`;
+      else if(/control/.test(lean)) matchupAdvice = `${game.archetype} played as a higher-curve control deck — bait removal with mid-value threats and preserve a second wave rather than overcommitting.`;
+      else matchupAdvice = `${game.archetype} read as a midrange curve — win the tempo exchanges and make sure your own lore clock keeps ticking through the trades.`;
+    }
 
     if(hints.warnings && hints.warnings.length){
       nextGameFocus.push("Strategy reminder: "+hints.warnings[0]+".");
