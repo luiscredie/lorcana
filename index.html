@@ -886,7 +886,7 @@
           </button>
           <div style="display:flex;flex-wrap:wrap;gap:7px;margin-bottom:12px">
             <sc-for list="{{ replayView.opp.knownHandCards }}" as="hc" hint-placeholder-count="2">
-              <div title="{{ hc.name }}" style="{{ hc.boxStyle }}">
+              <div title="{{ hc.name }}" onClick="{{ hc.onZoom }}" style="cursor:pointer;{{ hc.boxStyle }}">
                 {{ hc.imgEl }}
                 <sc-if value="{{ hc.noImg }}" hint-placeholder-val="{{ false }}"><span style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;text-align:center;font-size:.44rem;font-weight:700;color:var(--text2);padding:3px;line-height:1.1">{{ hc.name }}</span></sc-if>
               </div>
@@ -901,7 +901,7 @@
             <sc-if value="{{ replayView.opp.hasCards }}" hint-placeholder-val="{{ false }}">
               <div style="display:flex;flex-wrap:wrap;gap:8px">
                 <sc-for list="{{ replayView.opp.playZone }}" as="pc" hint-placeholder-count="3">
-                  <div title="{{ pc.name }}" style="{{ pc.boxStyle }}">
+                  <div title="{{ pc.name }}" onClick="{{ pc.onZoom }}" style="cursor:pointer;{{ pc.boxStyle }}">
                     {{ pc.imgEl }}
                     <sc-if value="{{ pc.noImg }}" hint-placeholder-val="{{ false }}"><span style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;text-align:center;font-size:.46rem;font-weight:700;color:var(--text2);padding:3px;line-height:1.15">{{ pc.name }}</span></sc-if>
                   </div>
@@ -941,7 +941,7 @@
             <sc-if value="{{ replayView.me.hasCards }}" hint-placeholder-val="{{ false }}">
               <div style="display:flex;flex-wrap:wrap;gap:8px">
                 <sc-for list="{{ replayView.me.playZone }}" as="pc" hint-placeholder-count="3">
-                  <div title="{{ pc.name }}" style="{{ pc.boxStyle }}">
+                  <div title="{{ pc.name }}" onClick="{{ pc.onZoom }}" style="cursor:pointer;{{ pc.boxStyle }}">
                     {{ pc.imgEl }}
                     <sc-if value="{{ pc.noImg }}" hint-placeholder-val="{{ false }}"><span style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;text-align:center;font-size:.46rem;font-weight:700;color:var(--text2);padding:3px;line-height:1.15">{{ pc.name }}</span></sc-if>
                   </div>
@@ -956,7 +956,7 @@
         <sc-if value="{{ replayView.me.hasHandRow }}" hint-placeholder-val="{{ false }}">
           <div style="display:flex;flex-wrap:wrap;gap:7px;margin-bottom:8px">
             <sc-for list="{{ replayView.me.knownHandCards }}" as="hc" hint-placeholder-count="2">
-              <div title="{{ hc.name }}" style="{{ hc.boxStyle }}">
+              <div title="{{ hc.name }}" onClick="{{ hc.onZoom }}" style="cursor:pointer;{{ hc.boxStyle }}">
                 {{ hc.imgEl }}
                 <sc-if value="{{ hc.noImg }}" hint-placeholder-val="{{ false }}"><span style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;text-align:center;font-size:.44rem;font-weight:700;color:var(--text2);padding:3px;line-height:1.1">{{ hc.name }}</span></sc-if>
               </div>
@@ -1030,7 +1030,7 @@
         <div style="display:flex;flex-wrap:wrap;gap:12px">
           <sc-for list="{{ replayView.discardList }}" as="dc" hint-placeholder-count="4">
             <div style="width:64px">
-              <div title="{{ dc.name }}" style="{{ dc.boxStyle }}">
+              <div title="{{ dc.name }}" onClick="{{ dc.onZoom }}" style="cursor:pointer;{{ dc.boxStyle }}">
                 {{ dc.imgEl }}
                 <sc-if value="{{ dc.noImg }}" hint-placeholder-val="{{ false }}"><span style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;text-align:center;font-size:.56rem;font-weight:700;color:var(--text2);padding:4px;line-height:1.2">{{ dc.name }}</span></sc-if>
               </div>
@@ -2105,7 +2105,7 @@ class Component extends DCLogic {
             ? { objectFit:'cover', width:size+'px', height:portraitH+'px', position:'absolute', left:'50%', top:'50%', transform:'translate(-50%,-50%) rotate(90deg)' }
             : { objectFit:'cover', width:'100%', height:'100%' };
           const imgEl=this.imgEl(u,name,imgStyle);
-          return { name, imgEl, noImg:!u, isLoc, boxStyle };
+          return { name, imgEl, noImg:!u, isLoc, boxStyle, onZoom:()=>this.zoomCard(name) };
         };
         const playZone=(b.playZone||[]).map(n=>cardEl(n,52));
         const discardZone=(b.discardZone||[]).map(n=>cardEl(n,40));
