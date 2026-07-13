@@ -307,28 +307,56 @@
       </div>
 
       <div style="background:linear-gradient(var(--panel),var(--panel)) padding-box, linear-gradient(135deg, rgba(204,120,92,.55), rgba(167,139,250,.4) 35%, rgba(74,222,128,.3) 65%, rgba(204,120,92,.55)) border-box;background-size:100% 100%, 300% 300%;border:1px solid transparent;border-radius:22px;box-shadow:var(--shadow);backdrop-filter:blur(24px);animation:borderFlow 10s linear infinite;padding:24px;margin-top:16px">
-        <div style="display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap">
-          <div style="font-family:'Space Mono',monospace;font-size:.66rem;font-weight:700;letter-spacing:.15em;text-transform:uppercase;color:var(--text3)">Your lore curve, by game-turn</div>
-          <div style="position:relative;display:inline-block">
-            <button onclick="{{ ck.dd.onToggle }}" style="border:1px solid var(--border);border-radius:10px;padding:7px 10px;font-family:inherit;font-size:.78rem;background:var(--panel2);color:var(--text);cursor:pointer;display:flex;align-items:center;gap:6px;max-width:260px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ ck.dd.label }} <span style="font-size:.65rem;opacity:.7">▾</span></button>
-            <sc-if value="{{ ck.dd.open }}" hint-placeholder-val="{{ false }}">
-              <div style="position:absolute;top:100%;right:0;margin-top:4px;background:var(--panel2);border:1px solid var(--border);border-radius:10px;box-shadow:0 12px 24px -8px rgba(0,0,0,.5);z-index:46;max-height:240px;overflow-y:auto;min-width:240px">
-                <sc-for list="{{ ck.dd.items }}" as="it" hint-placeholder-count="4">
-                  <div onClick="{{ it.onClick }}" style="{{ it.rowStyle }}">{{ it.label }}</div>
-                </sc-for>
-              </div>
-            </sc-if>
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;margin-bottom:6px">
+          <div style="font-family:'Space Mono',monospace;font-size:.66rem;font-weight:700;letter-spacing:.15em;text-transform:uppercase;color:var(--text3)">Every race — your lore vs opponent, by game-turn</div>
+          <div style="display:flex;align-items:center;gap:10px">
+            <div style="display:flex;align-items:center;gap:12px;font-family:'Space Mono',monospace;font-size:.6rem;letter-spacing:.06em;text-transform:uppercase;color:var(--text2)">
+              <span style="display:flex;align-items:center;gap:5px"><i style="width:10px;height:10px;border-radius:2px;background:linear-gradient(#7A5BB0,#a98fd6);display:inline-block"></i>You</span>
+              <span style="display:flex;align-items:center;gap:5px"><i style="width:10px;height:10px;border-radius:2px;background:var(--text3);display:inline-block"></i>Opp</span>
+            </div>
+            <div style="position:relative;display:inline-block">
+              <button onclick="{{ ck.filterDD.onToggle }}" style="border:1px solid var(--border);border-radius:10px;padding:7px 10px;font-family:inherit;font-size:.78rem;background:var(--panel2);color:var(--text);cursor:pointer;display:flex;align-items:center;gap:6px;max-width:260px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ ck.filterDD.label }} <span style="font-size:.65rem;opacity:.7">▾</span></button>
+              <sc-if value="{{ ck.filterDD.open }}" hint-placeholder-val="{{ false }}">
+                <div style="position:absolute;top:100%;right:0;margin-top:4px;background:var(--panel2);border:1px solid var(--border);border-radius:10px;box-shadow:0 12px 24px -8px rgba(0,0,0,.5);z-index:46;max-height:240px;overflow-y:auto;min-width:220px">
+                  <sc-for list="{{ ck.filterDD.items }}" as="it" hint-placeholder-count="4">
+                    <div onClick="{{ it.onClick }}" style="{{ it.rowStyle }}">{{ it.label }}</div>
+                  </sc-for>
+                </div>
+              </sc-if>
+            </div>
           </div>
         </div>
-        <div style="display:flex;align-items:flex-end;gap:6px;height:150px;padding-top:14px">
-          <sc-for list="{{ ck.curve }}" as="c" hint-placeholder-count="6">
-            <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;height:100%;justify-content:flex-end;min-width:0">
-              <div style="width:62%;max-width:26px;border-radius:6px 6px 0 0;background:linear-gradient(#7A5BB0,#a98fd6);min-height:4px;height:{{ c.h }}%" title="{{ c.lore }} lore"></div>
-              <small style="font-family:'Space Mono',monospace;font-size:.58rem;color:var(--text2)">T{{ c.turn }}</small>
-            </div>
-          </sc-for>
-        </div>
-        <p style="color:var(--text2);font-size:.82rem;margin-top:10px">{{ ck.note }}</p>
+        <sc-if value="{{ ck.hasRows }}" hint-placeholder-val="{{ true }}">
+          <div style="display:flex;flex-direction:column;gap:14px;margin-top:14px;max-height:560px;overflow-y:auto;padding-right:4px">
+            <sc-for list="{{ ck.rows }}" as="row" hint-placeholder-count="3">
+              <div style="border:1px solid var(--border-soft);border-radius:14px;padding:14px 16px;background:var(--panel2)">
+                <div style="display:flex;align-items:baseline;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:10px">
+                  <div style="display:flex;align-items:center;gap:9px;min-width:0">
+                    <span style="font-family:'Space Mono',monospace;font-size:.62rem;font-weight:700;padding:3px 9px;border-radius:999px;background:{{ row.resultBg }};color:{{ row.resultColor }}">{{ row.result }} {{ row.scoreStr }}</span>
+                    <span style="font-weight:600;font-size:.9rem;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">vs {{ row.opp }}</span>
+                  </div>
+                  <span style="font-family:'Space Mono',monospace;font-size:.6rem;color:var(--text3);white-space:nowrap">{{ row.metaStr }}</span>
+                </div>
+                <sc-if value="{{ row.hasBars }}" hint-placeholder-val="{{ true }}">
+                  <div style="display:flex;align-items:flex-end;gap:5px;height:104px">
+                    <sc-for list="{{ row.bars }}" as="c" hint-placeholder-count="6">
+                      <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:5px;height:100%;justify-content:flex-end;min-width:0">
+                        <div style="display:flex;align-items:flex-end;gap:2px;height:100%;width:100%;justify-content:center">
+                          <div style="width:8px;border-radius:4px 4px 0 0;background:linear-gradient(#7A5BB0,#a98fd6);min-height:2px;height:{{ c.myH }}%" title="You: {{ c.myLore }}"></div>
+                          <div style="width:8px;border-radius:4px 4px 0 0;background:var(--text3);opacity:.5;min-height:2px;height:{{ c.opH }}%" title="Opp: {{ c.opLore }}"></div>
+                        </div>
+                        <small style="font-family:'Space Mono',monospace;font-size:.55rem;color:var(--text2)">T{{ c.turn }}</small>
+                      </div>
+                    </sc-for>
+                  </div>
+                </sc-if>
+                <sc-if value="{{ row.hasBars }}" hint-placeholder-val="{{ false }}"></sc-if>
+              </div>
+            </sc-for>
+          </div>
+        </sc-if>
+        <sc-if value="{{ ck.hasRows }}" hint-placeholder-val="{{ false }}"></sc-if>
+        <p style="color:var(--text2);font-size:.82rem;margin-top:12px">{{ ck.note }}</p>
       </div>
 
       <sc-if value="{{ isDaleDeck }}" hint-placeholder-val="{{ true }}">
@@ -2011,20 +2039,34 @@ class Component extends DCLogic {
     });
     const mu={ rows:muRows, count:String(muRows.length).padStart(2,'0'), read:D.muRead };
 
-    // CLOCK
-    const withQuest=G.filter(g=>Object.keys(g.loreByTurn||{}).length);
-    let defIdx=s.clockSel!=null?s.clockSel:(withQuest.length? G.indexOf(withQuest[withQuest.length-1]):G.length-1);
-    if(defIdx<0||defIdx>=G.length) defIdx=Math.max(0,G.length-1);
-    const sel=G[defIdx]||{};
-    const curveOf=(g)=>{ const lt=(g&&g.loreByTurn)||{}; const turns=Object.keys(lt).map(Number).sort((x,y)=>x-y); if(!turns.length) return []; const maxL=Math.max(20,...turns.map(t=>lt[t])); return turns.map(t=>({turn:t,lore:lt[t],h:Math.max(4,Math.round(100*lt[t]/maxL))})); };
+    // CLOCK — every logged game's race curve (your lore vs opponent's), filterable by opponent
+    const raceCurve=(g)=>{
+      const my=(g&&g.loreByTurn)||{}, op=(g&&g.oppLoreByTurn)||{};
+      const turns=[...new Set([...Object.keys(my),...Object.keys(op)].map(Number))].sort((x,y)=>x-y);
+      if(!turns.length) return [];
+      const maxL=Math.max(20,...turns.map(t=>Math.max(my[t]||0,op[t]||0)));
+      return turns.map(t=>({ turn:t,
+        myLore:my[t]!=null?my[t]:'', opLore:op[t]!=null?op[t]:'',
+        myH:Math.max(2,Math.round(100*(my[t]||0)/maxL)), opH:Math.max(2,Math.round(100*(op[t]||0)/maxL)) }));
+    };
+    const oppLabels=[...new Set(G.map(g=>this.archLabel(g)))].sort();
+    const clockFilter=s.clockFilter||'';
+    const clockRows=G.map((g,i)=>({g,i})).filter(({g})=>!clockFilter||this.archLabel(g)===clockFilter).reverse()
+      .map(({g,i})=>{ const bars=raceCurve(g); return {
+        key:'gc'+i, opp:this.archLabel(g), result:g.result,
+        resultColor:g.result==='W'?'#4E9D6B':'#CC785C', resultBg:g.result==='W'?'rgba(78,157,107,.14)':'rgba(204,120,92,.14)',
+        scoreStr:`${g.myLore}-${g.oppLore}`,
+        metaStr:`${g.gameTurns?('T'+g.gameTurns):'?'} · you 10 by ${g.cross10MyTurn?('T'+g.cross10MyTurn):'—'} · opp 10 by ${g.oppCross10MyTurn?('T'+g.oppCross10MyTurn):'—'}`,
+        date:g.dateAdded||'', bars, hasBars:bars.length>0 }; });
     const ck={
       cross10Str:a.cross10==null?'–':'T'+a.cross10.toFixed(1), crossedStr:`${a.crossed10}/${a.n} games reached 10`,
       fqStr:a.fq==null?'–':'T'+a.fq.toFixed(1), lptStr:a.lpt==null?'–':a.lpt.toFixed(1),
-      selIndex:defIdx, onSelect:(e)=>this.setState({clockSel:+e.target.value}),
-      games:G.map((g,i)=>({i,label:`vs ${this.archLabel(g)} · ${g.result} ${g.myLore}-${g.oppLore}`})),
-      curve:curveOf(sel), note:D.clockNote
+      rows:clockRows, hasRows:clockRows.length>0, count:String(clockRows.length).padStart(2,'0'),
+      note:D.clockNote
     };
-    ck.dd = this.buildDD('clockSel', defIdx, ck.games.map(g=>({v:g.i,label:g.label})), (e)=>this.setState({clockSel:+e.target.value}));
+    ck.filterDD = this.buildDD('clockFilter', clockFilter,
+      [{v:'',label:'All opponents ('+G.length+')'}].concat(oppLabels.map(o=>({v:o,label:o}))),
+      (e)=>this.setState({clockFilter:e.target.value}));
 
     // COMBOS (Dale only)
     let cb={rows:[],note:''};
