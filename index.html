@@ -223,6 +223,21 @@
         </sc-for>
       </div>
 
+      <sc-if value="{{ ov.hasSpark }}" hint-placeholder-val="{{ false }}">
+      <div style="background:var(--panel);border:1px solid var(--border-soft);border-radius:22px;box-shadow:var(--shadow);padding:20px 24px;margin-top:14px">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap">
+          <div style="font-family:'Space Mono',monospace;font-size:.66rem;font-weight:700;letter-spacing:.15em;text-transform:uppercase;color:var(--text3)">Recent form · {{ ov.recentLabel }}</div>
+          <div style="font-family:'Chakra Petch',sans-serif;font-weight:700;font-size:1.35rem;letter-spacing:-.02em;color:{{ ov.recentWrColor }}">{{ ov.recentWrStr }}</div>
+        </div>
+        <div style="display:flex;align-items:flex-end;gap:6px;margin-top:14px;height:42px">
+          <sc-for list="{{ ov.spark }}" as="p" hint-placeholder-count="10">
+            <div title="{{ p.title }}" style="flex:1;border-radius:4px;background:{{ p.color }};height:100%;opacity:.9"></div>
+          </sc-for>
+        </div>
+        <div style="font-family:'Space Mono',monospace;font-size:.58rem;letter-spacing:.08em;text-transform:uppercase;color:var(--text3);margin-top:8px">Oldest → newest · green win, red loss</div>
+      </div>
+      </sc-if>
+
       <div style="background:linear-gradient(var(--panel),var(--panel)) padding-box, linear-gradient(135deg, rgba(204,120,92,.55), rgba(167,139,250,.4) 35%, rgba(74,222,128,.3) 65%, rgba(204,120,92,.55)) border-box;background-size:100% 100%, 300% 300%;border:1px solid transparent;border-radius:22px;box-shadow:var(--shadow);backdrop-filter:blur(24px);animation:borderFlow 10s linear infinite;padding:24px;margin-top:14px">
         <div style="font-family:'Space Mono',monospace;font-size:.66rem;font-weight:700;letter-spacing:.15em;text-transform:uppercase;color:var(--text3);margin-bottom:10px">What the data says</div>
 <sc-for list="{{ ov.insights }}" as="ins" hint-placeholder-count="4">
@@ -288,6 +303,22 @@
             <div style="font-family:'Space Mono',monospace;font-size:.66rem;color:var(--text2);letter-spacing:.04em;margin-top:9px">{{ m.record }} · avg {{ m.marginStr }} · {{ m.games }}g</div>
             <p style="margin:14px 0 0;font-size:.9rem;color:#4a3f30;line-height:1.55">{{ m.note }}</p>
             <div style="font-family:'Space Mono',monospace;font-size:.6rem;text-transform:uppercase;letter-spacing:.1em;color:var(--text3);margin-top:12px">Role · {{ m.role }}</div>
+            <div style="border-top:1px solid var(--border-soft);margin-top:13px;padding-top:11px">
+              <sc-if value="{{ m.editing }}" hint-placeholder-val="{{ false }}">
+                <textarea value="{{ mu.draft }}" onchange="{{ mu.onDraft }}" placeholder="Your plan vs this deck — mulligan targets, key threats, sequencing…" style="width:100%;box-sizing:border-box;border:1px solid var(--border);border-radius:10px;padding:9px 11px;font-family:inherit;font-size:.8rem;line-height:1.5;min-height:80px;resize:vertical;background:var(--panel2);color:var(--text)"></textarea>
+                <div style="display:flex;gap:8px;margin-top:8px">
+                  <button onclick="{{ mu.onSaveNote }}" style="border:0;border-radius:9px;padding:7px 15px;font-family:inherit;font-weight:700;font-size:.76rem;cursor:pointer;background:#CC785C;color:#fff">Save note</button>
+                  <button onclick="{{ mu.onCancelNote }}" style="border:0;border-radius:9px;padding:7px 13px;font-family:inherit;font-weight:700;font-size:.76rem;cursor:pointer;background:var(--chip-bg);color:var(--text)">Cancel</button>
+                </div>
+              </sc-if>
+              <sc-if value="{{ m.notEditing }}" hint-placeholder-val="{{ true }}">
+                <sc-if value="{{ m.hasUserNote }}" hint-placeholder-val="{{ false }}">
+                  <div style="font-family:'Space Mono',monospace;font-size:.55rem;text-transform:uppercase;letter-spacing:.14em;color:#B3552F;margin-bottom:4px">Your plan</div>
+                  <p style="margin:0;font-size:.84rem;color:var(--text2);line-height:1.5;white-space:pre-wrap">{{ m.userNote }}</p>
+                </sc-if>
+                <button onclick="{{ m.onEditNote }}" style="margin-top:8px;border:1px solid var(--border);border-radius:9px;padding:5px 12px;font-family:inherit;font-weight:600;font-size:.72rem;cursor:pointer;background:var(--panel2);color:var(--text2)">{{ m.noteBtnLabel }}</button>
+              </sc-if>
+            </div>
           </div>
         </sc-for>
       </div>
@@ -414,8 +445,58 @@
           <span style="font-family:'Space Mono',monospace;font-size:.78rem;color:#CC785C;letter-spacing:.1em">❖</span>
           <h2 style="font-family:'Chakra Petch',sans-serif;font-weight:500;font-size:clamp(1.5rem,3vw,2.05rem);letter-spacing:-.01em;margin:0">Deck coverage</h2>
         </div>
-        <button onclick="{{ onExportDeckList }}" style="border:1px solid var(--border);border-radius:12px;padding:9px 16px;font-family:inherit;font-weight:700;font-size:.8rem;cursor:pointer;background:var(--chip-bg);color:var(--text)">Copy deck list</button>
+        <button onclick="{{ onExportDeckList }}" style="border:1px solid var(--border);border-radius:12px;padding:9px 16px;font-family:inherit;font-weight:700;font-size:.8rem;cursor:pointer;background:var(--chip-bg);color:var(--text)">Share deck list</button>
       </div>
+      <sc-if value="{{ deckStats.has }}" hint-placeholder-val="{{ false }}">
+      <div style="background:var(--panel);border:1px solid var(--border-soft);border-radius:22px;box-shadow:var(--shadow);padding:22px 24px;margin-bottom:16px">
+        <div style="display:flex;align-items:baseline;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:16px">
+          <div style="font-family:'Space Mono',monospace;font-size:.66rem;font-weight:700;letter-spacing:.15em;text-transform:uppercase;color:var(--text3)">Deck analytics</div>
+          <div style="font-family:'Space Mono',monospace;font-size:.72rem;color:var(--text2)">{{ deckStats.total }} cards · avg cost {{ deckStats.avgCost }}</div>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:22px">
+          <div>
+            <div style="font-family:'Space Mono',monospace;font-size:.58rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--text3);margin-bottom:10px">Cost curve</div>
+            <div style="display:flex;align-items:flex-end;gap:6px;height:118px">
+              <sc-for list="{{ deckStats.curve }}" as="c" hint-placeholder-count="8">
+                <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:5px;height:100%;justify-content:flex-end">
+                  <span style="font-family:'Space Mono',monospace;font-size:.6rem;font-weight:700;color:var(--text2)">{{ c.n }}</span>
+                  <div style="width:100%;border-radius:5px 5px 0 0;min-height:3px;height:{{ c.h }}%;background:{{ c.accent }}"></div>
+                  <span style="font-family:'Space Mono',monospace;font-size:.6rem;color:var(--text3)">{{ c.label }}</span>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+          <div>
+            <div style="font-family:'Space Mono',monospace;font-size:.58rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--text3);margin-bottom:10px">Ink balance</div>
+            <div style="display:flex;flex-direction:column;gap:8px">
+              <sc-for list="{{ deckStats.inkBars }}" as="b" hint-placeholder-count="2">
+                <div style="display:flex;align-items:center;gap:8px">
+                  <i style="width:9px;height:9px;border-radius:50%;background:{{ b.dot }};display:block;flex-shrink:0"></i>
+                  <span style="font-size:.76rem;color:var(--text2);width:78px;flex-shrink:0">{{ b.label }}</span>
+                  <div style="flex:1;height:8px;background:var(--chip-bg);border-radius:5px;overflow:hidden"><div style="height:100%;border-radius:5px;background:{{ b.dot }};width:{{ b.pct }}%"></div></div>
+                  <span style="font-family:'Space Mono',monospace;font-size:.66rem;color:var(--text3);width:44px;text-align:right;flex-shrink:0">{{ b.n }} · {{ b.pct }}%</span>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+          <div>
+            <div style="font-family:'Space Mono',monospace;font-size:.58rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--text3);margin-bottom:10px">Card types</div>
+            <div style="display:flex;flex-direction:column;gap:8px">
+              <sc-for list="{{ deckStats.types }}" as="t" hint-placeholder-count="3">
+                <div style="display:flex;align-items:center;gap:8px">
+                  <span style="font-size:.76rem;color:var(--text2);width:78px;flex-shrink:0">{{ t.label }}</span>
+                  <div style="flex:1;height:8px;background:var(--chip-bg);border-radius:5px;overflow:hidden"><div style="height:100%;border-radius:5px;background:#CC785C;width:{{ t.pct }}%"></div></div>
+                  <span style="font-family:'Space Mono',monospace;font-size:.66rem;color:var(--text3);width:44px;text-align:right;flex-shrink:0">{{ t.n }} · {{ t.pct }}%</span>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+        </div>
+        <sc-if value="{{ deckStats.hasUnknown }}" hint-placeholder-val="{{ false }}">
+          <div style="font-size:.68rem;color:var(--text3);margin-top:12px">{{ deckStats.unknownLabel }} — not counted in these charts.</div>
+        </sc-if>
+      </div>
+      </sc-if>
       <div style="background:linear-gradient(var(--panel),var(--panel)) padding-box, linear-gradient(135deg, rgba(204,120,92,.55), rgba(167,139,250,.4) 35%, rgba(74,222,128,.3) 65%, rgba(204,120,92,.55)) border-box;background-size:100% 100%, 300% 300%;border:1px solid transparent;border-radius:22px;box-shadow:var(--shadow);backdrop-filter:blur(24px);animation:borderFlow 10s linear infinite;padding:24px">
           <div onClick="{{ col.onToggleCov }}" style="display:flex;align-items:center;justify-content:space-between;gap:12px;cursor:pointer;user-select:none">
             <div style="font-family:'Space Mono',monospace;font-size:.66rem;font-weight:700;letter-spacing:.15em;text-transform:uppercase;color:var(--text3)">Deck coverage · {{ deck.title }}</div>
@@ -428,8 +509,12 @@
           </div>
           <sc-if value="{{ col.covBody }}" hint-placeholder-val="{{ false }}">
           <sc-if value="{{ col.hasCov }}" hint-placeholder-val="{{ false }}">
-            <div style="display:flex;align-items:center;gap:12px;margin:14px 0">
-              <div style="flex:1;height:9px;background:var(--chip-bg);border-radius:5px;overflow:hidden"><div style="height:100%;border-radius:5px;background:#4E9D6B;width:{{ col.covPct }}%"></div></div>
+            <div style="display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin:14px 0 7px;flex-wrap:wrap">
+              <span style="font-family:'Chakra Petch',sans-serif;font-weight:600;font-size:1.15rem;color:{{ col.covBarColor }}">{{ col.covPctLabel }}</span>
+              <span style="font-family:'Space Mono',monospace;font-size:.72rem;color:var(--text2)">{{ col.covMissLabel }}</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:12px;margin:0 0 14px">
+              <div style="flex:1;height:9px;background:var(--chip-bg);border-radius:5px;overflow:hidden"><div style="height:100%;border-radius:5px;background:{{ col.covBarColor }};width:{{ col.covPct }}%"></div></div>
             </div>
             <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(136px,1fr));gap:10px">
               <sc-for list="{{ col.covRows }}" as="r" hint-placeholder-count="6">
@@ -451,7 +536,10 @@
               </sc-for>
             </div>
             <sc-if value="{{ col.hasShopping }}" hint-placeholder-val="{{ false }}">
-              <div style="font-family:'Space Mono',monospace;font-size:.62rem;font-weight:700;letter-spacing:.15em;text-transform:uppercase;color:#9F2731;margin:16px 0 9px">To buy</div>
+              <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin:16px 0 9px">
+                <div style="font-family:'Space Mono',monospace;font-size:.62rem;font-weight:700;letter-spacing:.15em;text-transform:uppercase;color:#9F2731">To buy · {{ col.covMissTotal }}</div>
+                <button onclick="{{ col.onCopyShopping }}" style="border:1px solid #d88a90;border-radius:10px;padding:6px 13px;font-family:inherit;font-weight:700;font-size:.75rem;cursor:pointer;background:rgba(179,35,44,.06);color:#9F2731">Share shopping list</button>
+              </div>
               <div style="display:flex;flex-wrap:wrap;gap:7px">
                 <sc-for list="{{ col.shopping }}" as="p" hint-placeholder-count="3">
                   <button onclick="{{ p.onClick }}" style="font-size:.78rem;font-weight:600;font-family:'Space Mono',monospace;padding:5px 11px;border-radius:999px;background:rgba(179,35,44,.08);border:1px solid #d88a90;color:#9F2731;cursor:pointer">{{ p.label }}</button>
@@ -494,6 +582,16 @@
               <button onclick="{{ col.onBrowseBase }}" style="border:1px solid var(--border);border-radius:12px;padding:10px 16px;font-family:inherit;font-weight:700;font-size:.85rem;cursor:pointer;background:var(--panel2);color:var(--text)">＋ Add from card base</button>
             </div>
             <p style="color:var(--text2);font-size:.78rem;margin:10px 0 0;line-height:1.5">Adding a name you already own tops up its count. Import CSV or JSON replaces the whole catalogue with your tracker's export. Or open the card base to add copies card by card. Card images load automatically from the site's "Lorcana Cards Named" folder.</p>
+            <div style="border-top:1px solid var(--border-soft);margin-top:16px;padding-top:14px">
+              <div style="font-family:'Space Mono',monospace;font-size:.66rem;font-weight:700;letter-spacing:.15em;text-transform:uppercase;color:var(--text3);margin-bottom:8px">Paste a list to add copies</div>
+              <textarea value="{{ col.pasteText }}" onchange="{{ col.onPasteText }}" placeholder="4 Dale - Ready for His Shot
+2 Mulan - Elite Archer
+1 Beast - Wolfsbane" style="width:100%;box-sizing:border-box;border:1px solid var(--border);border-radius:11px;padding:10px 12px;font-family:'Space Mono',monospace;font-size:.74rem;line-height:1.5;min-height:96px;resize:vertical;background:var(--panel2);color:var(--text)"></textarea>
+              <div style="display:flex;align-items:center;gap:10px;margin-top:8px;flex-wrap:wrap">
+                <button onclick="{{ col.onPasteImport }}" style="border:0;border-radius:12px;padding:10px 18px;font-family:inherit;font-weight:700;font-size:.85rem;cursor:pointer;background:#CC785C;color:#fff">Add list to collection</button>
+                <span style="font-size:.72rem;color:var(--text3)">One card per line, count first ("4 Card Name"). Unlike CSV/JSON import, this <b>adds to</b> your existing counts instead of replacing them.</span>
+              </div>
+            </div>
           </div>
       <div style="background:linear-gradient(var(--panel),var(--panel)) padding-box, linear-gradient(135deg, rgba(204,120,92,.55), rgba(167,139,250,.4) 35%, rgba(74,222,128,.3) 65%, rgba(204,120,92,.55)) border-box;background-size:100% 100%, 300% 300%;border:1px solid transparent;border-radius:22px;box-shadow:var(--shadow);backdrop-filter:blur(24px);animation:borderFlow 10s linear infinite;padding:24px;margin-top:16px">
             <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px;flex-wrap:wrap">
@@ -805,7 +903,31 @@
       </div>
 
       <div style="background:linear-gradient(var(--panel),var(--panel)) padding-box, linear-gradient(135deg, rgba(204,120,92,.55), rgba(167,139,250,.4) 35%, rgba(74,222,128,.3) 65%, rgba(204,120,92,.55)) border-box;background-size:100% 100%, 300% 300%;border:1px solid transparent;border-radius:22px;box-shadow:var(--shadow);backdrop-filter:blur(24px);animation:borderFlow 10s linear infinite;padding:24px;margin-top:16px">
-        <div style="font-family:'Space Mono',monospace;font-size:.66rem;font-weight:700;letter-spacing:.15em;text-transform:uppercase;color:var(--text3);margin-bottom:6px">Logged games · {{ gm.count }}</div>
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:12px">
+          <div style="font-family:'Space Mono',monospace;font-size:.66rem;font-weight:700;letter-spacing:.15em;text-transform:uppercase;color:var(--text3)">Logged games · {{ gm.count }}</div>
+          <sc-if value="{{ gm.hasGames }}" hint-placeholder-val="{{ false }}">
+            <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+              <select value="{{ gm.resultSel.value }}" onchange="{{ gm.resultSel.onChange }}" style="border:1px solid var(--border);border-radius:10px;padding:6px 9px;font-family:inherit;font-size:.76rem;background:var(--panel2);color:var(--text)">
+                <sc-for list="{{ gm.resultSel.opts }}" as="o" hint-placeholder-count="3"><option value="{{ o.v }}">{{ o.label }}</option></sc-for>
+              </select>
+              <select value="{{ gm.playSel.value }}" onchange="{{ gm.playSel.onChange }}" style="border:1px solid var(--border);border-radius:10px;padding:6px 9px;font-family:inherit;font-size:.76rem;background:var(--panel2);color:var(--text)">
+                <sc-for list="{{ gm.playSel.opts }}" as="o" hint-placeholder-count="3"><option value="{{ o.v }}">{{ o.label }}</option></sc-for>
+              </select>
+              <select value="{{ gm.oppSel.value }}" onchange="{{ gm.oppSel.onChange }}" style="border:1px solid var(--border);border-radius:10px;padding:6px 9px;font-family:inherit;font-size:.76rem;background:var(--panel2);color:var(--text);max-width:180px">
+                <sc-for list="{{ gm.oppSel.opts }}" as="o" hint-placeholder-count="4"><option value="{{ o.v }}">{{ o.label }}</option></sc-for>
+              </select>
+              <sc-if value="{{ gm.hasFilter }}" hint-placeholder-val="{{ false }}">
+                <button onclick="{{ gm.onClearFilter }}" style="border:0;background:transparent;color:#B3232C;font-family:inherit;font-weight:600;font-size:.74rem;padding:4px 6px;cursor:pointer">Clear</button>
+              </sc-if>
+            </div>
+          </sc-if>
+        </div>
+        <sc-if value="{{ gm.filtered }}" hint-placeholder-val="{{ false }}">
+          <div style="font-family:'Space Mono',monospace;font-size:.6rem;letter-spacing:.08em;text-transform:uppercase;color:var(--text3);margin-bottom:6px">Showing {{ gm.shown }} of {{ gm.total }}</div>
+        </sc-if>
+        <sc-if value="{{ gm.noMatch }}" hint-placeholder-val="{{ false }}">
+          <p style="color:var(--text2);font-size:.86rem;margin:8px 0 0">No games match these filters. <b>Clear</b> to see them all.</p>
+        </sc-if>
         <sc-for list="{{ gm.games }}" as="g" hint-placeholder-count="5">
           <div style="display:grid;grid-template-columns:44px 1fr auto;gap:14px;align-items:start;padding:15px 2px;border-bottom:1px solid var(--border-soft)">
             <div style="width:42px;height:42px;border-radius:13px;display:flex;align-items:center;justify-content:center;font-weight:800;color:#fff;font-size:1.05rem;background:{{ g.resBg }};box-shadow:0 6px 14px -6px rgba(80,40,20,.4)">{{ g.result }}</div>
@@ -1125,10 +1247,13 @@
 
   <sc-if value="{{ editorOpen }}" hint-placeholder-val="{{ false }}">
   <div onClick="{{ onEditorCancel }}" style="position:fixed;inset:0;z-index:80;background:rgba(37,29,20,.45);backdrop-filter:blur(3px);display:flex;align-items:center;justify-content:center;padding:20px">
-    <div onClick="{{ stopClick }}" style="background:var(--panel2);border:1px solid var(--border-soft);border-radius:20px;box-shadow:0 30px 60px -20px rgba(0,0,0,.5);backdrop-filter:blur(28px);max-width:580px;width:100%;max-height:88vh;overflow:auto;padding:26px">
+    <div onClick="{{ stopClick }}" style="{{ ed.dialogStyle }}">
       <div style="display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin-bottom:18px">
         <h3 style="font-family:'Chakra Petch',sans-serif;font-weight:600;font-size:1.45rem;letter-spacing:-.01em;margin:0">{{ ed.heading }}</h3>
-        <span style="font-family:'Space Mono',monospace;font-size:.56rem;letter-spacing:.2em;text-transform:uppercase;color:var(--text3)">Deck settings</span>
+        <div style="display:flex;align-items:center;gap:10px">
+          <button onclick="{{ ed.onToggleFull }}" title="{{ ed.fullTitle }}" style="border:1px solid var(--border);border-radius:9px;padding:5px 11px;font-family:'Space Mono',monospace;font-weight:700;font-size:.6rem;letter-spacing:.12em;text-transform:uppercase;cursor:pointer;background:var(--panel);color:var(--text2)">{{ ed.fullLabel }}</button>
+          <span style="font-family:'Space Mono',monospace;font-size:.56rem;letter-spacing:.2em;text-transform:uppercase;color:var(--text3)">Deck settings</span>
+        </div>
       </div>
       <div style="display:grid;gap:14px">
         <label style="display:flex;flex-direction:column;gap:6px;font-size:.74rem;color:var(--text2);font-weight:600">Deck name
@@ -1252,6 +1377,9 @@
       <div style="display:flex;gap:10px;align-items:center;margin-top:20px;flex-wrap:wrap">
         <button onclick="{{ onEditorSave }}" style="border:0;border-radius:12px;padding:11px 20px;font-family:inherit;font-weight:700;font-size:.85rem;cursor:pointer;background:#CC785C;color:#fff">{{ ed.saveLabel }}</button>
         <button onclick="{{ onEditorCancel }}" style="border:0;border-radius:12px;padding:11px 18px;font-family:inherit;font-weight:700;font-size:.85rem;cursor:pointer;background:var(--chip-bg);color:var(--text)">Cancel</button>
+        <sc-if value="{{ ed.canDuplicate }}" hint-placeholder-val="{{ false }}">
+          <button onclick="{{ onEditorDuplicate }}" style="border:1px solid var(--border);border-radius:12px;padding:10px 16px;font-family:inherit;font-weight:700;font-size:.82rem;cursor:pointer;background:var(--panel);color:var(--text2)">Duplicate</button>
+        </sc-if>
         <sc-if value="{{ ed.canDelete }}" hint-placeholder-val="{{ false }}">
           <button onclick="{{ onEditorDelete }}" style="margin-left:auto;border:1px solid #d88a90;border-radius:12px;padding:10px 16px;font-family:inherit;font-weight:700;font-size:.82rem;cursor:pointer;background:rgba(179,35,44,.07);color:#9F2731">Remove deck</button>
         </sc-if>
@@ -1262,8 +1390,33 @@
 
   <footer style="text-align:center;color:var(--text2);font-size:.7rem;padding:20px 0 52px;font-family:'Space Mono',monospace;letter-spacing:.1em;text-transform:uppercase"><span style="display:inline-block;border-top:1px dashed var(--border-soft);padding-top:14px">The Construct · Simulated deck intelligence</span></footer>
 
+  <sc-if value="{{ shareOpen }}" hint-placeholder-val="{{ false }}">
+  <div onClick="{{ share.onClose }}" style="position:fixed;inset:0;z-index:85;background:rgba(37,29,20,.45);backdrop-filter:blur(3px);display:flex;align-items:center;justify-content:center;padding:20px">
+    <div onClick="{{ stopClick }}" style="background:var(--panel2);border:1px solid var(--border-soft);border-radius:20px;box-shadow:0 30px 60px -20px rgba(0,0,0,.5);backdrop-filter:blur(28px);max-width:460px;width:100%;max-height:86vh;overflow:auto;padding:24px">
+      <div style="display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin-bottom:4px">
+        <h3 style="font-family:'Chakra Petch',sans-serif;font-weight:600;font-size:1.3rem;letter-spacing:-.01em;margin:0">{{ share.title }}</h3>
+        <span style="font-family:'Space Mono',monospace;font-size:.62rem;color:var(--text3)">{{ share.subtitle }}</span>
+      </div>
+      <textarea readonly="readonly" value="{{ share.text }}" style="width:100%;box-sizing:border-box;border:1px solid var(--border);border-radius:12px;padding:12px;font-family:'Space Mono',monospace;font-size:.76rem;line-height:1.55;min-height:190px;resize:vertical;background:var(--panel);color:var(--text);margin-top:12px"></textarea>
+      <div style="display:flex;gap:9px;flex-wrap:wrap;margin-top:14px">
+        <button onclick="{{ share.onCopy }}" style="border:0;border-radius:12px;padding:11px 18px;font-family:inherit;font-weight:700;font-size:.85rem;cursor:pointer;background:#CC785C;color:#fff">Copy to clipboard</button>
+        <button onclick="{{ share.onDownload }}" style="border:1px solid var(--border);border-radius:12px;padding:11px 16px;font-family:inherit;font-weight:700;font-size:.85rem;cursor:pointer;background:var(--panel);color:var(--text)">Download .txt</button>
+        <sc-if value="{{ share.canNative }}" hint-placeholder-val="{{ false }}">
+          <button onclick="{{ share.onNative }}" style="border:1px solid var(--border);border-radius:12px;padding:11px 16px;font-family:inherit;font-weight:700;font-size:.85rem;cursor:pointer;background:var(--panel);color:var(--text)">Share…</button>
+        </sc-if>
+        <button onclick="{{ share.onClose }}" style="margin-left:auto;border:0;border-radius:12px;padding:11px 16px;font-family:inherit;font-weight:700;font-size:.85rem;cursor:pointer;background:var(--chip-bg);color:var(--text)">Close</button>
+      </div>
+    </div>
+  </div>
+  </sc-if>
+
   <sc-if value="{{ toast }}" hint-placeholder-val="{{ false }}">
-    <div style="position:fixed;bottom:22px;left:50%;transform:translateX(-50%);background:#1C1917;color:#F5F1E8;padding:11px 20px;border-radius:13px;font-size:.85rem;font-weight:600;z-index:60;box-shadow:0 14px 30px -12px rgba(0,0,0,.4)">{{ toast }}</div>
+    <div style="position:fixed;bottom:22px;left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:14px;background:#1C1917;color:#F5F1E8;padding:11px 20px;border-radius:13px;font-size:.85rem;font-weight:600;z-index:60;box-shadow:0 14px 30px -12px rgba(0,0,0,.4)">
+      <span>{{ toast }}</span>
+      <sc-if value="{{ hasUndo }}" hint-placeholder-val="{{ false }}">
+        <button onclick="{{ onUndo }}" style="border:0;background:#CC785C;color:#fff;border-radius:8px;padding:5px 12px;font-family:inherit;font-weight:700;font-size:.78rem;cursor:pointer">Undo</button>
+      </sc-if>
+    </div>
   </sc-if>
 
   <sc-if value="{{ ddOpen }}" hint-placeholder-val="{{ false }}">
@@ -1411,6 +1564,7 @@ class Component extends DCLogic {
     this.NS=this.CURRENT_USER?this.safeUserKey(this.CURRENT_USER):'anon';
     this.KEY='lorcanaAtlas_games_v1__'+this.NS; this.DKEY='lorcanaAtlas_deck_v1__'+this.NS; this.TKEY='lorcanaAtlas_tab_v1__'+this.NS; this.LKEY='lorcanaAtlas_decks_v1__'+this.NS; this.CKEY='lorcanaAtlas_collection_v1__'+this.NS; this.CSEED='lorcanaAtlas_colSeed_v1__'+this.NS;
     this.GKEY='lorcanaAtlas_gh_token_v1'; this.TOMB='lorcanaAtlas_tombs_v1__'+this.NS; this.SURL='lorcanaAtlas_syncurl_v1';
+    this.MKEY='lorcanaAtlas_munotes_v1__'+this.NS;
     this.GH={owner:'luiscredie', repo:'lorcana', branch:'main', path:this.pathForUser(this.CURRENT_USER)};
     // Public read path (same origin as the site) — only meaningful once logged in; each
     // account reads its own file.
@@ -1495,7 +1649,7 @@ class Component extends DCLogic {
     if(deck!==this.ALL && !lib.find(d=>d.id===deck)) deck=lib[0].id;
     try{ tab=localStorage.getItem(this.TKEY)||'overview'; }catch(e){}
     if(!this.tabAllowed(tab,deck,lib)) tab='overview';
-    if(tab==='cardbase') this.ensureCardDb();
+    if(tab==='cardbase'||tab==='deck') this.ensureCardDb();
     let collection={};
     try{ const c=JSON.parse(localStorage.getItem(this.CKEY)); if(c&&typeof c==='object'&&!Array.isArray(c)) collection=c; }catch(e){}
     let variants={};
@@ -1524,7 +1678,9 @@ class Component extends DCLogic {
       }).catch(()=>{});
     }
     const cbSetInit = tab==='cardbase' ? {'Wilds Unknown':true} : undefined;
-    this.setState({ ready:true, store, deck, tab, lib, collection, variants, ...(cbSetInit?{cbSet:cbSetInit}:{}) });
+    let muNotes={};
+    try{ const mn=JSON.parse(localStorage.getItem(this.MKEY)); if(mn&&typeof mn==='object'&&!Array.isArray(mn)) muNotes=mn; }catch(e){}
+    this.setState({ ready:true, store, deck, tab, lib, collection, variants, muNotes, ...(cbSetInit?{cbSet:cbSetInit}:{}) });
     setTimeout(()=>this.doSync(), 400);
     // Re-pull the shared atlas whenever the tab regains focus so every browser converges.
     if(typeof window!=='undefined' && !this._focusHook){
@@ -1625,6 +1781,7 @@ class Component extends DCLogic {
   tombs(){ try{ const t=JSON.parse(localStorage.getItem(this.TOMB)); if(t&&Array.isArray(t.games)&&Array.isArray(t.decks)) return t; }catch(e){} return {games:[],decks:[]}; }
   saveTombs(t){ try{ localStorage.setItem(this.TOMB, JSON.stringify(t)); }catch(e){} }
   addTomb(kind,id){ const t=this.tombs(); if(!t[kind].includes(id)) t[kind].push(id); this.saveTombs(t); }
+  removeTomb(kind,id){ const t=this.tombs(); t[kind]=t[kind].filter(x=>x!==id); this.saveTombs(t); }
   colStamp(){ try{ return localStorage.getItem(this.CKEY+'_stamp')||''; }catch(e){ return ''; } }
   stampCol(){ try{ localStorage.setItem(this.CKEY+'_stamp', new Date().toISOString()); }catch(e){} }
   b64e(s){ return btoa(unescape(encodeURIComponent(s))); }
@@ -1702,10 +1859,16 @@ class Component extends DCLogic {
         variants=rd.variants; variantsUpdated=rd.variantsUpdated;
         try{ localStorage.setItem(this.VKEY, JSON.stringify(variants)); localStorage.setItem(this.VKEY+'_stamp', variantsUpdated); }catch(e){}
       }
+      let muNotes=s.muNotes||{}, muNotesUpdated=this.muStamp();
+      if(rd&&rd.muNotes&&typeof rd.muNotes==='object'&&!Array.isArray(rd.muNotes)&&(rd.muNotesUpdated||'')>(muNotesUpdated||'')){
+        muNotes=rd.muNotes; muNotesUpdated=rd.muNotesUpdated;
+        this.persistMuNotes(muNotes);
+        try{ localStorage.setItem(this.MKEY+'_stamp', muNotesUpdated); }catch(e){}
+      }
       this.persist(store); this.persistLib(lib);
       let deck=s.deck; if(!lib.find(d=>d.id===deck)) deck=lib[0].id;
-      this.setState({store, lib, collection, variants, deck});
-      return {v:1, updated:new Date().toISOString(), store, lib, collection, colUpdated, variants, variantsUpdated,
+      this.setState({store, lib, collection, variants, muNotes, deck});
+      return {v:1, updated:new Date().toISOString(), store, lib, collection, colUpdated, variants, variantsUpdated, muNotes, muNotesUpdated,
         deletedGames:[...delG].sort(), deletedDecks:[...delD].sort()};
     } finally { this._merging=false; }
   }
@@ -1719,7 +1882,7 @@ class Component extends DCLogic {
       let remote=null;
       try{ remote=await this.ghGet(); }catch(e){ if(w) throw e; }
       const doc=this.mergeAll(remote&&remote.doc);
-      const sig=(o)=>{ try{ return JSON.stringify({s:o.store,l:o.lib,c:o.collection,cu:o.colUpdated,v:o.variants,vu:o.variantsUpdated,dg:(o.deletedGames||[]).slice().sort(),dd:(o.deletedDecks||[]).slice().sort()}); }catch(e){ return Math.random()+''; } };
+      const sig=(o)=>{ try{ return JSON.stringify({s:o.store,l:o.lib,c:o.collection,cu:o.colUpdated,v:o.variants,vu:o.variantsUpdated,mn:o.muNotes,mnu:o.muNotesUpdated,dg:(o.deletedGames||[]).slice().sort(),dd:(o.deletedDecks||[]).slice().sort()}); }catch(e){ return Math.random()+''; } };
       const same=!!(remote&&remote.doc)&&sig(remote.doc)===sig(doc);
       const token=this.adminToken();
       if(w&&!same&&token&&this.isAdmin()){
@@ -1881,6 +2044,20 @@ class Component extends DCLogic {
     try{ localStorage.setItem(this.DKEY,deck); }catch(e){}
     this.toast('Deck removed');
   }
+  duplicateEditorDeck(){
+    const ed=this.state.editor; if(!ed||ed.isNew) return;
+    const cards=(ed.cards||'').split('\n').map(x=>x.trim()).filter(Boolean);
+    const id='d'+Math.random().toString(36).slice(2,8);
+    const entry={ id, title:((ed.title||'Deck').trim())+' (copy)', inks:[ed.ink1,ed.ink2],
+      arch:(ed.arch||'').trim(), tagline:(ed.tagline||'').trim(), strategy:(ed.strategy||'').trim(),
+      cards:cards.length?cards:null, heroArts:(ed.heroArts&&ed.heroArts.length)?ed.heroArts.slice(0,3):null, mtime:new Date().toISOString() };
+    const lib=[...(this.state.lib||[]), entry];
+    const store={...this.state.store,[id]:[]};
+    this.persist(store); this.persistLib(lib);
+    this.setState({lib, store, editor:null});
+    this.setDeck(id);
+    this.toast('Deck duplicated — editing the copy');
+  }
   colKey(n){ return String(n||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[\u2018\u2019\u02BC]/g,"'").replace(/[\\/:*?"<>|]/g,'').replace(/\s+/g,' ').trim().replace(/4\s*-?\s*town\b/g,'4town'); }
   // ---------- Visual deck builder (editor) ----------
   edDeckMap(){
@@ -1894,6 +2071,28 @@ class Component extends DCLogic {
     return {map, order};
   }
   edDeckText(map, order){ return order.filter(k=>map[k].qty>0).map(k=>`${map[k].qty} ${map[k].name}`).join('\n'); }
+  // Cost curve / ink / type analytics for a saved deck (Deck tab).
+  deckStatsData(D){
+    const reqs=this.deckReqs(D); if(!reqs||!reqs.length) return null;
+    const db=this.cardDb(); if(!Object.keys(db).length) return {loading:true};
+    let total=0, unknown=0, costed=0, costSum=0;
+    const curve={}, inkCounts={}, typeCounts={};
+    reqs.forEach(r=>{
+      const m=db[this.colKey(r.name)]; const q=r.qty; total+=q;
+      if(!m){ unknown+=q; return; }
+      const cost=m.c!=null?m.c:null;
+      if(cost!=null){ const b=cost>=7?7:cost; curve[b]=(curve[b]||0)+q; costed+=q; costSum+=cost*q; }
+      const ink=((m.i||'').split(/[\s,\/]+/)[0]||'').trim(); if(ink) inkCounts[ink]=(inkCounts[ink]||0)+q;
+      let t=(m.t||'Other').trim();
+      if(/song/i.test((m.cl||'')+' '+(m.tags||'')+' '+t)) t='Song';
+      else if(/character/i.test(t)) t='Character';
+      else if(/action/i.test(t)) t='Action';
+      else if(/item/i.test(t)) t='Item';
+      else if(/location/i.test(t)) t='Location';
+      typeCounts[t]=(typeCounts[t]||0)+q;
+    });
+    return {total, unknown, curve, inkCounts, typeCounts, costed, avgCost: costed? (costSum/costed):0};
+  }
   edTabStyle(on){ return `flex:1;border:0;border-radius:9px;padding:8px 12px;font-family:inherit;font-weight:700;font-size:.8rem;cursor:pointer;transition:.15s;background:${on?'#CC785C':'transparent'};color:${on?'#fff':'var(--text2)'}`; }
   edBumpCard(name, d){
     if(!name) return;
@@ -2040,6 +2239,27 @@ class Component extends DCLogic {
     }
     this.stampCol(); this.persistCol(col); this.setState({collection:col});
   }
+  onImportColText(){
+    const raw=(this.state.colPasteText||'').trim();
+    if(!raw){ this.toast('Paste a card list first'); return; }
+    const col={...this.state.collection}; let added=0, lines=0;
+    raw.split('\n').forEach(line=>{
+      const t=line.trim(); if(!t) return;
+      const rq=this.parseReq(t); const name=(rq.name||'').trim(); if(!name) return;
+      const qty=Math.max(1, parseInt(rq.qty,10)||1);
+      const k=this.colKey(name); lines++;
+      const meta=this.cardMeta(name)||{};
+      const cur=col[k];
+      col[k]=cur ? {...cur, qty:(cur.qty||0)+qty}
+                 : {name, qty, set:meta.setNum!=null?String(meta.setNum):'', num:meta.num!=null?meta.num:null, color:meta.i||'', rarity:meta.r||''};
+      added+=qty;
+    });
+    if(!lines){ this.toast('No cards recognised'); return; }
+    this.stampCol(); this.persistCol(col);
+    try{ localStorage.setItem(this.CSEED,'user'); }catch(e){}
+    this.setState({collection:col, colPasteText:''});
+    this.toast('Added '+added+' copies from list');
+  }
   onImportCol(e){
     const f=e.target.files&&e.target.files[0]; if(!f) return;
     const r=new FileReader();
@@ -2096,8 +2316,10 @@ class Component extends DCLogic {
   }
   load(){ try{ const d=JSON.parse(localStorage.getItem(this.KEY)); return (d&&typeof d==='object'&&Array.isArray(d.dale))?d:null; }catch(e){ return null; } }
   persist(s){ try{ localStorage.setItem(this.KEY, JSON.stringify(s||this.state.store)); }catch(e){} this.queueSync(); }
-  toast(t){ this.setState({toast:t}); clearTimeout(this._tt); this._tt=setTimeout(()=>this.setState({toast:''}),3000); }
-  setTab(k){ this.setState(s=>{ const patch={tab:k}; if(k==='cardbase' && s.cbSet==null) patch.cbSet={'Wilds Unknown':true}; return patch; }); try{ localStorage.setItem(this.TKEY,k); }catch(e){} if(k==='cardbase') this.ensureCardDb(); }
+  toast(t){ this.setState({toast:t, undoFn:null}); clearTimeout(this._tt); this._tt=setTimeout(()=>this.setState({toast:'', undoFn:null}),3000); }
+  toastUndo(t, fn){ this._undoFn=fn; this.setState({toast:t, undoFn:fn}); clearTimeout(this._tt); this._tt=setTimeout(()=>this.setState({toast:'', undoFn:null}),6000); }
+  runUndo(){ const fn=this._undoFn; clearTimeout(this._tt); this.setState({toast:'', undoFn:null}); if(fn) fn(); }
+  setTab(k){ this.setState(s=>{ const patch={tab:k}; if(k==='cardbase' && s.cbSet==null) patch.cbSet={'Wilds Unknown':true}; return patch; }); try{ localStorage.setItem(this.TKEY,k); }catch(e){} if(k==='cardbase'||k==='deck') this.ensureCardDb(); }
   // The full card database (~1000 KB) is only needed by the Card Base tab — load it lazily
   // on first visit instead of blocking every page load with it.
   ensureCardDb(){
@@ -2223,6 +2445,11 @@ class Component extends DCLogic {
     const wins=G.filter(g=>g.result==='W'), losses=G.filter(g=>g.result==='L');
     const zero=losses.filter(g=>g.myLore===0).length;
     const insights=[];
+    const recent=G.slice(-10);
+    const recentW=recent.filter(g=>g.result==='W').length;
+    const recentWr=recent.length?Math.round(recentW/recent.length*100):0;
+    const spark=recent.map(g=>({win:g.result==='W', color:g.result==='W'?'#4E9D6B':'#B3232C',
+      title:`${this.archLabel(g)} · ${g.myLore}–${g.oppLore}`}));
     insights.push({icon:'◷',bg:'#F2E7CF',color:'#9a6c0f',stat:`${a.crossed10} of ${a.n} games`,text:'reached 10 lore — how often the clock actually gets going.'});
     if(D.hasCombos){
       const ts=G.filter(g=>g.combos&&g.combos.tripleShot), tsW=ts.filter(g=>g.result==='W').length;
@@ -2247,6 +2474,9 @@ class Component extends DCLogic {
       ],
       insights, winRows:this.catRows(wins.map(g=>g.winCat),false), lossRows:this.catRows(losses.map(g=>g.lossCat),true),
       winsCount:wins.length, lossesCount:losses.length,
+      spark, hasSpark:spark.length>0, recentWrStr:recentWr+'%',
+      recentLabel:`Last ${recent.length} · ${recentW}–${recent.length-recentW}`,
+      recentWrColor:recentWr>=50?'#4E9D6B':'#CC785C',
       coachPatterns:this.coachPatterns(G, wins, losses)
     };
 
@@ -2273,9 +2503,15 @@ class Component extends DCLogic {
       const meta=NOTES[k]||(k.indexOf('Unknown \u00b7')===0?NOTES['Other / Unknown']:null)||{role:'—',badge:'skill',label:'Logged',note:'Re-tag in the Games tab to sharpen this read; the note fills in as this matchup recurs.'};
       return { name:k, record:`${o.w}–${o.l}`, wrStr:wr+'%', wrColor:wr>=50?'#4E9D6B':'#CC785C',
         marginStr:mg==null?'–':(mg>0?'+':'')+mg.toFixed(1), games:ng, role:meta.role,
-        note:meta.note, badgeLabel:meta.label, badgeBg:BC[meta.badge][0], badgeColor:BC[meta.badge][1] };
+        note:meta.note, badgeLabel:meta.label, badgeBg:BC[meta.badge][0], badgeColor:BC[meta.badge][1],
+        userNote:this.muNoteFor(k), hasUserNote:!!this.muNoteFor(k),
+        editing:s.muEditKey===k, notEditing:s.muEditKey!==k,
+        noteBtnLabel:this.muNoteFor(k)?'Edit your note':'＋ Add your note',
+        onEditNote:()=>this.startMuNote(k) };
     });
-    const mu={ rows:muRows, count:String(muRows.length).padStart(2,'0'), read:D.muRead };
+    const mu={ rows:muRows, count:String(muRows.length).padStart(2,'0'), read:D.muRead,
+      draft:s.muDraft||'', onDraft:(e)=>this.setState({muDraft:e.target.value}),
+      onSaveNote:()=>this.saveMuNote(), onCancelNote:()=>this.cancelMuNote() };
 
     // CLOCK — every logged game's race curve (your lore vs opponent's), filterable by opponent
     const raceCurve=(g)=>{
@@ -2319,7 +2555,19 @@ class Component extends DCLogic {
     // GAMES
     const ARCH=E.ARCHETYPES, WIN=E.WIN_CATS, LOSS=E.LOSS_CATS;
     const CHIPC={ruby:['#F6DED9','#9F2731'],amber:['#F4E8CC','#9a6c0f'],neutral:['#ECE2CE','#6F604A']};
-    const gmGames=[...G].map((g,idx)=>({g,idx})).reverse().map(({g,idx})=>{
+    const gmFR=s.gmFR||'', gmFP=s.gmFP||'', gmFO=s.gmFO||'';
+    const gmOppOpts=[...new Set(G.map(g=>this.archLabel(g)))].sort();
+    let gmPairs=[...G].map((g,idx)=>({g,idx})).reverse();
+    const gmTotal=gmPairs.length;
+    gmPairs=gmPairs.filter(({g})=>{
+      if(gmFR && g.result!==gmFR) return false;
+      if(gmFP==='on' && !g.onPlay) return false;
+      if(gmFP==='off' && g.onPlay) return false;
+      if(gmFO && this.archLabel(g)!==gmFO) return false;
+      return true;
+    });
+    const gmShown=gmPairs.length;
+    const gmGames=gmPairs.map(({g,idx})=>{
       const chips2=[];
       if(D.hasCombos&&g.combos){ if(g.combos.tripleShot)chips2.push('ruby|Triple Shot'); if(g.combos.dale)chips2.push('amber|Dale'); if(g.combos.ohana)chips2.push('amber|Ohana'); if(g.combos.snowboarder)chips2.push('neutral|Stitch draw'); if(g.combos.sword)chips2.push('neutral|Sword'); }
       const coach=g.coach||null, planScore=g.planScore||null;
@@ -2342,7 +2590,14 @@ class Component extends DCLogic {
         canReplay:!!g.rawLog, onReplay:()=>this.openReplay(g.id)
       };
     });
-    const gm={ logText:s.logText, count:G.length, games:gmGames };
+    const gm={ logText:s.logText, count:G.length, games:gmGames,
+      shown:gmShown, total:gmTotal, filtered:gmShown!==gmTotal,
+      hasGames:gmTotal>0, noMatch:gmTotal>0&&gmShown===0,
+      fResult:gmFR, fPlay:gmFP, fOpp:gmFO,
+      resultSel:this.nativeSel(gmFR, [{v:'',label:'All results'},{v:'W',label:'Wins'},{v:'L',label:'Losses'}], (e)=>this.setState({gmFR:e.target.value})),
+      playSel:this.nativeSel(gmFP, [{v:'',label:'Play & draw'},{v:'on',label:'On the play'},{v:'off',label:'On the draw'}], (e)=>this.setState({gmFP:e.target.value})),
+      oppSel:this.nativeSel(gmFO, [{v:'',label:'All opponents'}].concat(gmOppOpts.map(o=>({v:o,label:o}))), (e)=>this.setState({gmFO:e.target.value})),
+      hasFilter:!!(gmFR||gmFP||gmFO), onClearFilter:()=>this.setState({gmFR:'',gmFP:'',gmFO:''}) };
 
     // REPLAY MODAL
     const replayView=(()=>{
@@ -2563,6 +2818,25 @@ class Component extends DCLogic {
       });
     }
     const shopping=covRows.filter(r=>r.missing).map(r=>({label:r.missing+'× '+r.name, name:r.name, onClick:()=>this.zoomCard(r.name)}));
+    const covMissTotal=covRows.reduce((x,r)=>x+r.missing,0);
+    const covPctVal=this.pct(covHave, covNeed||1);
+    const deckStats=(()=>{
+      const sd=this.deckStatsData(D);
+      if(!sd) return {has:false};
+      if(sd.loading) return {has:false, loading:true};
+      const inkOrder=['amber','amethyst','emerald','ruby','sapphire','steel'];
+      const curveMax=Math.max(1, ...Object.values(sd.curve));
+      const curve=[0,1,2,3,4,5,6,7].map(c=>({label:c===7?'7+':(''+c), n:sd.curve[c]||0,
+        h:Math.round(((sd.curve[c]||0)/curveMax)*100), accent:this.INKS[D.inks&&D.inks[0]]?this.INKS[D.inks[0]].dark:'#CC785C'}));
+      const inkBars=inkOrder.filter(k=>sd.inkCounts[k]).map(k=>({label:this.INKS[k].name, n:sd.inkCounts[k],
+        pct:sd.total?Math.round(sd.inkCounts[k]/sd.total*100):0, dot:this.INKS[k].dark, bg:this.INKS[k].border}));
+      const typeOrder=['Character','Action','Song','Item','Location','Other'];
+      const types=typeOrder.filter(t=>sd.typeCounts[t]).map(t=>({label:t, n:sd.typeCounts[t],
+        pct:sd.total?Math.round(sd.typeCounts[t]/sd.total*100):0}));
+      return {has:true, loading:false, curve, inkBars, types,
+        avgCost:(Math.round(sd.avgCost*10)/10).toFixed(1), total:sd.total,
+        hasUnknown:sd.unknown>0, unknownLabel:sd.unknown+' card'+(sd.unknown===1?'':'s')+' not in card base'};
+    })();
     const col={
       name:s.colName||'', qty:s.colQty||'4', groups:colGroups, count:allKeys.length, copies,
       shown:shownCount, filter:s.colFilter||'',
@@ -2573,11 +2847,17 @@ class Component extends DCLogic {
       onImportCsv:(e)=>this.onImportCsv(e),
       onImportCol:(e)=>this.onImportCol(e),
       onBrowseBase:()=>this.setTab('cardbase'),
+      pasteText:s.colPasteText||'', onPasteText:(e)=>this.setState({colPasteText:e.target.value}),
+      onPasteImport:()=>this.onImportColText(),
       hasCards:shownCount>0, empty:allKeys.length===0,
       hasCov:!!reqs, noCov:!reqs,
       covBody:s.covOpen!==false, covChevron:(s.covOpen!==false)?'▾':'▸',
       onToggleCov:()=>this.setState({covOpen:s.covOpen===false}),
       covRows, covHave, covNeed, covPct:this.pct(covHave, covNeed||1),
+      covMissTotal, covPctLabel:covPctVal+'% buildable',
+      covMissLabel: covMissTotal? (covMissTotal+' card'+(covMissTotal===1?'':'s')+' to acquire') : 'You own every copy',
+      covBarColor: covMissTotal? (covPctVal>=80?'#4E9D6B':'#9a6c0f') : '#4E9D6B',
+      onCopyShopping:()=>this.copyShoppingList(),
       shopping, hasShopping:shopping.length>0,
       complete:!!reqs&&covNeed>0&&shopping.length===0,
       onName:(e)=>this.setState({colName:e.target.value}),
@@ -2740,6 +3020,7 @@ class Component extends DCLogic {
 
     return {
       ready:true, toast:s.toast||'', tabs, deckCards,
+      hasUndo:!!s.undoFn, onUndo:()=>this.runUndo(),
       themeVars: this.THEMES[s.theme==='light'?'light':'dark'],
       dotGrid: this.dotGrid(s.theme),
       colorScheme: s.theme==='light'?'light':'dark',
@@ -2779,7 +3060,7 @@ class Component extends DCLogic {
       isOverview:s.tab==='overview'&&!showEmpty, isMatchups:s.tab==='matchups'&&!showEmpty,
       isClock:s.tab==='clock'&&!showEmpty, isCombos:s.tab==='combos'&&!showEmpty,
       isGames:s.tab==='games',
-      isCollection:s.tab==='collection', isDeckTab:s.tab==='deck', col,
+      isCollection:s.tab==='collection', isDeckTab:s.tab==='deck', col, deckStats,
       isCardBase:s.tab==='cardbase', cardBase,
       editorOpen:!!s.editor,
       ed:(()=>{
@@ -2799,6 +3080,7 @@ class Component extends DCLogic {
             onInk2:(e)=>this.edField('ink2',e.target.value),
             ink1DD:this.buildDD('edInk1', s.editor.ink1, ['amber','ruby','emerald','sapphire','steel','amethyst'].map(v=>({v,label:this.INKS[v].name})), (e)=>this.edField('ink1',e.target.value)),
             ink2DD:this.buildDD('edInk2', s.editor.ink2, ['amber','ruby','emerald','sapphire','steel','amethyst'].map(v=>({v,label:this.INKS[v].name})), (e)=>this.edField('ink2',e.target.value)),
+            canDuplicate:!s.editor.isNew,
             mode:s.editor.mode||'paste', isPaste:(s.editor.mode||'paste')==='paste', isPick:(s.editor.mode||'paste')==='pick',
             onPasteMode:()=>this.edField('mode','paste'),
             onPickMode:()=>{ this.ensureCardDb(); this.edField('mode','pick'); },
@@ -2827,7 +3109,14 @@ class Component extends DCLogic {
                 hasList: cnt>0
               };
             })(),
-            pick:this.edPickResults()
+            pick:this.edPickResults(),
+            full:!!s.editor.full,
+            fullLabel:s.editor.full?'⤢ Exit':'⤢ Fullscreen',
+            fullTitle:s.editor.full?'Shrink to a window':'Expand to fullscreen',
+            onToggleFull:()=>this.edField('full', !s.editor.full),
+            dialogStyle:s.editor.full
+              ? 'background:var(--panel2);border:1px solid var(--border-soft);border-radius:16px;box-shadow:0 30px 60px -20px rgba(0,0,0,.5);backdrop-filter:blur(28px);width:96vw;max-width:1200px;height:92vh;max-height:92vh;overflow:auto;padding:26px'
+              : 'background:var(--panel2);border:1px solid var(--border-soft);border-radius:20px;box-shadow:0 30px 60px -20px rgba(0,0,0,.5);backdrop-filter:blur(28px);max-width:580px;width:100%;max-height:88vh;overflow:auto;padding:26px'
           };
         }catch(e){ console.error('[DEBUG] ed construction threw:', e); return {heading:'ERROR', saveLabel:'ERROR'}; }
       })(),
@@ -2835,6 +3124,13 @@ class Component extends DCLogic {
       onEditorSave:this.requireAdmin(()=>this.saveEditor()),
       onEditorCancel:()=>this.setState({editor:null}),
       onEditorDelete:this.requireAdmin(()=>this.deleteEditorDeck()),
+      onEditorDuplicate:this.requireAdmin(()=>this.duplicateEditorDeck()),
+      shareOpen:!!s.share,
+      share:s.share?{
+        title:s.share.title, subtitle:s.share.subtitle, text:s.share.text, canNative:!!s.share.canNative,
+        onCopy:()=>this.copyToClipboard(s.share.text, 'Copied to clipboard'),
+        onDownload:()=>this.shareDownload(), onNative:()=>this.shareNative(), onClose:()=>this.closeShare()
+      }:{},
       stopClick:(e)=>e.stopPropagation(),
       ov, mu, ck, cb, gm, off, parsedView, onExportDeckList:this.onExportDeckList.bind(this), replayView,
       goGames:()=>this.setTab('games'),
@@ -2969,14 +3265,22 @@ class Component extends DCLogic {
   }
   setArch(i,val){ const games=this.games().slice(); games[i]={...games[i],archetype:val}; this.setGames(games); }
   setCat(i,val){ const games=this.games().slice(); const g={...games[i]}; if(g.result==='W')g.winCat=val; else g.lossCat=val; games[i]=g; this.setGames(games); }
-  delGame(id){ this.addTomb('games',id); this.setGames(this.games().filter(x=>x.id!==id)); this.toast('Deleted'); }
+  delGame(id){
+    const deck=this.state.deck;
+    const before=this.games(deck).slice();
+    const gone=before.find(x=>x.id===id);
+    this.addTomb('games',id); this.setGames(before.filter(x=>x.id!==id));
+    this.toastUndo('Game deleted', ()=>{
+      if(!gone) return;
+      this.removeTomb('games',id);
+      const cur=this.games(deck).slice();
+      if(!cur.find(x=>x.id===id)) this.setGames([...cur, gone].sort((a,b)=>(a.dateAdded||'').localeCompare(b.dateAdded||'')));
+      this.toast('Game restored');
+    });
+  }
   onExport(){ try{ const b=new Blob([JSON.stringify({...this.state.store, __collection:this.state.collection||{}},null,2)],{type:'application/json'}); const u=URL.createObjectURL(b); const el=document.createElement('a'); el.href=u; el.download='ranger-atlas-games.json'; el.click(); this.toast('Exported all decks'); }catch(e){ this.toast('Export failed'); } }
-  onExportDeckList(){
-    const D=this.getDeck(this.state.deck);
-    const reqs=this.deckReqs(D);
-    if(!reqs||!reqs.length){ this.toast('This deck has no card list saved'); return; }
-    const text=reqs.map(r=>`${r.qty} ${r.name}`).join('\n');
-    const done=()=>this.toast('Deck list copied to clipboard');
+  copyToClipboard(text, msg){
+    const done=()=>this.toast(msg||'Copied to clipboard');
     const fallback=()=>{
       try{
         const ta=document.createElement('textarea'); ta.value=text;
@@ -2985,9 +3289,59 @@ class Component extends DCLogic {
         document.execCommand('copy'); ta.remove(); done();
       }catch(e){ this.toast('Copy failed'); }
     };
-    if(navigator.clipboard&&navigator.clipboard.writeText){
-      navigator.clipboard.writeText(text).then(done, fallback);
-    } else { fallback(); }
+    if(navigator.clipboard&&navigator.clipboard.writeText){ navigator.clipboard.writeText(text).then(done, fallback); }
+    else { fallback(); }
+  }
+  persistMuNotes(mn){ try{ localStorage.setItem(this.MKEY, JSON.stringify(mn)); }catch(e){} }
+  muStamp(){ try{ return localStorage.getItem(this.MKEY+'_stamp')||''; }catch(e){ return ''; } }
+  stampMu(){ try{ localStorage.setItem(this.MKEY+'_stamp', new Date().toISOString()); }catch(e){} }
+  muNoteFor(arch){ return (this.state.muNotes||{})[this.state.deck+'::'+arch]||''; }
+  startMuNote(arch){ this.setState({muEditKey:arch, muDraft:this.muNoteFor(arch)}); }
+  cancelMuNote(){ this.setState({muEditKey:null, muDraft:''}); }
+  saveMuNote(){
+    const arch=this.state.muEditKey; if(arch==null) return;
+    const key=this.state.deck+'::'+arch;
+    const mn={...(this.state.muNotes||{})};
+    const t=(this.state.muDraft||'').trim();
+    if(t) mn[key]=t; else delete mn[key];
+    this.stampMu(); this.persistMuNotes(mn); this.queueSync();
+    this.setState({muNotes:mn, muEditKey:null, muDraft:''});
+    this.toast(t?'Matchup note saved':'Matchup note cleared');
+  }
+  openShare(title, subtitle, text, filename){
+    if(!text||!text.trim()){ this.toast('Nothing to share yet'); return; }
+    this.setState({share:{title, subtitle, text, filename:filename||'lorcana-list', canNative:!!(navigator.share)}});
+  }
+  closeShare(){ this.setState({share:null}); }
+  shareDownload(){
+    const sh=this.state.share; if(!sh) return;
+    try{
+      const b=new Blob([sh.text],{type:'text/plain'});
+      const u=URL.createObjectURL(b);
+      const el=document.createElement('a'); el.href=u; el.download=(sh.filename||'list').replace(/[^\w\- ]/g,'')+'.txt';
+      document.body.appendChild(el); el.click(); el.remove(); URL.revokeObjectURL(u);
+      this.toast('Downloaded '+el.download);
+    }catch(e){ this.toast('Download failed'); }
+  }
+  shareNative(){
+    const sh=this.state.share; if(!sh||!navigator.share) return;
+    navigator.share({title:sh.title, text:sh.text}).catch(()=>{});
+  }
+  copyShoppingList(){
+    const D=this.getDeck(this.state.deck);
+    const reqs=this.deckReqs(D)||[];
+    const col=this.state.collection||{};
+    const miss=reqs.map(r=>{ const have=(col[this.colKey(r.name)]||{qty:0}).qty; const m=Math.max(0, r.qty-have); return m?`${m} ${r.name}`:null; }).filter(Boolean);
+    if(!miss.length){ this.toast('You own every copy — nothing to buy'); return; }
+    this.openShare('Shopping list · '+(D.title||'Deck'), miss.length+' card'+(miss.length===1?'':'s')+' to acquire', miss.join('\n'), (D.title||'deck')+' - shopping list');
+  }
+  onExportDeckList(){
+    const D=this.getDeck(this.state.deck);
+    const reqs=this.deckReqs(D);
+    if(!reqs||!reqs.length){ this.toast('This deck has no card list saved'); return; }
+    const text=reqs.map(r=>`${r.qty} ${r.name}`).join('\n');
+    const total=reqs.reduce((x,r)=>x+r.qty,0);
+    this.openShare(D.title||'Deck list', total+' cards', text, (D.title||'deck')+' - deck list');
   }
   onImport(e){
     const f=e.target.files&&e.target.files[0]; if(!f)return;
