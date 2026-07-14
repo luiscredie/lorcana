@@ -118,7 +118,7 @@
         </div>
       </header>
 
-      <!-- ============ DECK SWITCHER ============ -->
+      
       <div data-screen-label="Deck switcher" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px;margin-top:26px">
         <sc-for list="{{ deckCards }}" as="d" hint-placeholder-count="3">
           <div onClick="{{ d.onClick }}" style="{{ d.style }}">
@@ -140,7 +140,7 @@
         </button>
       </div>
 
-      <!-- ============ HERO ============ -->
+      
       <div data-screen-label="Hero" style="position:relative;margin:24px 0 26px;padding:34px;border-radius:28px;overflow:hidden;background:linear-gradient(var(--panel),var(--panel)) padding-box, linear-gradient(135deg, rgba(204,120,92,.65), rgba(167,139,250,.5) 35%, rgba(74,222,128,.4) 65%, rgba(204,120,92,.65)) border-box;background-size:100% 100%, 300% 300%;border:1px solid transparent;box-shadow:var(--shadow);backdrop-filter:blur(24px);animation:borderFlow 8s linear infinite">
         <div style="position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,#CC785C,transparent);animation:scanline 4s ease-in-out infinite;pointer-events:none"></div>
         <div style="position:relative;display:grid;grid-template-columns:1fr auto;gap:26px;align-items:center" data-hero-grid="1">
@@ -197,7 +197,7 @@
       </div>
     </div>
 
-    <!-- ============ EMPTY DOSSIER ============ -->
+    
     <sc-if value="{{ showEmpty }}" hint-placeholder-val="{{ false }}">
     <section data-screen-label="Empty dossier" style="padding:18px 0 70px">
       <div style="background:var(--panel);border:1px dashed var(--border-soft);border-radius:20px;padding:44px 28px;text-align:center">
@@ -209,7 +209,7 @@
     </section>
     </sc-if>
 
-    <!-- ============ OVERVIEW ============ -->
+    
     <sc-if value="{{ isOverview }}" hint-placeholder-val="{{ true }}">
     <section data-screen-label="Overview" style="padding:18px 0 70px">
       <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px">
@@ -270,7 +270,7 @@
     </section>
     </sc-if>
 
-    <!-- ============ MATCHUPS ============ -->
+    
     <sc-if value="{{ isMatchups }}" hint-placeholder-val="{{ false }}">
     <section data-screen-label="Matchups" style="padding:18px 0 70px">
       <div style="display:flex;align-items:baseline;gap:14px;margin:6px 0 22px">
@@ -295,7 +295,7 @@
     </section>
     </sc-if>
 
-    <!-- ============ CLOCK ============ -->
+    
     <sc-if value="{{ isClock }}" hint-placeholder-val="{{ false }}">
     <section data-screen-label="Clock" style="padding:18px 0 70px">
       <div style="display:flex;align-items:baseline;gap:14px;margin:6px 0 22px">
@@ -382,7 +382,7 @@
     </section>
     </sc-if>
 
-    <!-- ============ COMBOS ============ -->
+    
     <sc-if value="{{ isCombos }}" hint-placeholder-val="{{ false }}">
     <section data-screen-label="Combos" style="padding:18px 0 70px">
       <div style="display:flex;align-items:baseline;gap:14px;margin:6px 0 22px">
@@ -406,7 +406,7 @@
     </section>
     </sc-if>
 
-    <!-- ============ DECK ============ -->
+    
     <sc-if value="{{ isDeckTab }}" hint-placeholder-val="{{ false }}">
     <section data-screen-label="Deck" style="padding:18px 0 70px">
       <div style="display:flex;align-items:baseline;justify-content:space-between;flex-wrap:wrap;gap:14px;margin:6px 0 22px">
@@ -476,7 +476,7 @@
     </section>
     </sc-if>
 
-    <!-- ============ COLLECTION ============ -->
+    
     <sc-if value="{{ isCollection }}" hint-placeholder-val="{{ false }}">
     <section data-screen-label="Collection" style="padding:18px 0 70px">
       <div style="display:flex;align-items:baseline;gap:14px;margin:6px 0 22px">
@@ -563,7 +563,7 @@
     </section>
     </sc-if>
 
-    <!-- ============ CARD BASE ============ -->
+    
     <sc-if value="{{ isCardBase }}" hint-placeholder-val="{{ false }}">
     <section data-screen-label="Card Base" style="padding:18px 0 70px">
       <div style="display:flex;align-items:baseline;gap:14px;margin:6px 0 22px">
@@ -651,7 +651,7 @@
     </section>
     </sc-if>
 
-    <!-- ============ GAMES ============ -->
+    
     <sc-if value="{{ isGames }}" hint-placeholder-val="{{ false }}">
     <section data-screen-label="Games" style="padding:18px 0 70px">
       <div style="background:linear-gradient(var(--panel),var(--panel)) padding-box, linear-gradient(135deg, rgba(204,120,92,.55), rgba(167,139,250,.4) 35%, rgba(74,222,128,.3) 65%, rgba(204,120,92,.55)) border-box;background-size:100% 100%, 300% 300%;border:1px solid transparent;border-radius:22px;box-shadow:var(--shadow);backdrop-filter:blur(24px);animation:borderFlow 10s linear infinite;padding:24px">
@@ -904,7 +904,7 @@
         </div>
       </div>
 
-      <!-- ===== Board: opponent (top) — hand above table, discard below lore ===== -->
+      
       <div style="margin-top:16px;border:1px solid var(--border-soft);border-radius:16px;background:linear-gradient(160deg, rgba(120,90,200,.08), transparent 60%);padding:14px">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
           <div style="font-family:'Space Mono',monospace;font-size:.62rem;letter-spacing:.12em;text-transform:uppercase;color:var(--text3)">Opponent's hand</div>
@@ -957,7 +957,7 @@
         </div>
       </div>
 
-      <!-- ===== Board: me (bottom) — discard above lore, hand below table ===== -->
+      
       <div style="margin-top:8px;border:1px solid var(--border-soft);border-radius:16px;background:linear-gradient(340deg, rgba(204,120,92,.08), transparent 60%);padding:14px">
         <div style="display:flex;gap:12px;align-items:stretch;margin-bottom:12px">
           <div style="flex:0 0 auto;display:flex;flex-direction:column;align-items:center;gap:8px;justify-content:flex-end;padding-right:12px;border-right:1px solid var(--border-soft)">
@@ -1231,7 +1231,7 @@
 </div>
 
 </x-dc>
-<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1060,&quot;height&quot;:920},&quot;defaultDeck&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;default&quot;:&quot;__all__&quot;,&quot;options&quot;:[&quot;__all__&quot;,&quot;dale&quot;,&quot;woody&quot;,&quot;sid&quot;],&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Behavior&quot;}}">
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1060,&quot;height&quot;:920},&quot;defaultDeck&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;default&quot;:&quot;dale&quot;,&quot;options&quot;:[&quot;dale&quot;,&quot;woody&quot;,&quot;sid&quot;],&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Behavior&quot;}}">
 class Component extends DCLogic {
   state = { ready:false, deck:'dale', tab:'overview', store:null, logText:'', parsed:null, clockSel:null, toast:'', pv:{venue:'',notes:''}, theme:'dark', openDD:null,
     offlineOpen:false, off:{ result:'W', method:'concession', onPlay:'yes', mulligan:'0', myLore:'', oppLore:'', gameTurns:'', firstQuestMyTurn:'', cross10MyTurn:'', archetype:'Other / Unknown', venue:'', notes:'' } };
@@ -1355,7 +1355,7 @@ class Component extends DCLogic {
         accent:'#2F6B44', kickerLine:'Field Dossier · Toy Box Brigade',
         tagline:'Reach for the sky — flood the board, buff the team, quest to infinity and beyond.',
         cards:['Woody','Buzz Lightyear','Jessie','Bullseye','Hamm','Rex','Bo Peep','Sarge','Lenny','Slinky Dog','Grandmother Willow'],
-        hasCombos:false, hasPlaybook:'woody', slotPrefix:'wb',
+        hasCombos:true, hasPlaybook:'woody', slotPrefix:'wb',
         clockNote:'Guide target for go-wide tempo: quest from T2, cross 10 by T5, close by T7–8 before removal stabilizes.',
         muRead:'log a few games and the matchup pages write themselves. Re-tag any game in the Games tab if a guess is off.',
         strategy:'Win condition: flood the board early with cheap Toys, buff wide with Bo Peep/Sarge, and race lore before opponents stabilize. Losses usually come from board wipes or single big blockers that neutralize a wide-but-shallow board — track how often that happens.' },
@@ -1363,7 +1363,7 @@ class Component extends DCLogic {
         accent:'#9F2731', kickerLine:'Field Dossier · Broken Toy Bench',
         tagline:'Toys are not for playing nice — break your own, get paid, rebuild, repeat.',
         cards:['Sid','Babyface','Combat Carl','Mr. Potato Head','Little Green Men','Hamm','Rex','Jessie'],
-        hasCombos:false, hasPlaybook:'sid', slotPrefix:'sid',
+        hasCombos:true, hasPlaybook:'sid', slotPrefix:'sid',
         clockNote:'Guide target: convert each broken toy into tempo — the clock should tick every time the bench does.',
         muRead:'log a few games and the matchup pages write themselves. Re-tag any game in the Games tab if a guess is off.',
         strategy:'Win condition: sacrifice your own Toys for value/removal, rebuild the bench, and grind out an advantage over several turns. Losses usually mean the sac engine got disrupted early or the deck ran out of bodies to break before it found payoff.' }
@@ -1715,7 +1715,7 @@ class Component extends DCLogic {
     lib=lib||this.state.lib||[];
     if(id===this.ALL){
       return { id:this.ALL, hasCombos:false, hasPlaybook:'all', slotPrefix:'all', accent:'#CC785C',
-        title:'All decks', inks:['amber','amethyst'], arch:'Overall performance',
+        title:'All decks', inks:['ruby','emerald'], arch:'Overall performance',
         tagline:'Every expedition across your decks, charted as one combined record.',
         kickerLine:'Field Dossier · Overall',
         clockNote:'Your actual lore-per-turn across every logged game, all decks combined.',
@@ -1983,7 +1983,7 @@ class Component extends DCLogic {
       style:`position:relative;text-align:left;font-family:inherit;cursor:pointer;border-radius:14px;padding:16px 16px 13px;transition:.15s;display:block;width:100%;box-sizing:border-box;${allAct
         ?'background:var(--panel2);border:1px solid #CC785C;box-shadow:0 12px 24px -14px rgba(0,0,0,.5), inset 0 0 0 2px rgba(204,120,92,.2)'
         :'background:var(--panel);border:1px dashed var(--border-soft);box-shadow:none'}`,
-      seal1:this.seal('amber',allAct), seal2:this.seal('amethyst',allAct),
+      seal1:this.seal('ruby',allAct), seal2:this.seal('emerald',allAct),
       kicker:(allAct?'Open · ':'')+'Every deck combined',
       kickerStyle:`font-family:'Space Mono',monospace;font-size:.52rem;letter-spacing:.2em;text-transform:uppercase;display:block;margin:4px 0 3px;color:${allAct?'#CC785C':'var(--text3)'}`,
       title:'All decks',
