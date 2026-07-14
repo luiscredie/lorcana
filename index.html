@@ -474,7 +474,7 @@
                   <i style="width:9px;height:9px;border-radius:50%;background:{{ b.dot }};display:block;flex-shrink:0"></i>
                   <span style="font-size:.76rem;color:var(--text2);width:78px;flex-shrink:0">{{ b.label }}</span>
                   <div style="flex:1;height:8px;background:var(--chip-bg);border-radius:5px;overflow:hidden"><div style="height:100%;border-radius:5px;background:{{ b.dot }};width:{{ b.pct }}%"></div></div>
-                  <span style="font-family:'Space Mono',monospace;font-size:.66rem;color:var(--text3);width:44px;text-align:right;flex-shrink:0">{{ b.n }} · {{ b.pct }}%</span>
+                  <span style="font-family:'Space Mono',monospace;font-size:.66rem;color:var(--text3);width:70px;text-align:right;flex-shrink:0;white-space:nowrap">{{ b.n }} · {{ b.pct }}%</span>
                 </div>
               </sc-for>
             </div>
@@ -486,7 +486,7 @@
                 <div style="display:flex;align-items:center;gap:8px">
                   <span style="font-size:.76rem;color:var(--text2);width:78px;flex-shrink:0">{{ t.label }}</span>
                   <div style="flex:1;height:8px;background:var(--chip-bg);border-radius:5px;overflow:hidden"><div style="height:100%;border-radius:5px;background:#CC785C;width:{{ t.pct }}%"></div></div>
-                  <span style="font-family:'Space Mono',monospace;font-size:.66rem;color:var(--text3);width:44px;text-align:right;flex-shrink:0">{{ t.n }} · {{ t.pct }}%</span>
+                  <span style="font-family:'Space Mono',monospace;font-size:.66rem;color:var(--text3);width:70px;text-align:right;flex-shrink:0;white-space:nowrap">{{ t.n }} · {{ t.pct }}%</span>
                 </div>
               </sc-for>
             </div>
@@ -1348,6 +1348,25 @@
           <!-- Pick mode -->
           <sc-if value="{{ ed.isPick }}" hint-placeholder-val="{{ false }}">
             <input type="text" value="{{ ed.pickQuery }}" onchange="{{ ed.onPickQuery }}" placeholder="Search name or ability text — click ＋ to add a copy…" style="width:100%;box-sizing:border-box;border:1px solid var(--border);border-radius:11px;padding:9px 12px;font-family:inherit;font-size:.84rem;background:var(--panel2);color:var(--text)">
+            <sc-if value="{{ ed.built.hasCards }}" hint-placeholder-val="{{ false }}">
+              <div style="border:1px solid var(--border-soft);background:var(--panel);border-radius:12px;padding:11px 13px">
+                <div style="font-family:'Space Mono',monospace;font-size:.58rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--text3);margin-bottom:8px">In this deck · {{ ed.built.total }} / 60 · {{ ed.built.uniques }} unique</div>
+                <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(58px,1fr));gap:7px">
+                  <sc-for list="{{ ed.built.rows }}" as="d" hint-placeholder-count="8">
+                    <div style="position:relative">
+                      <div style="position:relative;aspect-ratio:5/7;border-radius:7px;border:1px solid var(--border-soft);background:var(--panel2);overflow:hidden">
+                        {{ d.imgEl }}<sc-if value="{{ d.noImg }}" hint-placeholder-val="{{ false }}"><span style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;text-align:center;padding:3px;font-size:.5rem;font-weight:600;color:var(--text2);line-height:1.15">{{ d.name }}</span></sc-if>
+                        <span style="position:absolute;top:-5px;right:-4px;background:#CC785C;color:#fff;font-family:'Space Mono',monospace;font-size:.58rem;font-weight:700;border-radius:999px;padding:1px 6px;box-shadow:0 2px 5px rgba(40,25,10,.4)">×{{ d.qty }}</span>
+                      </div>
+                      <div style="display:flex;align-items:center;justify-content:center;gap:5px;margin-top:3px">
+                        <button onclick="{{ d.onMinus }}" title="Remove a copy" style="width:20px;height:20px;border:1px solid var(--border);border-radius:6px;background:var(--panel2);color:var(--text2);font-family:inherit;font-weight:700;font-size:.8rem;cursor:pointer;line-height:1;padding:0">−</button>
+                        <button onclick="{{ d.onPlus }}" title="Add a copy" style="width:20px;height:20px;border:0;border-radius:6px;background:#CC785C;color:#fff;font-family:inherit;font-weight:700;font-size:.8rem;cursor:pointer;line-height:1;padding:0">＋</button>
+                      </div>
+                    </div>
+                  </sc-for>
+                </div>
+              </div>
+            </sc-if>
             <sc-if value="{{ ed.pick.loading }}" hint-placeholder-val="{{ true }}"><p style="color:var(--text2);font-size:.82rem;margin:4px 0">Loading card database…</p></sc-if>
             <sc-if value="{{ ed.pick.shown }}" hint-placeholder-val="{{ false }}">
               <div style="font-family:'Space Mono',monospace;font-size:.58rem;letter-spacing:.1em;text-transform:uppercase;color:var(--text3)">{{ ed.pick.shown }} of {{ ed.pick.total }} cards</div>
@@ -2082,7 +2101,7 @@ class Component extends DCLogic {
       if(!m){ unknown+=q; return; }
       const cost=m.c!=null?m.c:null;
       if(cost!=null){ const b=cost>=7?7:cost; curve[b]=(curve[b]||0)+q; costed+=q; costSum+=cost*q; }
-      const ink=((m.i||'').split(/[\s,\/]+/)[0]||'').trim(); if(ink) inkCounts[ink]=(inkCounts[ink]||0)+q;
+      const ink=((m.i||'').split(/[\s,\/]+/)[0]||'').trim().toLowerCase(); if(ink) inkCounts[ink]=(inkCounts[ink]||0)+q;
       let t=(m.t||'Other').trim();
       if(/song/i.test((m.cl||'')+' '+(m.tags||'')+' '+t)) t='Song';
       else if(/character/i.test(t)) t='Character';
@@ -2094,6 +2113,18 @@ class Component extends DCLogic {
     return {total, unknown, curve, inkCounts, typeCounts, costed, avgCost: costed? (costSum/costed):0};
   }
   edTabStyle(on){ return `flex:1;border:0;border-radius:9px;padding:8px 12px;font-family:inherit;font-weight:700;font-size:.8rem;cursor:pointer;transition:.15s;background:${on?'#CC785C':'transparent'};color:${on?'#fff':'var(--text2)'}`; }
+  edCurrentDeck(){
+    const {map, order}=this.edDeckMap();
+    const db=this.cardDb();
+    const rows=order.filter(k=>map[k].qty>0).map(k=>{
+      const nm=map[k].name, m=db[k], im=this.imgUrl(nm);
+      return { key:k, name:nm, qty:map[k].qty, cost:(m&&m.c!=null)?m.c:99,
+        imgEl:this.imgEl(im,nm,{borderRadius:'7px'}), noImg:!im,
+        onPlus:()=>this.edBumpCard(nm,1), onMinus:()=>this.edBumpCard(nm,-1) };
+    }).sort((a,b)=> a.cost-b.cost || a.name.localeCompare(b.name));
+    const total=rows.reduce((x,r)=>x+r.qty,0);
+    return { rows, total, uniques:rows.length, hasCards:rows.length>0 };
+  }
   edBumpCard(name, d){
     if(!name) return;
     const {map, order}=this.edDeckMap(); const k=this.colKey(name);
@@ -2109,7 +2140,7 @@ class Component extends DCLogic {
       const e=map[k]; total+=e.qty;
       const m=db[k];
       if(!m){ if(dbLoaded){ unknownN+=e.qty; unknown.push(e.name); } return; }
-      const ink=((m.i||'').split(/[\s,\/]+/)[0]||'').trim();
+      const ink=((m.i||'').split(/[\s,\/]+/)[0]||'').trim().toLowerCase();
       if(ink) inkCounts[ink]=(inkCounts[ink]||0)+e.qty;
     });
     return {total, uniques:order.length, unknownN, unknown, inkCounts, dbLoaded};
@@ -3110,6 +3141,7 @@ class Component extends DCLogic {
               };
             })(),
             pick:this.edPickResults(),
+            built:this.edCurrentDeck(),
             full:!!s.editor.full,
             fullLabel:s.editor.full?'⤢ Exit':'⤢ Fullscreen',
             fullTitle:s.editor.full?'Shrink to a window':'Expand to fullscreen',
