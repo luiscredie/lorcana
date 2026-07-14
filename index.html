@@ -118,7 +118,7 @@
         </div>
       </header>
 
-      
+      <!-- ============ DECK SWITCHER ============ -->
       <div data-screen-label="Deck switcher" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px;margin-top:26px">
         <sc-for list="{{ deckCards }}" as="d" hint-placeholder-count="3">
           <div onClick="{{ d.onClick }}" style="{{ d.style }}">
@@ -126,7 +126,7 @@
               <i style="{{ d.seal1 }}"></i>
               <i style="{{ d.seal2 }}"></i>
             </span>
-            <sc-if value="{{ d.active }}" hint-placeholder-val="{{ false }}">
+            <sc-if value="{{ d.editable }}" hint-placeholder-val="{{ false }}">
               <button onclick="{{ d.onEdit }}" style="position:absolute;top:10px;right:12px;border:1px solid var(--border);background:var(--panel2);color:var(--text2);border-radius:8px;padding:3px 9px;font-family:'Space Mono',monospace;font-size:.56rem;letter-spacing:.1em;text-transform:uppercase;cursor:pointer">✎ Edit</button>
             </sc-if>
             <span style="{{ d.kickerStyle }}">{{ d.kicker }}</span>
@@ -140,7 +140,7 @@
         </button>
       </div>
 
-      
+      <!-- ============ HERO ============ -->
       <div data-screen-label="Hero" style="position:relative;margin:24px 0 26px;padding:34px;border-radius:28px;overflow:hidden;background:linear-gradient(var(--panel),var(--panel)) padding-box, linear-gradient(135deg, rgba(204,120,92,.65), rgba(167,139,250,.5) 35%, rgba(74,222,128,.4) 65%, rgba(204,120,92,.65)) border-box;background-size:100% 100%, 300% 300%;border:1px solid transparent;box-shadow:var(--shadow);backdrop-filter:blur(24px);animation:borderFlow 8s linear infinite">
         <div style="position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,#CC785C,transparent);animation:scanline 4s ease-in-out infinite;pointer-events:none"></div>
         <div style="position:relative;display:grid;grid-template-columns:1fr auto;gap:26px;align-items:center" data-hero-grid="1">
@@ -168,6 +168,7 @@
           </div>
         </div>
 
+        <sc-if value="{{ showHeroFrames }}" hint-placeholder-val="{{ true }}">
         <div style="position:relative;display:flex;justify-content:center;align-items:flex-end;margin-top:30px;min-height:225px">
           <sc-for list="{{ heroFrames }}" as="f" hint-placeholder-count="3">
             <div style="{{ f.wrapStyle }}">
@@ -180,6 +181,7 @@
           </sc-for>
         </div>
         <div style="font-family:'Space Mono',monospace;font-size:.62rem;letter-spacing:.14em;text-transform:uppercase;color:var(--text3);margin-top:14px;text-align:center">Click a frame to pick card art from this deck's list</div>
+        </sc-if>
       </div>
     </div>
   </div>
@@ -195,7 +197,7 @@
       </div>
     </div>
 
-    
+    <!-- ============ EMPTY DOSSIER ============ -->
     <sc-if value="{{ showEmpty }}" hint-placeholder-val="{{ false }}">
     <section data-screen-label="Empty dossier" style="padding:18px 0 70px">
       <div style="background:var(--panel);border:1px dashed var(--border-soft);border-radius:20px;padding:44px 28px;text-align:center">
@@ -207,7 +209,7 @@
     </section>
     </sc-if>
 
-    
+    <!-- ============ OVERVIEW ============ -->
     <sc-if value="{{ isOverview }}" hint-placeholder-val="{{ true }}">
     <section data-screen-label="Overview" style="padding:18px 0 70px">
       <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px">
@@ -268,7 +270,7 @@
     </section>
     </sc-if>
 
-    
+    <!-- ============ MATCHUPS ============ -->
     <sc-if value="{{ isMatchups }}" hint-placeholder-val="{{ false }}">
     <section data-screen-label="Matchups" style="padding:18px 0 70px">
       <div style="display:flex;align-items:baseline;gap:14px;margin:6px 0 22px">
@@ -293,7 +295,7 @@
     </section>
     </sc-if>
 
-    
+    <!-- ============ CLOCK ============ -->
     <sc-if value="{{ isClock }}" hint-placeholder-val="{{ false }}">
     <section data-screen-label="Clock" style="padding:18px 0 70px">
       <div style="display:flex;align-items:baseline;gap:14px;margin:6px 0 22px">
@@ -380,7 +382,7 @@
     </section>
     </sc-if>
 
-    
+    <!-- ============ COMBOS ============ -->
     <sc-if value="{{ isCombos }}" hint-placeholder-val="{{ false }}">
     <section data-screen-label="Combos" style="padding:18px 0 70px">
       <div style="display:flex;align-items:baseline;gap:14px;margin:6px 0 22px">
@@ -404,7 +406,7 @@
     </section>
     </sc-if>
 
-    
+    <!-- ============ DECK ============ -->
     <sc-if value="{{ isDeckTab }}" hint-placeholder-val="{{ false }}">
     <section data-screen-label="Deck" style="padding:18px 0 70px">
       <div style="display:flex;align-items:baseline;justify-content:space-between;flex-wrap:wrap;gap:14px;margin:6px 0 22px">
@@ -474,7 +476,7 @@
     </section>
     </sc-if>
 
-    
+    <!-- ============ COLLECTION ============ -->
     <sc-if value="{{ isCollection }}" hint-placeholder-val="{{ false }}">
     <section data-screen-label="Collection" style="padding:18px 0 70px">
       <div style="display:flex;align-items:baseline;gap:14px;margin:6px 0 22px">
@@ -561,7 +563,7 @@
     </section>
     </sc-if>
 
-    
+    <!-- ============ CARD BASE ============ -->
     <sc-if value="{{ isCardBase }}" hint-placeholder-val="{{ false }}">
     <section data-screen-label="Card Base" style="padding:18px 0 70px">
       <div style="display:flex;align-items:baseline;gap:14px;margin:6px 0 22px">
@@ -649,7 +651,7 @@
     </section>
     </sc-if>
 
-    
+    <!-- ============ GAMES ============ -->
     <sc-if value="{{ isGames }}" hint-placeholder-val="{{ false }}">
     <section data-screen-label="Games" style="padding:18px 0 70px">
       <div style="background:linear-gradient(var(--panel),var(--panel)) padding-box, linear-gradient(135deg, rgba(204,120,92,.55), rgba(167,139,250,.4) 35%, rgba(74,222,128,.3) 65%, rgba(204,120,92,.55)) border-box;background-size:100% 100%, 300% 300%;border:1px solid transparent;border-radius:22px;box-shadow:var(--shadow);backdrop-filter:blur(24px);animation:borderFlow 10s linear infinite;padding:24px">
@@ -902,7 +904,7 @@
         </div>
       </div>
 
-      
+      <!-- ===== Board: opponent (top) — hand above table, discard below lore ===== -->
       <div style="margin-top:16px;border:1px solid var(--border-soft);border-radius:16px;background:linear-gradient(160deg, rgba(120,90,200,.08), transparent 60%);padding:14px">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
           <div style="font-family:'Space Mono',monospace;font-size:.62rem;letter-spacing:.12em;text-transform:uppercase;color:var(--text3)">Opponent's hand</div>
@@ -955,7 +957,7 @@
         </div>
       </div>
 
-      
+      <!-- ===== Board: me (bottom) — discard above lore, hand below table ===== -->
       <div style="margin-top:8px;border:1px solid var(--border-soft);border-radius:16px;background:linear-gradient(340deg, rgba(204,120,92,.08), transparent 60%);padding:14px">
         <div style="display:flex;gap:12px;align-items:stretch;margin-bottom:12px">
           <div style="flex:0 0 auto;display:flex;flex-direction:column;align-items:center;gap:8px;justify-content:flex-end;padding-right:12px;border-right:1px solid var(--border-soft)">
@@ -1229,10 +1231,11 @@
 </div>
 
 </x-dc>
-<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1060,&quot;height&quot;:920},&quot;defaultDeck&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;default&quot;:&quot;dale&quot;,&quot;options&quot;:[&quot;dale&quot;,&quot;woody&quot;,&quot;sid&quot;],&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Behavior&quot;}}">
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1060,&quot;height&quot;:920},&quot;defaultDeck&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;default&quot;:&quot;__all__&quot;,&quot;options&quot;:[&quot;__all__&quot;,&quot;dale&quot;,&quot;woody&quot;,&quot;sid&quot;],&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Behavior&quot;}}">
 class Component extends DCLogic {
   state = { ready:false, deck:'dale', tab:'overview', store:null, logText:'', parsed:null, clockSel:null, toast:'', pv:{venue:'',notes:''}, theme:'dark', openDD:null,
     offlineOpen:false, off:{ result:'W', method:'concession', onPlay:'yes', mulligan:'0', myLore:'', oppLore:'', gameTurns:'', firstQuestMyTurn:'', cross10MyTurn:'', archetype:'Other / Unknown', venue:'', notes:'' } };
+  ALL='__all__';
   THEMES={
     dark:"--bg:#0B0D10;--panel:rgba(17,18,22,.86);--panel2:rgba(255,255,255,.075);--border:rgba(255,255,255,.09);--border-soft:rgba(255,255,255,.15);--text:#F3F1ED;--text2:#ABA59B;--text3:#847E72;--nav-bg:rgba(255,255,255,.05);--chip-bg:rgba(255,255,255,.08);--shadow:0 1px 0 rgba(255,255,255,.04) inset, 0 24px 48px -24px rgba(0,0,0,.65);--sticky-bg:rgba(11,13,16,.78);--hero-glow:radial-gradient(940px 420px at 50% -160px, rgba(204,120,92,.18), transparent 70%), radial-gradient(760px 360px at 88% -120px, rgba(200,146,15,.09), transparent 66%);",
     light:"--bg:#F3F1EC;--panel:#FFFFFF;--panel2:#FAF9F6;--border:#E6E2D8;--border-soft:#EDE9DE;--text:#1B1712;--text2:#5C5648;--text3:#8B8579;--nav-bg:#ECE7DA;--chip-bg:#EFEBDF;--shadow:0 1px 2px rgba(20,15,5,.04),0 18px 38px -24px rgba(20,15,5,.14);--sticky-bg:rgba(243,241,236,.82);--hero-glow:radial-gradient(940px 420px at 50% -160px, rgba(204,120,92,.14), transparent 70%), radial-gradient(760px 360px at 88% -120px, rgba(200,146,15,.11), transparent 66%);"
@@ -1406,9 +1409,9 @@ class Component extends DCLogic {
     // Backfill Dale's default deck list into an already-saved library
     const dl=lib.find(d=>d.id==='dale');
     if(dl&&(!dl.cards||!dl.cards.length)){ dl.cards=this.DECKS.dale.cards.slice(); this.persistLib(lib); }
-    let deck=this.props.defaultDeck??'dale', tab='overview';
+    let deck=this.props.defaultDeck??this.ALL, tab='overview';
     try{ deck=localStorage.getItem(this.DKEY)||deck; }catch(e){}
-    if(!lib.find(d=>d.id===deck)) deck=lib[0].id;
+    if(deck!==this.ALL && !lib.find(d=>d.id===deck)) deck=lib[0].id;
     try{ tab=localStorage.getItem(this.TKEY)||'overview'; }catch(e){}
     if(!this.tabAllowed(tab,deck,lib)) tab='overview';
     if(tab==='cardbase') this.ensureCardDb();
@@ -1704,11 +1707,21 @@ class Component extends DCLogic {
   tabAllowed(tab,deck,lib){
     const d=this.getDeck(deck,lib);
     if(tab==='combos'&&!d.hasCombos) return false;
+    if(deck===this.ALL && (tab==='games'||tab==='deck'||tab==='combos')) return false;
     return ['overview','matchups','clock','combos','games','deck','collection'].includes(tab);
   }
   persistLib(lib){ try{ localStorage.setItem(this.LKEY, JSON.stringify(lib)); }catch(e){} this.queueSync(); }
   getDeck(id, lib){
     lib=lib||this.state.lib||[];
+    if(id===this.ALL){
+      return { id:this.ALL, hasCombos:false, hasPlaybook:'all', slotPrefix:'all', accent:'#CC785C',
+        title:'All decks', inks:['amber','amethyst'], arch:'Overall performance',
+        tagline:'Every expedition across your decks, charted as one combined record.',
+        kickerLine:'Field Dossier · Overall',
+        clockNote:'Your actual lore-per-turn across every logged game, all decks combined.',
+        muRead:'a combined matchup read across all your decks — switch to a single deck for deck-specific coaching.',
+        cards:null, heroArts:null, strategy:'' };
+    }
     const e=lib.find(d=>d.id===id)||{};
     const b=this.DECKS[id];
     const inks=(e.inks&&e.inks.length===2)?e.inks:(b?b.inks:['amber','ruby']);
@@ -1899,7 +1912,12 @@ class Component extends DCLogic {
     this.setState({deck:id, tab, parsed:null, logText:'', clockSel:null});
     try{ localStorage.setItem(this.DKEY,id); localStorage.setItem(this.TKEY,tab); }catch(e){}
   }
-  games(deckId){ return (this.state.store&&this.state.store[deckId||this.state.deck])||[]; }
+  games(deckId){
+    const id=deckId||this.state.deck;
+    const st=this.state.store||{};
+    if(id===this.ALL) return (this.state.lib||[]).reduce((acc,d)=>acc.concat(st[d.id]||[]),[]);
+    return st[id]||[];
+  }
   setGames(games){ const store={...this.state.store,[this.state.deck]:games}; this.persist(store); this.setState({store}); }
 
   pct(n,d){ return d? Math.round(100*n/d):0; }
@@ -1943,7 +1961,7 @@ class Component extends DCLogic {
       const dd=this.getDeck(id), gg=this.games(id), aa=this.agg(gg), act=id===s.deck;
       const pair=dd.inks.map(k=>this.INKS[k].name).join(' / ');
       return {
-        active:act,
+        active:act, editable:act,
         onClick:()=>this.setDeck(id),
         onEdit:(e)=>{ e.stopPropagation(); this.requireAdmin(()=>this.openEditor(id))(); },
         style:`position:relative;text-align:left;font-family:inherit;cursor:pointer;border-radius:14px;padding:16px 16px 13px;transition:.15s;display:block;width:100%;box-sizing:border-box;${act
@@ -1956,6 +1974,21 @@ class Component extends DCLogic {
         titleStyle:`font-family:'Chakra Petch',sans-serif;font-weight:600;font-size:${act?'1.05rem':'.98rem'};line-height:1.15;display:block;color:${act?'var(--text)':'var(--text2)'}`,
         recordLine: aa.n? `${aa.w}–${aa.l} · ${aa.wr}% · ${aa.n} exp.` : 'No games filed yet'
       };
+    });
+    const allAct=s.deck===this.ALL, allAgg=this.agg(this.games(this.ALL));
+    deckCards.unshift({
+      active:allAct, editable:false,
+      onClick:()=>this.setDeck(this.ALL),
+      onEdit:()=>{},
+      style:`position:relative;text-align:left;font-family:inherit;cursor:pointer;border-radius:14px;padding:16px 16px 13px;transition:.15s;display:block;width:100%;box-sizing:border-box;${allAct
+        ?'background:var(--panel2);border:1px solid #CC785C;box-shadow:0 12px 24px -14px rgba(0,0,0,.5), inset 0 0 0 2px rgba(204,120,92,.2)'
+        :'background:var(--panel);border:1px dashed var(--border-soft);box-shadow:none'}`,
+      seal1:this.seal('amber',allAct), seal2:this.seal('amethyst',allAct),
+      kicker:(allAct?'Open · ':'')+'Every deck combined',
+      kickerStyle:`font-family:'Space Mono',monospace;font-size:.52rem;letter-spacing:.2em;text-transform:uppercase;display:block;margin:4px 0 3px;color:${allAct?'#CC785C':'var(--text3)'}`,
+      title:'All decks',
+      titleStyle:`font-family:'Chakra Petch',sans-serif;font-weight:600;font-size:${allAct?'1.05rem':'.98rem'};line-height:1.15;display:block;color:${allAct?'var(--text)':'var(--text2)'}`,
+      recordLine: allAgg.n? `${allAgg.w}–${allAgg.l} · ${allAgg.wr}% · ${allAgg.n} exp.` : 'No games filed yet'
     });
 
     // hero
@@ -1971,9 +2004,11 @@ class Component extends DCLogic {
       w:a.w, l:a.l, sub:a.n? `${a.wr}% win rate · ${a.n} games`:'no games yet' };
 
     // tabs
+    const isAll=s.deck===this.ALL;
     const defs=[['overview','Overview'],['matchups','Matchups'],['clock','Clock']];
     if(D.hasCombos) defs.push(['combos','Combos']);
-    defs.push(['games','Games'],['deck','Deck'],['collection','Collection'],['cardbase','Card Base']);
+    if(!isAll) defs.push(['games','Games'],['deck','Deck']);
+    defs.push(['collection','Collection'],['cardbase','Card Base']);
     const tabs=defs.map(([key,label])=>({key,label,onClick:()=>this.setTab(key),
       style:`flex:1;min-width:84px;border:0;border-radius:11px;padding:9px 12px;font-family:inherit;font-weight:600;font-size:.82rem;cursor:pointer;white-space:nowrap;transition:.15s;background:${s.tab===key?'#CC785C':'transparent'};color:${s.tab===key?'#fff':'var(--text2)'};box-shadow:${s.tab===key?'0 4px 16px -4px rgba(204,120,92,.6)':'none'}`}));
 
@@ -2528,6 +2563,7 @@ class Component extends DCLogic {
       ring,
       heroPrefix:D.slotPrefix||s.deck,
       isDaleDeck:s.deck==='dale',
+      showHeroFrames:s.deck!==this.ALL,
       showEmpty,
       isOverview:s.tab==='overview'&&!showEmpty, isMatchups:s.tab==='matchups'&&!showEmpty,
       isClock:s.tab==='clock'&&!showEmpty, isCombos:s.tab==='combos'&&!showEmpty,
