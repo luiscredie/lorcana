@@ -1169,11 +1169,85 @@
         <label style="display:flex;flex-direction:column;gap:6px;font-size:.74rem;color:var(--text2);font-weight:600">Deck strategy — your win/loss conditions, shown as a reminder while you log games
           <textarea value="{{ ed.strategy }}" onchange="{{ ed.onStrategy }}" placeholder="e.g. Win by grinding board trades then racing lore in the last 2 turns. Losses usually come from flooding out or falling behind on the clock early." style="width:100%;min-height:90px;border:1px solid var(--border);border-radius:11px;padding:10px 12px;font-family:inherit;font-size:.86rem;line-height:1.5;resize:vertical;background:var(--panel2);color:var(--text)"></textarea>
         </label>
-        <label style="display:flex;flex-direction:column;gap:6px;font-size:.74rem;color:var(--text2);font-weight:600">Deck list — one card per line, count first ("4 Card Name" or "4x Card Name") — used by the log parser and the catalogue
-          <textarea value="{{ ed.cards }}" onchange="{{ ed.onCards }}" placeholder="4 Dale - Ready for His Shot
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap">
+            <span style="font-size:.74rem;color:var(--text2);font-weight:600">Deck list</span>
+            <span style="display:flex;gap:3px;background:var(--chip-bg);border-radius:11px;padding:3px;min-width:210px">
+              <button onclick="{{ ed.onPasteMode }}" style="{{ ed.pasteTabStyle }}">Paste list</button>
+              <button onclick="{{ ed.onPickMode }}" style="{{ ed.pickTabStyle }}">Pick from card base</button>
+            </span>
+          </div>
+
+          <!-- Live summary (both modes) -->
+          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px">
+            <div style="border:1px solid var(--border);border-radius:12px;padding:10px 12px;background:var(--panel)">
+              <div style="font-family:'Space Mono',monospace;font-size:.56rem;letter-spacing:.16em;text-transform:uppercase;color:var(--text3);margin-bottom:3px">Cards</div>
+              <div style="font-family:'Chakra Petch',sans-serif;font-weight:600;font-size:1.05rem;color:{{ ed.anCountColor }}">{{ ed.anCountLabel }}</div>
+              <div style="font-size:.66rem;color:var(--text3);margin-top:1px">{{ ed.anCountNote }} · {{ ed.anUniques }} unique</div>
+            </div>
+            <div style="border:1px solid var(--border);border-radius:12px;padding:10px 12px;background:var(--panel)">
+              <div style="font-family:'Space Mono',monospace;font-size:.56rem;letter-spacing:.16em;text-transform:uppercase;color:var(--text3);margin-bottom:5px">Ink balance</div>
+              <sc-if value="{{ ed.hasList }}" hint-placeholder-val="{{ false }}">
+                <div style="display:flex;flex-direction:column;gap:3px">
+                  <sc-for list="{{ ed.anInkBars }}" as="bb" hint-placeholder-count="2">
+                    <div style="display:flex;align-items:center;gap:6px">
+                      <i style="width:8px;height:8px;border-radius:50%;background:{{ bb.dot }};display:block"></i>
+                      <span style="font-size:.68rem;color:var(--text2);flex:1">{{ bb.label }}</span>
+                      <span style="font-family:'Space Mono',monospace;font-size:.66rem;color:var(--text3)">{{ bb.count }}</span>
+                    </div>
+                  </sc-for>
+                </div>
+                <button onclick="{{ ed.onDetectInks }}" style="margin-top:7px;border:1px solid var(--border);border-radius:8px;padding:5px 10px;font-family:inherit;font-weight:600;font-size:.66rem;cursor:pointer;background:var(--panel2);color:var(--text2)">Set deck inks from list</button>
+              </sc-if>
+              <sc-if value="{{ ed.anDbLoading }}" hint-placeholder-val="{{ false }}"><div style="font-size:.66rem;color:var(--text3)">Loading card data…</div></sc-if>
+            </div>
+            <div style="border:1px solid var(--border);border-radius:12px;padding:10px 12px;background:var(--panel)">
+              <div style="font-family:'Space Mono',monospace;font-size:.56rem;letter-spacing:.16em;text-transform:uppercase;color:var(--text3);margin-bottom:3px">Buildable from collection</div>
+              <div style="font-family:'Chakra Petch',sans-serif;font-weight:600;font-size:1.05rem;color:{{ ed.bldColor }}">{{ ed.bldLabel }}</div>
+              <div style="height:5px;border-radius:999px;background:var(--chip-bg);margin:6px 0 4px;overflow:hidden"><span style="display:block;height:100%;width:{{ ed.bldPct }}%;background:{{ ed.bldColor }}"></span></div>
+              <div style="font-size:.66rem;color:var(--text3)">{{ ed.bldMissLabel }}</div>
+            </div>
+          </div>
+          <sc-if value="{{ ed.anHasUnknown }}" hint-placeholder-val="{{ false }}">
+            <div style="border:1px solid #E9C46A;background:#FBF1D6;border-radius:11px;padding:8px 12px;font-size:.72rem;color:#8a5a12;line-height:1.45"><b>Not found in card base:</b> {{ ed.anUnknownLabel }} — check spelling, or these may be from a set that isn't loaded.</div>
+          </sc-if>
+
+          <!-- Paste mode -->
+          <sc-if value="{{ ed.isPaste }}" hint-placeholder-val="{{ true }}">
+            <textarea value="{{ ed.cards }}" onchange="{{ ed.onCards }}" placeholder="4 Dale - Ready for His Shot
 4 Mulan - Elite Archer
-…" style="border:1px solid var(--border);border-radius:11px;padding:10px 12px;font-family:'Space Mono',monospace;font-size:.74rem;line-height:1.5;min-height:120px;resize:vertical;background:var(--panel2);color:var(--text)"></textarea>
-        </label>
+…" style="border:1px solid var(--border);border-radius:11px;padding:10px 12px;font-family:'Space Mono',monospace;font-size:.74rem;line-height:1.5;min-height:150px;resize:vertical;background:var(--panel2);color:var(--text)"></textarea>
+            <span style="font-size:.66rem;color:var(--text3)">One card per line, count first ("4 Card Name" or "4x Card Name"). This list feeds the log parser and the catalogue.</span>
+          </sc-if>
+
+          <!-- Pick mode -->
+          <sc-if value="{{ ed.isPick }}" hint-placeholder-val="{{ false }}">
+            <input type="text" value="{{ ed.pickQuery }}" onchange="{{ ed.onPickQuery }}" placeholder="Search name or ability text — click ＋ to add a copy…" style="width:100%;box-sizing:border-box;border:1px solid var(--border);border-radius:11px;padding:9px 12px;font-family:inherit;font-size:.84rem;background:var(--panel2);color:var(--text)">
+            <sc-if value="{{ ed.pick.loading }}" hint-placeholder-val="{{ true }}"><p style="color:var(--text2);font-size:.82rem;margin:4px 0">Loading card database…</p></sc-if>
+            <sc-if value="{{ ed.pick.shown }}" hint-placeholder-val="{{ false }}">
+              <div style="font-family:'Space Mono',monospace;font-size:.58rem;letter-spacing:.1em;text-transform:uppercase;color:var(--text3)">{{ ed.pick.shown }} of {{ ed.pick.total }} cards</div>
+              <div style="max-height:360px;overflow:auto;padding-right:4px;display:grid;grid-template-columns:repeat(auto-fill,minmax(118px,1fr));gap:10px;margin-top:6px">
+                <sc-for list="{{ ed.pick.cards }}" as="r" hint-placeholder-count="8">
+                  <div>
+                    <div onClick="{{ r.onZoom }}" style="position:relative;aspect-ratio:5/7;border-radius:10px;border:1px solid var(--border-soft);background:var(--panel2);cursor:pointer;overflow:hidden">
+                      {{ r.imgEl }}<sc-if value="{{ r.noImg }}" hint-placeholder-val="{{ false }}"><span style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;text-align:center;padding:6px;font-size:.6rem;font-weight:600;color:var(--text2);line-height:1.25">{{ r.name }}</span></sc-if>
+                      <sc-if value="{{ r.inDeck }}" hint-placeholder-val="{{ false }}"><span style="position:absolute;top:-6px;right:-5px;background:#CC785C;color:#fff;font-family:'Space Mono',monospace;font-size:.62rem;font-weight:700;border-radius:999px;padding:2px 7px;box-shadow:0 3px 7px rgba(40,25,10,.35)">{{ r.inDeckLabel }}</span></sc-if>
+                    </div>
+                    <div style="font-weight:600;font-size:.68rem;line-height:1.2;margin-top:5px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">{{ r.name }}</div>
+                    <div style="font-size:.58rem;margin-top:2px;color:{{ r.ownedColor }}">{{ r.ownedLabel }}</div>
+                    <div style="display:flex;align-items:center;justify-content:center;gap:8px;margin-top:5px">
+                      <button onclick="{{ r.onMinus }}" title="Remove a copy" style="width:26px;height:26px;border:1px solid var(--border);border-radius:8px;background:var(--panel2);color:var(--text2);font-family:inherit;font-weight:700;font-size:.95rem;cursor:pointer;line-height:1">−</button>
+                      <span style="font-family:'Space Mono',monospace;font-size:.74rem;font-weight:700;min-width:26px;text-align:center;font-variant-numeric:tabular-nums;color:{{ r.inDeckColor }}">{{ r.inDeckLabel }}</span>
+                      <button onclick="{{ r.onPlus }}" title="Add a copy" style="width:26px;height:26px;border:0;border-radius:8px;background:#CC785C;color:#fff;font-family:inherit;font-weight:700;font-size:.95rem;cursor:pointer;line-height:1">＋</button>
+                    </div>
+                  </div>
+                </sc-for>
+              </div>
+              <sc-if value="{{ ed.pick.capped }}" hint-placeholder-val="{{ false }}"><span style="font-size:.64rem;color:var(--text3)">Showing the first {{ ed.pick.shown }} — search to narrow.</span></sc-if>
+            </sc-if>
+            <button onclick="{{ ed.onClearList }}" style="align-self:flex-start;border:0;background:transparent;color:#B3232C;font-family:inherit;font-weight:600;font-size:.72rem;padding:2px 0;cursor:pointer">Clear deck list</button>
+          </sc-if>
+        </div>
       </div>
       <div style="display:flex;gap:10px;align-items:center;margin-top:20px;flex-wrap:wrap">
         <button onclick="{{ onEditorSave }}" style="border:0;border-radius:12px;padding:11px 20px;font-family:inherit;font-weight:700;font-size:.85rem;cursor:pointer;background:#CC785C;color:#fff">{{ ed.saveLabel }}</button>
@@ -1749,11 +1823,12 @@ class Component extends DCLogic {
   }
   openEditor(id){
     const lib=this.state.lib||[];
+    this.ensureCardDb();
     if(id){
       const d=this.getDeck(id);
-      this.setState({editor:{isNew:false,id,title:d.title,ink1:d.inks[0],ink2:d.inks[1],arch:d.arch,tagline:d.tagline,cards:(d.cards||[]).join('\n'),strategy:d.strategy||'',canDelete:lib.length>1}});
+      this.setState({editor:{isNew:false,id,title:d.title,ink1:d.inks[0],ink2:d.inks[1],arch:d.arch,tagline:d.tagline,cards:(d.cards||[]).join('\n'),strategy:d.strategy||'',heroArts:(d.heroArts||[]),mode:'paste',pickQuery:'',canDelete:lib.length>1}});
     } else {
-      this.setState({editor:{isNew:true,id:null,title:'',ink1:'amber',ink2:'ruby',arch:'',tagline:'',cards:'',strategy:'',canDelete:false}});
+      this.setState({editor:{isNew:true,id:null,title:'',ink1:'amber',ink2:'ruby',arch:'',tagline:'',cards:'',strategy:'',heroArts:[],mode:'paste',pickQuery:'',canDelete:false}});
     }
   }
   edField(k,v){ this.setState({editor:{...this.state.editor,[k]:v}}); }
@@ -1763,7 +1838,19 @@ class Component extends DCLogic {
     if(!title){ this.toast('Give the deck a name'); return; }
     const cards=(ed.cards||'').split('\n').map(x=>x.trim()).filter(Boolean);
     let lib=(this.state.lib||[]).slice();
-    const entry={ title, inks:[ed.ink1,ed.ink2], arch:(ed.arch||'').trim(), tagline:(ed.tagline||'').trim(), strategy:(ed.strategy||'').trim(), cards:cards.length?cards:null, mtime:new Date().toISOString() };
+    let heroArts=(ed.heroArts&&ed.heroArts.length)?ed.heroArts.slice(0,3):null;
+    if(!heroArts){
+      const db=this.cardDb();
+      if(Object.keys(db).length){
+        const scored=cards.map(l=>{ const r=this.parseReq(l); const m=db[this.colKey(r.name)]; return m?{name:r.name, cost:(m.c!=null?m.c:-1), t:m.t}:null; })
+          .filter(x=>x && /character/i.test(x.t||''));
+        scored.sort((a,b)=>b.cost-a.cost);
+        const picks=[]; const seen={};
+        scored.forEach(x=>{ const k=this.colKey(x.name); if(!seen[k]&&picks.length<3){ seen[k]=1; picks.push(x.name); } });
+        if(picks.length) heroArts=picks;
+      }
+    }
+    const entry={ title, inks:[ed.ink1,ed.ink2], arch:(ed.arch||'').trim(), tagline:(ed.tagline||'').trim(), strategy:(ed.strategy||'').trim(), cards:cards.length?cards:null, heroArts:heroArts&&heroArts.length?heroArts:null, mtime:new Date().toISOString() };
     let id=ed.id;
     if(ed.isNew){
       id='d'+Math.random().toString(36).slice(2,8);
@@ -1795,6 +1882,80 @@ class Component extends DCLogic {
     this.toast('Deck removed');
   }
   colKey(n){ return String(n||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[\u2018\u2019\u02BC]/g,"'").replace(/[\\/:*?"<>|]/g,'').replace(/\s+/g,' ').trim().replace(/4\s*-?\s*town\b/g,'4town'); }
+  // ---------- Visual deck builder (editor) ----------
+  edDeckMap(){
+    const map={}, order=[];
+    ((this.state.editor&&this.state.editor.cards)||'').split('\n').forEach(line=>{
+      const t=line.trim(); if(!t) return;
+      const r=this.parseReq(t); const k=this.colKey(r.name);
+      if(!map[k]){ map[k]={name:r.name, qty:0}; order.push(k); }
+      map[k].qty+=r.qty;
+    });
+    return {map, order};
+  }
+  edDeckText(map, order){ return order.filter(k=>map[k].qty>0).map(k=>`${map[k].qty} ${map[k].name}`).join('\n'); }
+  edTabStyle(on){ return `flex:1;border:0;border-radius:9px;padding:8px 12px;font-family:inherit;font-weight:700;font-size:.8rem;cursor:pointer;transition:.15s;background:${on?'#CC785C':'transparent'};color:${on?'#fff':'var(--text2)'}`; }
+  edBumpCard(name, d){
+    if(!name) return;
+    const {map, order}=this.edDeckMap(); const k=this.colKey(name);
+    if(!map[k]){ if(d<0) return; map[k]={name, qty:0}; order.push(k); }
+    map[k].qty=Math.max(0, Math.min(4, map[k].qty+d));
+    this.edField('cards', this.edDeckText(map, order));
+  }
+  edAnalysis(){
+    const {map, order}=this.edDeckMap();
+    const db=this.cardDb(); const dbLoaded=Object.keys(db).length>0;
+    let total=0, unknownN=0; const unknown=[], inkCounts={};
+    order.forEach(k=>{
+      const e=map[k]; total+=e.qty;
+      const m=db[k];
+      if(!m){ if(dbLoaded){ unknownN+=e.qty; unknown.push(e.name); } return; }
+      const ink=((m.i||'').split(/[\s,\/]+/)[0]||'').trim();
+      if(ink) inkCounts[ink]=(inkCounts[ink]||0)+e.qty;
+    });
+    return {total, uniques:order.length, unknownN, unknown, inkCounts, dbLoaded};
+  }
+  edBuildability(){
+    const {map, order}=this.edDeckMap();
+    const col=this.state.collection||{};
+    let need=0, own=0, miss=0;
+    order.forEach(k=>{
+      const q=map[k].qty; if(q<=0) return; need+=q;
+      const have=Math.min(q, (col[k]||{}).qty||0);
+      own+=have; miss+=Math.max(0, q-have);
+    });
+    return {need, own, miss, pct: need? Math.round(own/need*100):0};
+  }
+  edDetectInks(){
+    const ic=this.edAnalysis().inkCounts;
+    const top=Object.keys(ic).sort((a,b)=>ic[b]-ic[a]).slice(0,2).map(x=>x.toLowerCase());
+    if(top.length<1){ this.toast('Add some recognised cards first'); return; }
+    const patch={ink1:top[0]};
+    if(top[1]) patch.ink2=top[1];
+    this.setState({editor:{...this.state.editor, ...patch}});
+    this.toast('Inks set from deck list');
+  }
+  edPickResults(){
+    const db=this.cardDb(); const keys=Object.keys(db);
+    if(!keys.length) return {loading:true, cards:[], total:0, shown:0, capped:false};
+    const q=((this.state.editor&&this.state.editor.pickQuery)||'').toLowerCase().trim().replace(/\s+/g,' ');
+    const {map}=this.edDeckMap(); const col=this.state.collection||{};
+    let list=Object.values(db);
+    if(q) list=list.filter(c=>((c.n+' '+(c.tx||'')+' '+(c.tags||'')+' '+(c.cl||'')).toLowerCase().includes(q)));
+    list.sort((a,b)=>{ const asn=a.setNum!=null?a.setNum:9999,bsn=b.setNum!=null?b.setNum:9999; if(asn!==bsn)return asn-bsn; const an=a.num!=null?a.num:1e9,bn=b.num!=null?b.num:1e9; if(an!==bn)return an-bn; return a.n.localeCompare(b.n); });
+    const total=list.length, capped=list.slice(0,60);
+    const cards=capped.map(c=>{
+      const k=this.colKey(c.n), im=this.imgUrl(c.n);
+      const inDeck=(map[k]||{}).qty||0, owned=(col[k]||{}).qty||0;
+      return {name:c.n, imgEl:this.imgEl(im,c.n,{borderRadius:'10px'}), noImg:!im,
+        inDeck, inDeckLabel: inDeck>0?('\u00d7'+inDeck):'0', inDeckColor: inDeck>0?'#CC785C':'var(--text3)',
+        ownedLabel: owned>0?('you own '+owned):'not owned', ownedColor: owned>0?'#3d7d54':'var(--text3)',
+        onZoom:()=>this.zoomCard(c.n),
+        onPlus:(e)=>{ e.stopPropagation(); this.edBumpCard(c.n,1); },
+        onMinus:(e)=>{ e.stopPropagation(); this.edBumpCard(c.n,-1); }};
+    });
+    return {loading:false, cards, total, shown:capped.length, capped:total>capped.length};
+  }
   // ---------- Card Base (full searchable card database) ----------
   cardDb(){ return (typeof window!=='undefined'&&window.LORCANA_CARD_DB)||{}; }
   cardBaseList(){
@@ -2637,7 +2798,36 @@ class Component extends DCLogic {
             onInk1:(e)=>this.edField('ink1',e.target.value),
             onInk2:(e)=>this.edField('ink2',e.target.value),
             ink1DD:this.buildDD('edInk1', s.editor.ink1, ['amber','ruby','emerald','sapphire','steel','amethyst'].map(v=>({v,label:this.INKS[v].name})), (e)=>this.edField('ink1',e.target.value)),
-            ink2DD:this.buildDD('edInk2', s.editor.ink2, ['amber','ruby','emerald','sapphire','steel','amethyst'].map(v=>({v,label:this.INKS[v].name})), (e)=>this.edField('ink2',e.target.value))
+            ink2DD:this.buildDD('edInk2', s.editor.ink2, ['amber','ruby','emerald','sapphire','steel','amethyst'].map(v=>({v,label:this.INKS[v].name})), (e)=>this.edField('ink2',e.target.value)),
+            mode:s.editor.mode||'paste', isPaste:(s.editor.mode||'paste')==='paste', isPick:(s.editor.mode||'paste')==='pick',
+            onPasteMode:()=>this.edField('mode','paste'),
+            onPickMode:()=>{ this.ensureCardDb(); this.edField('mode','pick'); },
+            pasteTabStyle:this.edTabStyle((s.editor.mode||'paste')==='paste'),
+            pickTabStyle:this.edTabStyle((s.editor.mode||'paste')==='pick'),
+            pickQuery:s.editor.pickQuery||'', onPickQuery:(e)=>this.edField('pickQuery',e.target.value),
+            onClearList:()=>this.edField('cards',''),
+            onDetectInks:()=>this.edDetectInks(),
+            ...(()=>{
+              const a=this.edAnalysis(), bld=this.edBuildability();
+              const inkOrder=['amber','amethyst','emerald','ruby','sapphire','steel'];
+              const bars=inkOrder.filter(k=>a.inkCounts[k]).map(k=>({label:this.INKS[k].name, count:a.inkCounts[k],
+                dot:this.INKS[k].dark, pct:a.total?Math.round(a.inkCounts[k]/a.total*100):0}));
+              const cnt=a.total, over=cnt>60;
+              return {
+                anTotal:cnt, anUniques:a.uniques,
+                anCountLabel:cnt+' / 60 cards', anCountColor:cnt===60?'#3d7d54':(over?'#B3232C':'var(--text2)'),
+                anCountNote: cnt===0?'Empty list':(cnt===60?'Legal count':(over?(cnt-60)+' over':(60-cnt)+' to go')),
+                anInkBars:bars,
+                anHasUnknown:a.unknownN>0, anUnknownLabel:a.unknownN>0?(a.unknown.slice(0,6).join(', ')+(a.unknown.length>6?' +'+(a.unknown.length-6)+' more':'')):'',
+                anDbLoading:!a.dbLoaded,
+                bldNeed:bld.need, bldOwn:bld.own, bldMiss:bld.miss, bldPct:bld.pct,
+                bldLabel: bld.need? (bld.own+' / '+bld.need+' owned'):'—',
+                bldMissLabel: bld.miss? (bld.miss+' to acquire'):'You own every copy',
+                bldColor: bld.miss? '#9a6c0f':'#3d7d54',
+                hasList: cnt>0
+              };
+            })(),
+            pick:this.edPickResults()
           };
         }catch(e){ console.error('[DEBUG] ed construction threw:', e); return {heading:'ERROR', saveLabel:'ERROR'}; }
       })(),
