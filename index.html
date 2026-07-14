@@ -490,8 +490,10 @@
               <input type="number" min="1" value="{{ col.qty }}" onchange="{{ col.onQty }}" style="width:74px;border:1px solid var(--border);border-radius:11px;padding:10px 12px;font-family:inherit;font-size:.88rem;background:var(--panel2);color:var(--text)">
               <button onclick="{{ col.onAdd }}" style="border:0;border-radius:12px;padding:10px 18px;font-family:inherit;font-weight:700;font-size:.85rem;cursor:pointer;background:#CC785C;color:#fff">Add</button>
               <label style="border:0;border-radius:12px;padding:10px 16px;font-family:inherit;font-weight:700;font-size:.85rem;cursor:pointer;background:var(--chip-bg);color:var(--text)">Import CSV<input type="file" accept=".csv,text/csv" onchange="{{ col.onImportCsv }}" style="display:none"></label>
+              <label style="border:0;border-radius:12px;padding:10px 16px;font-family:inherit;font-weight:700;font-size:.85rem;cursor:pointer;background:var(--chip-bg);color:var(--text)">Import JSON<input type="file" accept=".json,application/json" onchange="{{ col.onImportCol }}" style="display:none"></label>
+              <button onclick="{{ col.onBrowseBase }}" style="border:1px solid var(--border);border-radius:12px;padding:10px 16px;font-family:inherit;font-weight:700;font-size:.85rem;cursor:pointer;background:var(--panel2);color:var(--text)">＋ Add from card base</button>
             </div>
-            <p style="color:var(--text2);font-size:.78rem;margin:10px 0 0;line-height:1.5">Adding a name you already own tops up its count. Import CSV replaces the whole catalogue with your tracker's export. Card images load automatically from the site's "Lorcana Cards Named" folder.</p>
+            <p style="color:var(--text2);font-size:.78rem;margin:10px 0 0;line-height:1.5">Adding a name you already own tops up its count. Import CSV or JSON replaces the whole catalogue with your tracker's export. Or open the card base to add copies card by card. Card images load automatically from the site's "Lorcana Cards Named" folder.</p>
           </div>
       <div style="background:linear-gradient(var(--panel),var(--panel)) padding-box, linear-gradient(135deg, rgba(204,120,92,.55), rgba(167,139,250,.4) 35%, rgba(74,222,128,.3) 65%, rgba(204,120,92,.55)) border-box;background-size:100% 100%, 300% 300%;border:1px solid transparent;border-radius:22px;box-shadow:var(--shadow);backdrop-filter:blur(24px);animation:borderFlow 10s linear infinite;padding:24px;margin-top:16px">
             <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px;flex-wrap:wrap">
@@ -639,6 +641,11 @@
                 <div style="font-weight:600;font-size:.74rem;line-height:1.25;margin-top:7px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">{{ r.name }}</div>
                 <div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:5px">
                   <sc-for list="{{ r.chips }}" as="ch" hint-placeholder-count="2"><span style="font-size:.58rem;font-weight:700;letter-spacing:.03em;text-transform:uppercase;padding:2px 7px;border-radius:999px;background:var(--chip-bg);color:var(--text2);font-family:'Space Mono',monospace">{{ ch }}</span></sc-for>
+                </div>
+                <div style="display:flex;align-items:center;justify-content:center;gap:9px;margin-top:8px">
+                  <button onclick="{{ r.onMinus }}" title="Remove a copy" style="width:28px;height:28px;border:1px solid var(--border);border-radius:8px;background:var(--panel2);color:var(--text2);font-family:inherit;font-weight:700;font-size:1rem;cursor:pointer;line-height:1">−</button>
+                  <span style="font-family:'Space Mono',monospace;font-size:.8rem;font-weight:700;min-width:34px;text-align:center;font-variant-numeric:tabular-nums;color:{{ r.ownedColor }}">{{ r.ownedLabel }}</span>
+                  <button onclick="{{ r.onPlus }}" title="Add a copy to your collection" style="width:28px;height:28px;border:0;border-radius:8px;background:#CC785C;color:#fff;font-family:inherit;font-weight:700;font-size:1rem;cursor:pointer;line-height:1">＋</button>
                 </div>
               </div>
             </sc-for>
@@ -1857,6 +1864,41 @@ class Component extends DCLogic {
     const col={...this.state.collection}; delete col[k];
     this.stampCol(); this.persistCol(col); this.setState({collection:col}); this.toast('Removed from catalogue');
   }
+  // Add/remove a single copy straight from the Card Base grid.
+  bumpCollection(card, d){
+    const name=typeof card==='string'?card:(card&&card.n);
+    if(!name) return;
+    const col={...this.state.collection}; const k=this.colKey(name);
+    const cur=col[k];
+    const q=((cur&&cur.qty)||0)+d;
+    if(q<=0){ if(!cur) return; delete col[k]; }
+    else if(cur){ col[k]={...cur, qty:q}; }
+    else {
+      const c=(typeof card==='object'&&card)||{};
+      col[k]={ name, qty:q, set:c.setNum!=null?String(c.setNum):'', num:c.num!=null?c.num:null, color:c.i||'', rarity:c.r||'' };
+    }
+    this.stampCol(); this.persistCol(col); this.setState({collection:col});
+  }
+  onImportCol(e){
+    const f=e.target.files&&e.target.files[0]; if(!f) return;
+    const r=new FileReader();
+    r.onload=()=>{ try{
+      let d=JSON.parse(r.result);
+      if(d&&d.__collection&&typeof d.__collection==='object') d=d.__collection;
+      if(!d||typeof d!=='object'||Array.isArray(d)){ this.toast('Bad file'); return; }
+      const col={};
+      Object.keys(d).forEach(key=>{
+        const v=d[key]; if(!v||typeof v!=='object') return;
+        const name=v.name||key; const k=this.colKey(name);
+        col[k]={...v, name, qty:parseInt(v.qty,10)||0};
+      });
+      this.stampCol(); this.persistCol(col);
+      try{ localStorage.setItem(this.CSEED,'user'); }catch(e2){}
+      this.setState({collection:col});
+      this.toast('Collection replaced — '+Object.keys(col).length+' cards');
+    }catch(x){ this.toast('Bad file'); } };
+    r.readAsText(f);
+  }
   parseCsvText(text){
     const lines=String(text||'').trim().split(/\r?\n/);
     if(lines.length<2) return null;
@@ -2368,6 +2410,8 @@ class Component extends DCLogic {
       onGrid:()=>this.setState({colView:'grid'}), onList:()=>this.setState({colView:'list'}),
       onFilter:(e)=>this.setState({colFilter:e.target.value}),
       onImportCsv:(e)=>this.onImportCsv(e),
+      onImportCol:(e)=>this.onImportCol(e),
+      onBrowseBase:()=>this.setTab('cardbase'),
       hasCards:shownCount>0, empty:allKeys.length===0,
       hasCov:!!reqs, noCov:!reqs,
       covBody:s.covOpen!==false, covChevron:(s.covOpen!==false)?'▾':'▸',
@@ -2443,11 +2487,17 @@ class Component extends DCLogic {
     });
     const cbTotal=cbFiltered.length;
     const cbCapped=cbFiltered;
+    const cbCol=s.collection||{};
     const cbResults=cbCapped.map(c=>{
       const im=this.imgUrl(c.n);
       const chips=[c.setNum!=null?('Set '+c.setNum):'', c.t||'', c.c!=null?('Cost '+c.c):'', c.i||'', c.l!=null?(c.l+' lore'):'', c.r||'', c.ik===1?'Inkable':(c.ik===0?'Uninkable':'')].filter(Boolean);
       const vfiles=this.variantFiles(c.n);
+      const owned=(cbCol[this.colKey(c.n)]||{}).qty||0;
       return { name:c.n, img:im, noImg:!im, imgEl:this.imgEl(im,c.n,{borderRadius:'10px'}), chips, setName:c.setName||'', onZoom:()=>this.zoomCard(c.n),
+        owned, hasOwned:owned>0, ownedLabel:owned>0?('×'+owned):'0',
+        ownedColor:owned>0?'var(--text)':'var(--text3)',
+        onPlus:(e)=>{ e.stopPropagation(); this.bumpCollection(c,1); },
+        onMinus:(e)=>{ e.stopPropagation(); this.bumpCollection(c,-1); },
         canSwap:vfiles.length>1, onSwap:(e)=>{ e.stopPropagation(); this.setState({variantPick:c.n}); } };
     });
     const cbChipStyle=(on)=>`border:1px solid ${on?'#CC785C':'var(--border)'};border-radius:999px;padding:6px 13px;font-family:inherit;font-weight:600;font-size:.78rem;cursor:pointer;background:${on?'#CC785C':'var(--panel2)'};color:${on?'#fff':'var(--text2)'}`;
