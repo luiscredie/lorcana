@@ -414,7 +414,7 @@
           <span style="font-family:'Space Mono',monospace;font-size:.78rem;color:#CC785C;letter-spacing:.1em">❖</span>
           <h2 style="font-family:'Chakra Petch',sans-serif;font-weight:500;font-size:clamp(1.5rem,3vw,2.05rem);letter-spacing:-.01em;margin:0">Deck coverage</h2>
         </div>
-        <button onclick="{{ onExportDeckList }}" style="border:1px solid var(--border);border-radius:12px;padding:9px 16px;font-family:inherit;font-weight:700;font-size:.8rem;cursor:pointer;background:var(--chip-bg);color:var(--text)">Export deck list</button>
+        <button onclick="{{ onExportDeckList }}" style="border:1px solid var(--border);border-radius:12px;padding:9px 16px;font-family:inherit;font-weight:700;font-size:.8rem;cursor:pointer;background:var(--chip-bg);color:var(--text)">Copy deck list</button>
       </div>
       <div style="background:linear-gradient(var(--panel),var(--panel)) padding-box, linear-gradient(135deg, rgba(204,120,92,.55), rgba(167,139,250,.4) 35%, rgba(74,222,128,.3) 65%, rgba(204,120,92,.55)) border-box;background-size:100% 100%, 300% 300%;border:1px solid transparent;border-radius:22px;box-shadow:var(--shadow);backdrop-filter:blur(24px);animation:borderFlow 10s linear infinite;padding:24px">
           <div onClick="{{ col.onToggleCov }}" style="display:flex;align-items:center;justify-content:space-between;gap:12px;cursor:pointer;user-select:none">
@@ -2736,14 +2736,18 @@ class Component extends DCLogic {
     const reqs=this.deckReqs(D);
     if(!reqs||!reqs.length){ this.toast('This deck has no card list saved'); return; }
     const text=reqs.map(r=>`${r.qty} ${r.name}`).join('\n');
-    try{
-      const b=new Blob([text],{type:'text/plain'});
-      const u=URL.createObjectURL(b);
-      const el=document.createElement('a'); el.href=u; el.download=(D.title||'deck').replace(/[^\w\- ]/g,'')+' - deck list.txt';
-      document.body.appendChild(el); el.click(); el.remove();
-      URL.revokeObjectURL(u);
-      this.toast('Deck list downloaded');
-    }catch(e){ this.toast('Export failed'); }
+    const done=()=>this.toast('Deck list copied to clipboard');
+    const fallback=()=>{
+      try{
+        const ta=document.createElement('textarea'); ta.value=text;
+        ta.style.position='fixed'; ta.style.opacity='0';
+        document.body.appendChild(ta); ta.focus(); ta.select();
+        document.execCommand('copy'); ta.remove(); done();
+      }catch(e){ this.toast('Copy failed'); }
+    };
+    if(navigator.clipboard&&navigator.clipboard.writeText){
+      navigator.clipboard.writeText(text).then(done, fallback);
+    } else { fallback(); }
   }
   onImport(e){
     const f=e.target.files&&e.target.files[0]; if(!f)return;
