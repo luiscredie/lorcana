@@ -523,7 +523,7 @@
                     {{ r.imgEl }}<sc-if value="{{ r.noImg }}" hint-placeholder-val="{{ false }}"><span style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;text-align:center;padding:8px;font-size:.62rem;font-weight:600;color:var(--text2);line-height:1.3">{{ r.name }}</span></sc-if>
                     <span style="position:absolute;top:-7px;right:-6px;font-family:'Space Mono',monospace;font-size:.62rem;font-weight:700;border-radius:999px;padding:2px 8px;box-shadow:0 3px 7px rgba(40,25,10,.3);pointer-events:none;z-index:2;background:{{ r.chipBg2 }};color:{{ r.chipColor2 }}">{{ r.countStr }}</span>
                     <button onclick="{{ r.onZoom }}" title="View card" style="position:absolute;bottom:6px;left:6px;width:22px;height:22px;border-radius:50%;border:1px solid var(--border-soft);background:rgba(255,253,248,.92);color:var(--text2);font-size:.66rem;line-height:1;cursor:pointer;z-index:3;display:flex;align-items:center;justify-content:center">⌕</button>
-                    <sc-if value="{{ r.canSwap }}" hint-placeholder-val="{{ false }}"><button onclick="{{ r.onSwap }}" title="Choose a different printing" style="position:absolute;bottom:6px;right:6px;width:22px;height:22px;border-radius:50%;border:1px solid var(--border-soft);background:rgba(255,253,248,.92);color:var(--text2);font-size:.62rem;line-height:1;cursor:pointer;z-index:3;display:flex;align-items:center;justify-content:center">⇄</button></sc-if>
+                    <button onclick="{{ r.ink.onToggle }}" title="{{ r.ink.title }}" style="{{ r.ink.style }}">{{ r.ink.glyph }}</button><sc-if value="{{ r.canSwap }}" hint-placeholder-val="{{ false }}"><button onclick="{{ r.onSwap }}" title="Choose a different printing" style="position:absolute;bottom:6px;right:6px;width:22px;height:22px;border-radius:50%;border:1px solid var(--border-soft);background:rgba(255,253,248,.92);color:var(--text2);font-size:.62rem;line-height:1;cursor:pointer;z-index:3;display:flex;align-items:center;justify-content:center">⇄</button></sc-if>
                   </div>
                   <span style="display:grid;grid-template-columns:1fr auto;gap:5px;align-items:center;margin-top:6px;padding:0 2px">
                     <span style="font-weight:600;font-size:.7rem;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ r.name }}</span>
@@ -622,7 +622,7 @@
                             {{ r.imgEl }}<sc-if value="{{ r.noImg }}" hint-placeholder-val="{{ false }}"><span style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;text-align:center;padding:8px;font-size:.62rem;font-weight:600;color:var(--text2);line-height:1.3">{{ r.name }}</span></sc-if>
                             <span style="position:absolute;top:-7px;right:-6px;background:var(--text);color:var(--bg);font-family:'Space Mono',monospace;font-size:.66rem;font-weight:700;border-radius:999px;padding:2px 8px;box-shadow:0 3px 7px rgba(40,25,10,.35);pointer-events:none;z-index:2">×{{ r.qty }}</span>
                             <button onclick="{{ r.onZoom }}" title="View card" style="position:absolute;bottom:6px;left:6px;width:22px;height:22px;border-radius:50%;border:1px solid var(--border-soft);background:rgba(255,253,248,.92);color:var(--text2);font-size:.66rem;line-height:1;cursor:pointer;z-index:3;display:flex;align-items:center;justify-content:center">⤢</button>
-                            <sc-if value="{{ r.canSwap }}" hint-placeholder-val="{{ false }}"><button onclick="{{ r.onSwap }}" title="Choose a different printing" style="position:absolute;bottom:6px;right:6px;width:22px;height:22px;border-radius:50%;border:1px solid var(--border-soft);background:rgba(255,253,248,.92);color:var(--text2);font-size:.62rem;line-height:1;cursor:pointer;z-index:3;display:flex;align-items:center;justify-content:center">⇄</button></sc-if>
+                            <button onclick="{{ r.ink.onToggle }}" title="{{ r.ink.title }}" style="{{ r.ink.style }}">{{ r.ink.glyph }}</button><sc-if value="{{ r.canSwap }}" hint-placeholder-val="{{ false }}"><button onclick="{{ r.onSwap }}" title="Choose a different printing" style="position:absolute;bottom:6px;right:6px;width:22px;height:22px;border-radius:50%;border:1px solid var(--border-soft);background:rgba(255,253,248,.92);color:var(--text2);font-size:.62rem;line-height:1;cursor:pointer;z-index:3;display:flex;align-items:center;justify-content:center">⇄</button></sc-if>
                           </div>
                           <span style="display:grid;grid-template-columns:auto 1fr auto;gap:5px;align-items:start;margin-top:6px;padding:0 2px">
                             <i style="width:8px;height:8px;border-radius:50%;display:block;background:{{ r.dot }};margin-top:3px"></i>
@@ -734,7 +734,7 @@
               <div>
                 <div onClick="{{ r.onZoom }}" style="position:relative;aspect-ratio:5/7;border-radius:11px;border:1px solid var(--border-soft);background:var(--panel2);box-shadow:0 6px 12px -8px rgba(60,40,20,.3);cursor:pointer;overflow:hidden">
                   {{ r.imgEl }}<sc-if value="{{ r.noImg }}" hint-placeholder-val="{{ false }}"><span style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;text-align:center;padding:8px;font-size:.62rem;font-weight:600;color:var(--text2);line-height:1.3">{{ r.name }}</span></sc-if>
-                  <sc-if value="{{ r.canSwap }}" hint-placeholder-val="{{ false }}"><button onclick="{{ r.onSwap }}" title="Choose a different printing" style="position:absolute;bottom:6px;right:6px;width:22px;height:22px;border-radius:50%;border:1px solid var(--border-soft);background:rgba(255,253,248,.92);color:var(--text2);font-size:.62rem;line-height:1;cursor:pointer;z-index:3;display:flex;align-items:center;justify-content:center">⇄</button></sc-if>
+                  <button onclick="{{ r.ink.onToggle }}" title="{{ r.ink.title }}" style="{{ r.ink.style }}">{{ r.ink.glyph }}</button><sc-if value="{{ r.canSwap }}" hint-placeholder-val="{{ false }}"><button onclick="{{ r.onSwap }}" title="Choose a different printing" style="position:absolute;bottom:6px;right:6px;width:22px;height:22px;border-radius:50%;border:1px solid var(--border-soft);background:rgba(255,253,248,.92);color:var(--text2);font-size:.62rem;line-height:1;cursor:pointer;z-index:3;display:flex;align-items:center;justify-content:center">⇄</button></sc-if>
                 </div>
                 <div style="font-weight:600;font-size:.74rem;line-height:1.25;margin-top:7px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">{{ r.name }}</div>
                 <div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:5px">
@@ -1594,6 +1594,7 @@ class Component extends DCLogic {
     this.TREE_API='https://api.github.com/repos/luiscredie/lorcana/git/trees/main?recursive=1';
     this.TREEKEY='lorcanaAtlas_fileTree_v2';
     this.VKEY='lorcanaAtlas_variants_v1';
+    this.IKKEY='lorcanaAtlas_inkable_v1';
     this._fileTreeReady=false;
     this.loadFileTree();
     this.DECKS={
@@ -1699,7 +1700,9 @@ class Component extends DCLogic {
     const cbSetInit = tab==='cardbase' ? {'Wilds Unknown':true} : undefined;
     let muNotes={};
     try{ const mn=JSON.parse(localStorage.getItem(this.MKEY)); if(mn&&typeof mn==='object'&&!Array.isArray(mn)) muNotes=mn; }catch(e){}
-    this.setState({ ready:true, store, deck, tab, lib, collection, variants, muNotes, ...(cbSetInit?{cbSet:cbSetInit}:{}) });
+    let inkable={};
+    try{ const ik=JSON.parse(localStorage.getItem(this.IKKEY)); if(ik&&typeof ik==='object'&&!Array.isArray(ik)) inkable=ik; }catch(e){}
+    this.setState({ ready:true, store, deck, tab, lib, collection, variants, muNotes, inkable, ...(cbSetInit?{cbSet:cbSetInit}:{}) });
     setTimeout(()=>this.doSync(), 400);
     // Re-pull the shared atlas whenever the tab regains focus so every browser converges.
     if(typeof window!=='undefined' && !this._focusHook){
@@ -1759,6 +1762,37 @@ class Component extends DCLogic {
   }
   persistVariants(v){ try{ localStorage.setItem(this.VKEY, JSON.stringify(v)); localStorage.setItem(this.VKEY+'_stamp', new Date().toISOString()); }catch(e){} this.queueSync(); }
   variantsStamp(){ try{ return localStorage.getItem(this.VKEY+'_stamp')||''; }catch(e){ return ''; } }
+  // ---- Inkable overrides (manual corrections to the card DB's inkwell flag) ----
+  inkOverride(name){ const v=(this.state.inkable||{})[this.colKey(name)]; return (v===0||v===1)?v:null; }
+  effInkable(name, baseIk){
+    const o=this.inkOverride(name);
+    if(o===0||o===1) return o;
+    return (baseIk===0||baseIk===1)?baseIk:undefined;
+  }
+  toggleInkable(name, baseIk){
+    const k=this.colKey(name);
+    const cur=this.effInkable(name, baseIk);
+    const next=cur===1?0:1;
+    const base=(baseIk===0||baseIk===1)?baseIk:null;
+    const map={...(this.state.inkable||{})};
+    if(base!=null && next===base) delete map[k]; else map[k]=next;
+    this.persistInkable(map);
+    this.setState({inkable:map});
+    this.toast(next===1?'Marked inkable':'Marked uninkable');
+  }
+  persistInkable(v){ try{ localStorage.setItem(this.IKKEY, JSON.stringify(v)); localStorage.setItem(this.IKKEY+'_stamp', new Date().toISOString()); }catch(e){} this.queueSync(); }
+  inkableStamp(){ try{ return localStorage.getItem(this.IKKEY+'_stamp')||''; }catch(e){ return ''; } }
+  inkBtn(name, baseIk){
+    const eff=this.effInkable(name, baseIk);
+    const on=eff===1;
+    const known=eff===0||eff===1;
+    return {
+      glyph: on?'◆':'◇',
+      title: on?'Inkable — click to mark uninkable':(eff===0?'Uninkable — click to mark inkable':'Inkable status unknown — click to set'),
+      style:`position:absolute;top:6px;left:6px;width:22px;height:22px;border-radius:50%;border:1px solid ${on?'#2A6FDB':(known?'#9aa0a6':'var(--border-soft)')};background:${on?'#2A6FDB':'rgba(250,250,252,.92)'};color:${on?'#fff':(known?'#5b6169':'var(--text3)')};font-size:.72rem;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1;z-index:3;box-shadow:0 2px 5px rgba(0,0,0,.18);padding:0`,
+      onToggle:this.requireAdmin((e)=>{ if(e&&e.stopPropagation)e.stopPropagation(); this.toggleInkable(name, baseIk); })
+    };
+  }
   imgUrl(name){
     if(!name) return null;
     const k=this.colKey(name);
@@ -1884,10 +1918,15 @@ class Component extends DCLogic {
         this.persistMuNotes(muNotes);
         try{ localStorage.setItem(this.MKEY+'_stamp', muNotesUpdated); }catch(e){}
       }
+      let inkable=s.inkable||{}, inkableUpdated=this.inkableStamp();
+      if(rd&&rd.inkable&&typeof rd.inkable==='object'&&!Array.isArray(rd.inkable)&&(rd.inkableUpdated||'')>(inkableUpdated||'')){
+        inkable=rd.inkable; inkableUpdated=rd.inkableUpdated;
+        try{ localStorage.setItem(this.IKKEY, JSON.stringify(inkable)); localStorage.setItem(this.IKKEY+'_stamp', inkableUpdated); }catch(e){}
+      }
       this.persist(store); this.persistLib(lib);
       let deck=s.deck; if(!lib.find(d=>d.id===deck)) deck=lib[0].id;
-      this.setState({store, lib, collection, variants, muNotes, deck});
-      return {v:1, updated:new Date().toISOString(), store, lib, collection, colUpdated, variants, variantsUpdated, muNotes, muNotesUpdated,
+      this.setState({store, lib, collection, variants, muNotes, inkable, deck});
+      return {v:1, updated:new Date().toISOString(), store, lib, collection, colUpdated, variants, variantsUpdated, muNotes, muNotesUpdated, inkable, inkableUpdated,
         deletedGames:[...delG].sort(), deletedDecks:[...delD].sort()};
     } finally { this._merging=false; }
   }
@@ -1901,7 +1940,7 @@ class Component extends DCLogic {
       let remote=null;
       try{ remote=await this.ghGet(); }catch(e){ if(w) throw e; }
       const doc=this.mergeAll(remote&&remote.doc);
-      const sig=(o)=>{ try{ return JSON.stringify({s:o.store,l:o.lib,c:o.collection,cu:o.colUpdated,v:o.variants,vu:o.variantsUpdated,mn:o.muNotes,mnu:o.muNotesUpdated,dg:(o.deletedGames||[]).slice().sort(),dd:(o.deletedDecks||[]).slice().sort()}); }catch(e){ return Math.random()+''; } };
+      const sig=(o)=>{ try{ return JSON.stringify({s:o.store,l:o.lib,c:o.collection,cu:o.colUpdated,v:o.variants,vu:o.variantsUpdated,mn:o.muNotes,mnu:o.muNotesUpdated,ik:o.inkable,iku:o.inkableUpdated,dg:(o.deletedGames||[]).slice().sort(),dd:(o.deletedDecks||[]).slice().sort()}); }catch(e){ return Math.random()+''; } };
       const same=!!(remote&&remote.doc)&&sig(remote.doc)===sig(doc);
       const token=this.adminToken();
       if(w&&!same&&token&&this.isAdmin()){
@@ -2099,7 +2138,8 @@ class Component extends DCLogic {
     reqs.forEach(r=>{
       const m=db[this.colKey(r.name)]; const q=r.qty; total+=q;
       if(!m){ unknown+=q; return; }
-      if(m.ik===1) inkable+=q; else if(m.ik===0) uninkable+=q;
+      const eik=this.effInkable(r.name, m.ik);
+      if(eik===1) inkable+=q; else if(eik===0) uninkable+=q;
       const cost=m.c!=null?m.c:null;
       if(cost!=null){ const b=cost>=7?7:cost; curve[b]=(curve[b]||0)+q; costed+=q; costSum+=cost*q; }
       const ink=((m.i||'').split(/[\s,\/]+/)[0]||'').trim().toLowerCase(); if(ink) inkCounts[ink]=(inkCounts[ink]||0)+q;
@@ -2812,6 +2852,7 @@ class Component extends DCLogic {
       curGroup.rows.push({
         name:c.name, qty:c.qty, meta, dot:I?I.dark:'#CDBF9F', img:imc, noImg:!imc, imgEl:this.imgEl(imc,c.name,{borderRadius:'10px'}),
         canSwap:vfilesC.length>1, onSwap:()=>this.setState({variantPick:c.name}), onZoom:()=>this.zoomCard(c.name),
+        ink:this.inkBtn(c.name, (this.cardMeta(c.name)||{}).ik),
         slotId:'card_'+k.replace(/[^a-z0-9]+/g,'_'),
         title:di>0?c.name.slice(0,di):c.name, sub:di>0?c.name.slice(di+3):'',
         rarity:c.rarity||'', foilStr:c.foil?('✦ '+c.foil):'',
@@ -2839,6 +2880,7 @@ class Component extends DCLogic {
         const vfiles=this.variantFiles(r.name);
         return { name:r.name, countStr:Math.min(have,r.qty)+'/'+r.qty, missing:miss, img:im, noImg:!im, imgEl:this.imgEl(im,r.name,{borderRadius:'10px'}),
           canSwap:vfiles.length>1, onSwap:()=>this.setState({variantPick:r.name}), onZoom:()=>this.zoomCard(r.name),
+          ink:this.inkBtn(r.name, (this.cardMeta(r.name)||{}).ik),
           setTag:(()=>{ const meta=this.cardMeta(r.name); return meta&&meta.setNum!=null?('Set '+meta.setNum):''; })(),
           slotId:'card_'+k.replace(/[^a-z0-9]+/g,'_'),
           frameBg:I?`linear-gradient(165deg, ${I.bg}, var(--panel2) 70%)`:'var(--panel2)',
@@ -2964,12 +3006,14 @@ class Component extends DCLogic {
     const cbCol=s.collection||{};
     const cbResults=cbCapped.map(c=>{
       const im=this.imgUrl(c.n);
-      const chips=[c.setNum!=null?('Set '+c.setNum):'', c.t||'', c.c!=null?('Cost '+c.c):'', c.i||'', c.l!=null?(c.l+' lore'):'', c.r||'', c.ik===1?'Inkable':(c.ik===0?'Uninkable':'')].filter(Boolean);
+      const eik=this.effInkable(c.n, c.ik);
+      const chips=[c.setNum!=null?('Set '+c.setNum):'', c.t||'', c.c!=null?('Cost '+c.c):'', c.i||'', c.l!=null?(c.l+' lore'):'', c.r||'', eik===1?'Inkable':(eik===0?'Uninkable':'')].filter(Boolean);
       const vfiles=this.variantFiles(c.n);
       const owned=(cbCol[this.colKey(c.n)]||{}).qty||0;
       return { name:c.n, img:im, noImg:!im, imgEl:this.imgEl(im,c.n,{borderRadius:'10px'}), chips, setName:c.setName||'', onZoom:()=>this.zoomCard(c.n),
         owned, hasOwned:owned>0, ownedLabel:owned>0?('×'+owned):'0',
         ownedColor:owned>0?'var(--text)':'var(--text3)',
+        ink:this.inkBtn(c.n, c.ik),
         onPlus:(e)=>{ e.stopPropagation(); this.bumpCollection(c,1); },
         onMinus:(e)=>{ e.stopPropagation(); this.bumpCollection(c,-1); },
         canSwap:vfiles.length>1, onSwap:(e)=>{ e.stopPropagation(); this.setState({variantPick:c.n}); } };
