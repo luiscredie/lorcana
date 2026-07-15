@@ -451,7 +451,7 @@
       <div style="background:var(--panel);border:1px solid var(--border-soft);border-radius:22px;box-shadow:var(--shadow);padding:22px 24px;margin-bottom:16px">
         <div style="display:flex;align-items:baseline;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:16px">
           <div style="font-family:'Space Mono',monospace;font-size:.66rem;font-weight:700;letter-spacing:.15em;text-transform:uppercase;color:var(--text3)">Deck analytics</div>
-          <div style="font-family:'Space Mono',monospace;font-size:.72rem;color:var(--text2)">{{ deckStats.total }} cards · avg cost {{ deckStats.avgCost }}</div>
+          <div style="font-family:'Space Mono',monospace;font-size:.72rem;color:var(--text2)">{{ deckStats.total }} cards · avg cost {{ deckStats.avgCost }} · {{ deckStats.inkable }} inkable / {{ deckStats.uninkable }} uninkable</div>
         </div>
         <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:22px">
           <div>
@@ -2094,11 +2094,12 @@ class Component extends DCLogic {
   deckStatsData(D){
     const reqs=this.deckReqs(D); if(!reqs||!reqs.length) return null;
     const db=this.cardDb(); if(!Object.keys(db).length) return {loading:true};
-    let total=0, unknown=0, costed=0, costSum=0;
+    let total=0, unknown=0, costed=0, costSum=0, inkable=0, uninkable=0;
     const curve={}, inkCounts={}, typeCounts={};
     reqs.forEach(r=>{
       const m=db[this.colKey(r.name)]; const q=r.qty; total+=q;
       if(!m){ unknown+=q; return; }
+      if(m.ik===1) inkable+=q; else if(m.ik===0) uninkable+=q;
       const cost=m.c!=null?m.c:null;
       if(cost!=null){ const b=cost>=7?7:cost; curve[b]=(curve[b]||0)+q; costed+=q; costSum+=cost*q; }
       const ink=((m.i||'').split(/[\s,\/]+/)[0]||'').trim().toLowerCase(); if(ink) inkCounts[ink]=(inkCounts[ink]||0)+q;
@@ -2110,7 +2111,7 @@ class Component extends DCLogic {
       else if(/location/i.test(t)) t='Location';
       typeCounts[t]=(typeCounts[t]||0)+q;
     });
-    return {total, unknown, curve, inkCounts, typeCounts, costed, avgCost: costed? (costSum/costed):0};
+    return {total, unknown, curve, inkCounts, typeCounts, costed, inkable, uninkable, avgCost: costed? (costSum/costed):0};
   }
   edTabStyle(on){ return `flex:1;border:0;border-radius:9px;padding:8px 12px;font-family:inherit;font-weight:700;font-size:.8rem;cursor:pointer;transition:.15s;background:${on?'#CC785C':'transparent'};color:${on?'#fff':'var(--text2)'}`; }
   edCurrentDeck(){
@@ -2866,6 +2867,7 @@ class Component extends DCLogic {
         pct:sd.total?Math.round(sd.typeCounts[t]/sd.total*100):0}));
       return {has:true, loading:false, curve, inkBars, types,
         avgCost:(Math.round(sd.avgCost*10)/10).toFixed(1), total:sd.total,
+        inkable:sd.inkable, uninkable:sd.uninkable,
         hasUnknown:sd.unknown>0, unknownLabel:sd.unknown+' card'+(sd.unknown===1?'':'s')+' not in card base'};
     })();
     const col={
