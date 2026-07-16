@@ -112,6 +112,7 @@
           </div>
         </div>
         <div style="display:flex;align-items:center;gap:9px">
+          <a href="simulator.html" title="Open the play simulator" style="height:34px;border-radius:10px;border:1px solid var(--border);background:var(--panel2);color:var(--text2);cursor:pointer;font-size:.8rem;font-weight:700;font-family:inherit;text-decoration:none;display:inline-flex;align-items:center;gap:6px;padding:0 12px">▶ Simulator</a>
           <button onclick="{{ onToggleTheme }}" title="Toggle theme" style="width:34px;height:34px;border-radius:10px;border:1px solid var(--border);background:var(--panel2);color:var(--text2);cursor:pointer;font-size:.9rem;display:flex;align-items:center;justify-content:center">{{ themeIcon }}</button>
           <button onclick="{{ onAdminClick }}" title="{{ adminTitle }}" style="width:34px;height:34px;border-radius:10px;border:1px solid var(--border);background:var(--panel2);color:{{ adminColor }};cursor:pointer;font-size:.85rem;display:flex;align-items:center;justify-content:center">{{ adminIcon }}</button>
           <button onclick="{{ sync.onOpen }}" style="{{ sync.chipStyle }}">{{ sync.chip }}</button>
