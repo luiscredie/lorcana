@@ -2236,10 +2236,23 @@ class Component extends DCLogic {
     if(this._pricesLoading || this._prices) return;
     this._pricesLoading=true;
     fetch('prices.json?v='+Date.now()).then(r=>r.ok?r.json():null).then(j=>{
-      this._prices=(j&&j.prices)||{};
+      this._prices=this.buildPriceMap(j);
       this._priceMeta={source:(j&&j.source)||'', generated:(j&&j.generated_at)||''};
       this._pricesLoading=false; this.forceUpdate();
     }).catch(()=>{ this._pricesLoading=false; this._prices={}; });
+  }
+  buildPriceMap(j){
+    if(!j) return {};
+    if(j.prices && typeof j.prices==='object') return j.prices;
+    if(!Array.isArray(j.cards)) return {};
+    const baseName=(n)=>String(n||'').replace(/\s*\([^)]*\)\s*$/,'').trim();
+    const lower=(a,b)=>{ if(!a)return b; if(!b)return a; if(a.brl===0&&b.brl>0)return b; if(b.brl===0&&a.brl>0)return a; return b.brl<a.brl?b:a; };
+    const out={};
+    j.cards.forEach(c=>{
+      const k=this.colKey(baseName(c.name));
+      out[k]=lower(out[k], {brl:c.minimum_price_brl||0, id:c.id});
+    });
+    return out;
   }
   priceBRL(name){ const p=this._prices&&this._prices[this.colKey(name)]; return p?p.brl:null; }
   priceLabel(name){
