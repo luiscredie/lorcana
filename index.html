@@ -451,7 +451,7 @@
       <sc-if value="{{ deckStats.has }}" hint-placeholder-val="{{ false }}">
       <div style="background:var(--panel);border:1px solid var(--border-soft);border-radius:22px;box-shadow:var(--shadow);padding:22px 24px;margin-bottom:16px">
         <div style="display:flex;align-items:baseline;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:16px">
-          <div style="font-family:'Space Mono',monospace;font-size:.66rem;font-weight:700;letter-spacing:.15em;text-transform:uppercase;color:var(--text3)">Deck analytics</div>
+          <div style="font-family:'Space Mono',monospace;font-size:.66rem;font-weight:700;letter-spacing:.15em;text-transform:uppercase;color:var(--text3)">Deck analytics · <span style="color:#CC785C">{{ deckStats.valueLabel }}</span></div>
           <div style="font-family:'Space Mono',monospace;font-size:.72rem;color:var(--text2)">{{ deckStats.total }} cards · avg cost {{ deckStats.avgCost }} · {{ deckStats.inkable }} inkable / {{ deckStats.uninkable }} uninkable</div>
         </div>
         <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:22px">
@@ -538,7 +538,7 @@
             </div>
             <sc-if value="{{ col.hasShopping }}" hint-placeholder-val="{{ false }}">
               <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin:16px 0 9px">
-                <div style="font-family:'Space Mono',monospace;font-size:.62rem;font-weight:700;letter-spacing:.15em;text-transform:uppercase;color:#9F2731">To buy · {{ col.covMissTotal }}</div>
+                <div style="font-family:'Space Mono',monospace;font-size:.62rem;font-weight:700;letter-spacing:.15em;text-transform:uppercase;color:#9F2731">To buy · {{ col.covMissTotal }} · {{ col.covMissValueLabel }}</div>
                 <button onclick="{{ col.onCopyShopping }}" style="border:1px solid #d88a90;border-radius:10px;padding:6px 13px;font-family:inherit;font-weight:700;font-size:.75rem;cursor:pointer;background:rgba(179,35,44,.06);color:#9F2731">Share shopping list</button>
               </div>
               <div style="display:flex;flex-wrap:wrap;gap:7px">
@@ -571,6 +571,10 @@
       <div style="display:flex;align-items:baseline;gap:14px;margin:6px 0 22px">
         <span style="font-family:'Space Mono',monospace;font-size:.78rem;color:#CC785C;letter-spacing:.1em">❖</span>
         <h2 style="font-family:'Chakra Petch',sans-serif;font-weight:500;font-size:clamp(1.5rem,3vw,2.05rem);letter-spacing:-.01em;margin:0">Card catalogue</h2>
+        <div style="margin-left:auto;text-align:right">
+          <div style="font-family:'Chakra Petch',sans-serif;font-weight:700;font-size:clamp(1.1rem,2.4vw,1.5rem);color:#CC785C;line-height:1">{{ col.valueLabel }}</div>
+          <div style="font-family:'Space Mono',monospace;font-size:.56rem;letter-spacing:.12em;text-transform:uppercase;color:var(--text3);margin-top:3px">Collection value · {{ col.valueSub }}</div>
+        </div>
       </div>
       <div style="background:linear-gradient(var(--panel),var(--panel)) padding-box, linear-gradient(135deg, rgba(204,120,92,.55), rgba(167,139,250,.4) 35%, rgba(74,222,128,.3) 65%, rgba(204,120,92,.55)) border-box;background-size:100% 100%, 300% 300%;border:1px solid transparent;border-radius:22px;box-shadow:var(--shadow);backdrop-filter:blur(24px);animation:borderFlow 10s linear infinite;padding:24px">
             <div style="font-family:'Space Mono',monospace;font-size:.66rem;font-weight:700;letter-spacing:.15em;text-transform:uppercase;color:var(--text3);margin-bottom:12px">Add cards you own</div>
@@ -2255,6 +2259,17 @@ class Component extends DCLogic {
     return out;
   }
   priceBRL(name){ const p=this._prices&&this._prices[this.colKey(name)]; return p?p.brl:null; }
+  fmtBRL(v){ return 'R$ '+(v||0).toFixed(2).replace('.',','); }
+  collectionValue(){
+    const col=this.state.collection||{}; let sum=0, priced=0, missing=0;
+    Object.values(col).forEach(c=>{ const v=this.priceBRL(c.name); const q=c.qty||0; if(v==null||v===0){ missing+=q; } else { sum+=v*q; priced+=q; } });
+    return {sum, priced, missing};
+  }
+  deckValue(D){
+    const reqs=this.deckReqs(D)||[]; let sum=0, priced=0, missing=0;
+    reqs.forEach(r=>{ const v=this.priceBRL(r.name); const q=r.qty||0; if(v==null||v===0){ missing+=q; } else { sum+=v*q; priced+=q; } });
+    return {sum, priced, missing};
+  }
   priceLabel(name){
     const v=this.priceBRL(name);
     if(v==null) return null;
@@ -2934,6 +2949,7 @@ class Component extends DCLogic {
     }
     const shopping=covRows.filter(r=>r.missing).map(r=>({label:r.missing+'× '+r.name, name:r.name, onClick:()=>this.zoomCard(r.name)}));
     const covMissTotal=covRows.reduce((x,r)=>x+r.missing,0);
+    const covMissValue=covRows.reduce((x,r)=>{ const v=this.priceBRL(r.name); return x+((v&&v>0)?v*r.missing:0); },0);
     const covPctVal=this.pct(covHave, covNeed||1);
     const deckStats=(()=>{
       const sd=this.deckStatsData(D);
@@ -2951,11 +2967,15 @@ class Component extends DCLogic {
       return {has:true, loading:false, curve, inkBars, types,
         avgCost:(Math.round(sd.avgCost*10)/10).toFixed(1), total:sd.total,
         inkable:sd.inkable, uninkable:sd.uninkable,
+        valueLabel:(()=>{ const v=this.deckValue(D); return this.fmtBRL(v.sum); })(),
+        valueSub:(()=>{ const v=this.deckValue(D); return v.missing? (v.missing+' unpriced') : 'LigaLorcana · BRL'; })(),
         hasUnknown:sd.unknown>0, unknownLabel:sd.unknown+' card'+(sd.unknown===1?'':'s')+' not in card base'};
     })();
     const col={
       name:s.colName||'', qty:s.colQty||'4', groups:colGroups, count:allKeys.length, copies,
       shown:shownCount, filter:s.colFilter||'',
+      valueLabel:(()=>{ const v=this.collectionValue(); return this.fmtBRL(v.sum); })(),
+      valueSub:(()=>{ const v=this.collectionValue(); return v.missing? (v.missing+' unpriced') : 'LigaLorcana · BRL'; })(),
       isGrid:view==='grid', isList:view==='list',
       gridBtnStyle:vBtn(view==='grid'), listBtnStyle:vBtn(view==='list'),
       onGrid:()=>this.setState({colView:'grid'}), onList:()=>this.setState({colView:'list'}),
@@ -2971,6 +2991,7 @@ class Component extends DCLogic {
       onToggleCov:()=>this.setState({covOpen:s.covOpen===false}),
       covRows, covHave, covNeed, covPct:this.pct(covHave, covNeed||1),
       covMissTotal, covPctLabel:covPctVal+'% buildable',
+      covMissValueLabel: covMissTotal? this.fmtBRL(covMissValue) : '',
       covMissLabel: covMissTotal? (covMissTotal+' card'+(covMissTotal===1?'':'s')+' to acquire') : 'You own every copy',
       covBarColor: covMissTotal? (covPctVal>=80?'#4E9D6B':'#9a6c0f') : '#4E9D6B',
       onCopyShopping:()=>this.copyShoppingList(),
