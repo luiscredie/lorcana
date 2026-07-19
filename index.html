@@ -2246,20 +2246,44 @@ class Component extends DCLogic {
     }).catch(()=>{ this._pricesLoading=false; this._prices={}; });
   }
   buildPriceMap(j){
+    this._priceBySetNum={};
     if(!j) return {};
-    if(j.prices && typeof j.prices==='object') return j.prices;
+    if(j.prices && typeof j.prices==='object'){
+      Object.values(j.prices).forEach(p=>{ if(p&&p.set!=null&&p.num!=null) this._priceBySetNum[String(p.set).padStart(3,'0')+'|'+p.num]=p; });
+      return j.prices;
+    }
     if(!Array.isArray(j.cards)) return {};
     const baseName=(n)=>String(n||'').replace(/\s*\([^)]*\)\s*$/,'').trim();
     const lower=(a,b)=>{ if(!a)return b; if(!b)return a; if(a.brl===0&&b.brl>0)return b; if(b.brl===0&&a.brl>0)return a; return b.brl<a.brl?b:a; };
-    const out={};
+    const out={}; this._pricesLoose={};
     j.cards.forEach(c=>{
       const k=this.colKey(baseName(c.name));
-      out[k]=lower(out[k], {brl:c.minimum_price_brl||0, id:c.id});
+      const e={brl:c.minimum_price_brl||0, id:c.id};
+      out[k]=lower(out[k], e);
+      const lk=this.looseKey(baseName(c.name));
+      this._pricesLoose[lk]=lower(this._pricesLoose[lk], e);
+      const m=String(c.edition||'').match(/^LOR(\d+)$/);
+      if(m){ const num=parseInt(c.number,10); if(!isNaN(num)) this._priceBySetNum[String(m[1]).padStart(3,'0')+'|'+num]=e; }
     });
     return out;
   }
-  priceBRL(name){ const p=this._prices&&this._prices[this.colKey(name)]; return p?p.brl:null; }
-  fmtBRL(v){ return 'R$ '+(v||0).toFixed(2).replace('.',','); }
+  variantSetNum(name){
+    const file=this.variantChoice(name); if(!file) return null;
+    const m=String(file).match(/^\s*(\d+)\s*-\s*(\d+)\s*-/); if(!m) return null;
+    return String(parseInt(m[1],10)).padStart(3,'0')+'|'+parseInt(m[2],10);
+  }
+  looseKey(n){ return String(n||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[\u2010\u2011\u2012\u2013\u2014\u2015]/g,'-').replace(/[\u2018\u2019\u02BC]/g,"'").replace(/\s*\([^)]*\)\s*$/,'').toLowerCase().replace(/^the\s+/,'').replace(/[&,]/g,' ').replace(/[^a-z0-9']+/g,'').trim(); }
+  priceBRL(name){
+    const sk=this.variantSetNum(name);
+    if(sk && this._priceBySetNum && this._priceBySetNum[sk]) return this._priceBySetNum[sk].brl;
+    const p=this._prices&&this._prices[this.colKey(name)]; if(p) return p.brl;
+    const lp=this._pricesLoose&&this._pricesLoose[this.looseKey(name)]; return lp?lp.brl:null;
+  }
+  fmtBRL(v){
+    const n=(v||0).toFixed(2).split('.');
+    const int=n[0].replace(/\B(?=(\d{3})+(?!\d))/g,'.');
+    return 'R$ '+int+','+n[1];
+  }
   collectionValue(){
     const col=this.state.collection||{}; let sum=0, priced=0, missing=0;
     Object.values(col).forEach(c=>{ const v=this.priceBRL(c.name); const q=c.qty||0; if(v==null||v===0){ missing+=q; } else { sum+=v*q; priced+=q; } });
