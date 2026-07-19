@@ -468,14 +468,21 @@
             </div>
           </div>
           <div>
-            <div style="font-family:'Space Mono',monospace;font-size:.58rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--text3);margin-bottom:10px">Ink balance</div>
+            <div style="font-family:'Space Mono',monospace;font-size:.58rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--text3);margin-bottom:8px">Ink balance</div>
+            <div style="display:flex;align-items:center;gap:12px;margin-bottom:9px;font-family:'Space Mono',monospace;font-size:.56rem;letter-spacing:.06em;text-transform:uppercase;color:var(--text3)">
+              <span style="display:flex;align-items:center;gap:5px"><i style="width:9px;height:9px;border-radius:3px;background:{{ deckStats.inkableSwatch }};display:block"></i>Inkable</span>
+              <span style="display:flex;align-items:center;gap:5px"><i style="width:9px;height:9px;border-radius:3px;background:var(--chip-bg);border:1px solid var(--border);display:block"></i>Uninkable</span>
+            </div>
             <div style="display:flex;flex-direction:column;gap:8px">
               <sc-for list="{{ deckStats.inkBars }}" as="b" hint-placeholder-count="2">
                 <div style="display:flex;align-items:center;gap:8px">
                   <i style="width:9px;height:9px;border-radius:50%;background:{{ b.dot }};display:block;flex-shrink:0"></i>
                   <span style="font-size:.76rem;color:var(--text2);width:78px;flex-shrink:0">{{ b.label }}</span>
-                  <div style="flex:1;height:8px;background:var(--chip-bg);border-radius:5px;overflow:hidden"><div style="height:100%;border-radius:5px;background:{{ b.dot }};width:{{ b.pct }}%"></div></div>
-                  <span style="font-family:'Space Mono',monospace;font-size:.66rem;color:var(--text3);width:70px;text-align:right;flex-shrink:0;white-space:nowrap">{{ b.n }} · {{ b.pct }}%</span>
+                  <div style="flex:1;height:8px;background:var(--chip-bg);border-radius:5px;overflow:hidden;display:flex">
+                    <div style="height:100%;background:{{ b.dot }};width:{{ b.inkableW }}%" title="Inkable"></div>
+                    <div style="height:100%;background:{{ b.dot }};opacity:.32;width:{{ b.uninkableW }}%" title="Uninkable"></div>
+                  </div>
+                  <span style="font-family:'Space Mono',monospace;font-size:.66rem;color:var(--text3);width:80px;text-align:right;flex-shrink:0;white-space:nowrap">{{ b.inkableN }}✦ {{ b.uninkableN }}✧</span>
                 </div>
               </sc-for>
             </div>
@@ -513,6 +520,23 @@
             <div style="display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin:14px 0 7px;flex-wrap:wrap">
               <span style="font-family:'Chakra Petch',sans-serif;font-weight:600;font-size:1.15rem;color:{{ col.covBarColor }}">{{ col.covPctLabel }}</span>
               <span style="font-family:'Space Mono',monospace;font-size:.72rem;color:var(--text2)">{{ col.covMissLabel }}</span>
+            </div>
+            <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:0 0 14px">
+              <div style="border:1px solid var(--border-soft);border-radius:12px;padding:9px 12px;background:var(--panel)">
+                <div style="font-family:'Space Mono',monospace;font-size:.52rem;letter-spacing:.14em;text-transform:uppercase;color:var(--text3);margin-bottom:3px">Deck total</div>
+                <div style="font-family:'Chakra Petch',sans-serif;font-weight:700;font-size:1.02rem;color:var(--text)">{{ col.covDeckValueLabel }}</div>
+                <div style="font-size:.62rem;color:var(--text3);margin-top:1px">{{ col.covNeedCopies }} cards</div>
+              </div>
+              <div style="border:1px solid var(--border-soft);border-radius:12px;padding:9px 12px;background:var(--panel)">
+                <div style="font-family:'Space Mono',monospace;font-size:.52rem;letter-spacing:.14em;text-transform:uppercase;color:var(--text3);margin-bottom:3px">You have</div>
+                <div style="font-family:'Chakra Petch',sans-serif;font-weight:700;font-size:1.02rem;color:#4E9D6B">{{ col.covHaveValueLabel }}</div>
+                <div style="font-size:.62rem;color:var(--text3);margin-top:1px">{{ col.covOwnedCopies }} cards</div>
+              </div>
+              <div style="border:1px solid var(--border-soft);border-radius:12px;padding:9px 12px;background:var(--panel)">
+                <div style="font-family:'Space Mono',monospace;font-size:.52rem;letter-spacing:.14em;text-transform:uppercase;color:var(--text3);margin-bottom:3px">Missing</div>
+                <div style="font-family:'Chakra Petch',sans-serif;font-weight:700;font-size:1.02rem;color:#9F2731">{{ col.covMissValueLabel }}</div>
+                <div style="font-size:.62rem;color:var(--text3);margin-top:1px">{{ col.covMissTotal }} cards</div>
+              </div>
             </div>
             <div style="display:flex;align-items:center;gap:12px;margin:0 0 14px">
               <div style="flex:1;height:9px;background:var(--chip-bg);border-radius:5px;overflow:hidden"><div style="height:100%;border-radius:5px;background:{{ col.covBarColor }};width:{{ col.covPct }}%"></div></div>
@@ -2140,7 +2164,7 @@ class Component extends DCLogic {
     const reqs=this.deckReqs(D); if(!reqs||!reqs.length) return null;
     const db=this.cardDb(); if(!Object.keys(db).length) return {loading:true};
     let total=0, unknown=0, costed=0, costSum=0, inkable=0, uninkable=0;
-    const curve={}, inkCounts={}, typeCounts={};
+    const curve={}, inkCounts={}, typeCounts={}, inkInk={}, inkUnink={};
     reqs.forEach(r=>{
       const m=db[this.colKey(r.name)]; const q=r.qty; total+=q;
       if(!m){ unknown+=q; return; }
@@ -2148,7 +2172,7 @@ class Component extends DCLogic {
       if(eik===1) inkable+=q; else if(eik===0) uninkable+=q;
       const cost=m.c!=null?m.c:null;
       if(cost!=null){ const b=cost>=7?7:cost; curve[b]=(curve[b]||0)+q; costed+=q; costSum+=cost*q; }
-      const ink=((m.i||'').split(/[\s,\/]+/)[0]||'').trim().toLowerCase(); if(ink) inkCounts[ink]=(inkCounts[ink]||0)+q;
+      const ink=((m.i||'').split(/[\s,\/]+/)[0]||'').trim().toLowerCase(); if(ink){ inkCounts[ink]=(inkCounts[ink]||0)+q; if(eik===1) inkInk[ink]=(inkInk[ink]||0)+q; else inkUnink[ink]=(inkUnink[ink]||0)+q; }
       let t=(m.t||'Other').trim();
       if(/song/i.test((m.cl||'')+' '+(m.tags||'')+' '+t)) t='Song';
       else if(/character/i.test(t)) t='Character';
@@ -2157,7 +2181,7 @@ class Component extends DCLogic {
       else if(/location/i.test(t)) t='Location';
       typeCounts[t]=(typeCounts[t]||0)+q;
     });
-    return {total, unknown, curve, inkCounts, typeCounts, costed, inkable, uninkable, avgCost: costed? (costSum/costed):0};
+    return {total, unknown, curve, inkCounts, typeCounts, inkInk, inkUnink, costed, inkable, uninkable, avgCost: costed? (costSum/costed):0};
   }
   edTabStyle(on){ return `flex:1;border:0;border-radius:9px;padding:8px 12px;font-family:inherit;font-weight:700;font-size:.8rem;cursor:pointer;transition:.15s;background:${on?'#CC785C':'transparent'};color:${on?'#fff':'var(--text2)'}`; }
   edCurrentDeck(){
@@ -2957,7 +2981,7 @@ class Component extends DCLogic {
         const I=this.INKS[ink];
         const im=this.imgUrl(r.name);
         const vfiles=this.variantFiles(r.name);
-        return { name:r.name, countStr:Math.min(have,r.qty)+'/'+r.qty, missing:miss, img:im, noImg:!im, imgEl:this.imgEl(im,r.name,{borderRadius:'10px'}),
+        return { name:r.name, qty:r.qty, have:Math.min(have,r.qty), countStr:Math.min(have,r.qty)+'/'+r.qty, missing:miss, img:im, noImg:!im, imgEl:this.imgEl(im,r.name,{borderRadius:'10px'}),
           canSwap:vfiles.length>1, onSwap:()=>this.setState({variantPick:r.name}), onZoom:()=>this.zoomCard(r.name),
           ink:this.inkBtn(r.name, (this.cardMeta(r.name)||{}).ik),
           price:this.priceChip(r.name),
@@ -2974,6 +2998,8 @@ class Component extends DCLogic {
     const shopping=covRows.filter(r=>r.missing).map(r=>({label:r.missing+'× '+r.name, name:r.name, onClick:()=>this.zoomCard(r.name)}));
     const covMissTotal=covRows.reduce((x,r)=>x+r.missing,0);
     const covMissValue=covRows.reduce((x,r)=>{ const v=this.priceBRL(r.name); return x+((v&&v>0)?v*r.missing:0); },0);
+    const covDeckValue=covRows.reduce((x,r)=>{ const v=this.priceBRL(r.name); return x+((v&&v>0)?v*r.qty:0); },0);
+    const covHaveValue=covRows.reduce((x,r)=>{ const v=this.priceBRL(r.name); const owned=Math.min(r.have!=null?r.have:(r.qty-r.missing), r.qty); return x+((v&&v>0)?v*Math.max(0,owned):0); },0);
     const covPctVal=this.pct(covHave, covNeed||1);
     const deckStats=(()=>{
       const sd=this.deckStatsData(D);
@@ -2983,14 +3009,20 @@ class Component extends DCLogic {
       const curveMax=Math.max(1, ...Object.values(sd.curve));
       const curve=[0,1,2,3,4,5,6,7].map(c=>({label:c===7?'7+':(''+c), n:sd.curve[c]||0,
         h:Math.round(((sd.curve[c]||0)/curveMax)*100), accent:this.INKS[D.inks&&D.inks[0]]?this.INKS[D.inks[0]].dark:'#CC785C'}));
-      const inkBars=inkOrder.filter(k=>sd.inkCounts[k]).map(k=>({label:this.INKS[k].name, n:sd.inkCounts[k],
-        pct:sd.total?Math.round(sd.inkCounts[k]/sd.total*100):0, dot:this.INKS[k].dark, bg:this.INKS[k].border}));
+      const maxInk=Math.max(1,...inkOrder.map(k=>sd.inkCounts[k]||0));
+      const inkBars=inkOrder.filter(k=>sd.inkCounts[k]).map(k=>{
+        const nk=sd.inkInk[k]||0, nu=sd.inkUnink[k]||0, n=sd.inkCounts[k];
+        return { label:this.INKS[k].name, n, inkableN:nk, uninkableN:nu,
+          pct:sd.total?Math.round(n/sd.total*100):0, dot:this.INKS[k].dark,
+          inkableW:Math.round(nk/maxInk*100), uninkableW:Math.round(nu/maxInk*100) };
+      });
       const typeOrder=['Character','Action','Song','Item','Location','Other'];
       const types=typeOrder.filter(t=>sd.typeCounts[t]).map(t=>({label:t, n:sd.typeCounts[t],
         pct:sd.total?Math.round(sd.typeCounts[t]/sd.total*100):0}));
       return {has:true, loading:false, curve, inkBars, types,
         avgCost:(Math.round(sd.avgCost*10)/10).toFixed(1), total:sd.total,
         inkable:sd.inkable, uninkable:sd.uninkable,
+        inkableSwatch:this.INKS[D.inks&&D.inks[0]]?this.INKS[D.inks[0]].dark:'#CC785C',
         valueLabel:(()=>{ const v=this.deckValue(D); return this.fmtBRL(v.sum); })(),
         valueSub:(()=>{ const v=this.deckValue(D); return v.missing? (v.missing+' unpriced') : 'LigaLorcana · BRL'; })(),
         hasUnknown:sd.unknown>0, unknownLabel:sd.unknown+' card'+(sd.unknown===1?'':'s')+' not in card base'};
@@ -3016,6 +3048,8 @@ class Component extends DCLogic {
       covRows, covHave, covNeed, covPct:this.pct(covHave, covNeed||1),
       covMissTotal, covPctLabel:covPctVal+'% buildable',
       covMissValueLabel: covMissTotal? this.fmtBRL(covMissValue) : '',
+      covDeckValueLabel:this.fmtBRL(covDeckValue), covHaveValueLabel:this.fmtBRL(covHaveValue),
+      covOwnedCopies:covHave, covNeedCopies:covNeed,
       covMissLabel: covMissTotal? (covMissTotal+' card'+(covMissTotal===1?'':'s')+' to acquire') : 'You own every copy',
       covBarColor: covMissTotal? (covPctVal>=80?'#4E9D6B':'#9a6c0f') : '#4E9D6B',
       onCopyShopping:()=>this.copyShoppingList(),
