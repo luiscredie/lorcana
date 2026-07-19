@@ -524,7 +524,7 @@
                     {{ r.imgEl }}<sc-if value="{{ r.noImg }}" hint-placeholder-val="{{ false }}"><span style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;text-align:center;padding:8px;font-size:.62rem;font-weight:600;color:var(--text2);line-height:1.3">{{ r.name }}</span></sc-if>
                     <span style="position:absolute;top:-7px;right:-6px;font-family:'Space Mono',monospace;font-size:.62rem;font-weight:700;border-radius:999px;padding:2px 8px;box-shadow:0 3px 7px rgba(40,25,10,.3);pointer-events:none;z-index:2;background:{{ r.chipBg2 }};color:{{ r.chipColor2 }}">{{ r.countStr }}</span>
                     <button onclick="{{ r.onZoom }}" title="View card" style="position:absolute;bottom:6px;left:6px;width:22px;height:22px;border-radius:50%;border:1px solid var(--border-soft);background:rgba(255,253,248,.92);color:var(--text2);font-size:.66rem;line-height:1;cursor:pointer;z-index:3;display:flex;align-items:center;justify-content:center">⌕</button>
-                    <button onclick="{{ r.ink.onToggle }}" title="{{ r.ink.title }}" style="{{ r.ink.style }}">{{ r.ink.glyph }}</button><sc-if value="{{ r.canSwap }}" hint-placeholder-val="{{ false }}"><button onclick="{{ r.onSwap }}" title="Choose a different printing" style="position:absolute;bottom:6px;right:6px;width:22px;height:22px;border-radius:50%;border:1px solid var(--border-soft);background:rgba(255,253,248,.92);color:var(--text2);font-size:.62rem;line-height:1;cursor:pointer;z-index:3;display:flex;align-items:center;justify-content:center">⇄</button></sc-if>
+                    <button onclick="{{ r.ink.onToggle }}" title="{{ r.ink.title }}" style="{{ r.ink.style }}">{{ r.ink.glyph }}</button><sc-if value="{{ r.price.has }}" hint-placeholder-val="{{ false }}"><span style="{{ r.price.style }}">{{ r.price.label }}</span></sc-if><sc-if value="{{ r.canSwap }}" hint-placeholder-val="{{ false }}"><button onclick="{{ r.onSwap }}" title="Choose a different printing" style="position:absolute;bottom:6px;right:6px;width:22px;height:22px;border-radius:50%;border:1px solid var(--border-soft);background:rgba(255,253,248,.92);color:var(--text2);font-size:.62rem;line-height:1;cursor:pointer;z-index:3;display:flex;align-items:center;justify-content:center">⇄</button></sc-if>
                   </div>
                   <span style="display:grid;grid-template-columns:1fr auto;gap:5px;align-items:center;margin-top:6px;padding:0 2px">
                     <span style="font-weight:600;font-size:.7rem;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ r.name }}</span>
@@ -623,7 +623,7 @@
                             {{ r.imgEl }}<sc-if value="{{ r.noImg }}" hint-placeholder-val="{{ false }}"><span style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;text-align:center;padding:8px;font-size:.62rem;font-weight:600;color:var(--text2);line-height:1.3">{{ r.name }}</span></sc-if>
                             <span style="position:absolute;top:-7px;right:-6px;background:var(--text);color:var(--bg);font-family:'Space Mono',monospace;font-size:.66rem;font-weight:700;border-radius:999px;padding:2px 8px;box-shadow:0 3px 7px rgba(40,25,10,.35);pointer-events:none;z-index:2">×{{ r.qty }}</span>
                             <button onclick="{{ r.onZoom }}" title="View card" style="position:absolute;bottom:6px;left:6px;width:22px;height:22px;border-radius:50%;border:1px solid var(--border-soft);background:rgba(255,253,248,.92);color:var(--text2);font-size:.66rem;line-height:1;cursor:pointer;z-index:3;display:flex;align-items:center;justify-content:center">⤢</button>
-                            <button onclick="{{ r.ink.onToggle }}" title="{{ r.ink.title }}" style="{{ r.ink.style }}">{{ r.ink.glyph }}</button><sc-if value="{{ r.canSwap }}" hint-placeholder-val="{{ false }}"><button onclick="{{ r.onSwap }}" title="Choose a different printing" style="position:absolute;bottom:6px;right:6px;width:22px;height:22px;border-radius:50%;border:1px solid var(--border-soft);background:rgba(255,253,248,.92);color:var(--text2);font-size:.62rem;line-height:1;cursor:pointer;z-index:3;display:flex;align-items:center;justify-content:center">⇄</button></sc-if>
+                            <button onclick="{{ r.ink.onToggle }}" title="{{ r.ink.title }}" style="{{ r.ink.style }}">{{ r.ink.glyph }}</button><sc-if value="{{ r.price.has }}" hint-placeholder-val="{{ false }}"><span style="{{ r.price.style }}">{{ r.price.label }}</span></sc-if><sc-if value="{{ r.canSwap }}" hint-placeholder-val="{{ false }}"><button onclick="{{ r.onSwap }}" title="Choose a different printing" style="position:absolute;bottom:6px;right:6px;width:22px;height:22px;border-radius:50%;border:1px solid var(--border-soft);background:rgba(255,253,248,.92);color:var(--text2);font-size:.62rem;line-height:1;cursor:pointer;z-index:3;display:flex;align-items:center;justify-content:center">⇄</button></sc-if>
                           </div>
                           <span style="display:grid;grid-template-columns:auto 1fr auto;gap:5px;align-items:start;margin-top:6px;padding:0 2px">
                             <i style="width:8px;height:8px;border-radius:50%;display:block;background:{{ r.dot }};margin-top:3px"></i>
@@ -735,7 +735,7 @@
               <div>
                 <div onClick="{{ r.onZoom }}" style="position:relative;aspect-ratio:5/7;border-radius:11px;border:1px solid var(--border-soft);background:var(--panel2);box-shadow:0 6px 12px -8px rgba(60,40,20,.3);cursor:pointer;overflow:hidden">
                   {{ r.imgEl }}<sc-if value="{{ r.noImg }}" hint-placeholder-val="{{ false }}"><span style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;text-align:center;padding:8px;font-size:.62rem;font-weight:600;color:var(--text2);line-height:1.3">{{ r.name }}</span></sc-if>
-                  <button onclick="{{ r.ink.onToggle }}" title="{{ r.ink.title }}" style="{{ r.ink.style }}">{{ r.ink.glyph }}</button><sc-if value="{{ r.canSwap }}" hint-placeholder-val="{{ false }}"><button onclick="{{ r.onSwap }}" title="Choose a different printing" style="position:absolute;bottom:6px;right:6px;width:22px;height:22px;border-radius:50%;border:1px solid var(--border-soft);background:rgba(255,253,248,.92);color:var(--text2);font-size:.62rem;line-height:1;cursor:pointer;z-index:3;display:flex;align-items:center;justify-content:center">⇄</button></sc-if>
+                  <button onclick="{{ r.ink.onToggle }}" title="{{ r.ink.title }}" style="{{ r.ink.style }}">{{ r.ink.glyph }}</button><sc-if value="{{ r.price.has }}" hint-placeholder-val="{{ false }}"><span style="{{ r.price.style }}">{{ r.price.label }}</span></sc-if><sc-if value="{{ r.canSwap }}" hint-placeholder-val="{{ false }}"><button onclick="{{ r.onSwap }}" title="Choose a different printing" style="position:absolute;bottom:6px;right:6px;width:22px;height:22px;border-radius:50%;border:1px solid var(--border-soft);background:rgba(255,253,248,.92);color:var(--text2);font-size:.62rem;line-height:1;cursor:pointer;z-index:3;display:flex;align-items:center;justify-content:center">⇄</button></sc-if>
                 </div>
                 <div style="font-weight:600;font-size:.74rem;line-height:1.25;margin-top:7px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">{{ r.name }}</div>
                 <div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:5px">
@@ -1565,6 +1565,7 @@ class Component extends DCLogic {
   componentDidMount(){
     let theme='dark'; try{ theme=localStorage.getItem('lorcanaAtlas_theme_v1')||'dark'; }catch(e){}
     this.setState({theme});
+    this.loadPrices();
     this._rainTimer = setInterval(()=>{ this.setState(s=>({rainTick:((s.rainTick||0)+1)%10000})); }, 900);
     // Light deterrent against casual copying — not real protection (any browser that
     // renders this page must download the full source; devtools can't be blocked).
@@ -2230,6 +2231,30 @@ class Component extends DCLogic {
   }
   // ---------- Card Base (full searchable card database) ----------
   cardDb(){ return (typeof window!=='undefined'&&window.LORCANA_CARD_DB)||{}; }
+  // ---------- Card prices (LigaLorcana.com.br, BRL) ----------
+  loadPrices(){
+    if(this._pricesLoading || this._prices) return;
+    this._pricesLoading=true;
+    fetch('prices.json?v='+Date.now()).then(r=>r.ok?r.json():null).then(j=>{
+      this._prices=(j&&j.prices)||{};
+      this._priceMeta={source:(j&&j.source)||'', generated:(j&&j.generated_at)||''};
+      this._pricesLoading=false; this.forceUpdate();
+    }).catch(()=>{ this._pricesLoading=false; this._prices={}; });
+  }
+  priceBRL(name){ const p=this._prices&&this._prices[this.colKey(name)]; return p?p.brl:null; }
+  priceLabel(name){
+    const v=this.priceBRL(name);
+    if(v==null) return null;
+    if(v===0) return 'R$ —';
+    return 'R$ '+v.toFixed(2).replace('.',',');
+  }
+  priceChip(name){
+    const label=this.priceLabel(name);
+    if(label==null) return { has:false, label:'', style:'' };
+    const v=this.priceBRL(name);
+    const hot=v>=20;
+    return { has:true, label, style:`position:absolute;top:6px;right:6px;z-index:3;font-family:'Space Mono',monospace;font-size:.56rem;font-weight:700;letter-spacing:.01em;padding:2px 6px;border-radius:7px;background:${hot?'rgba(179,35,44,.92)':'rgba(20,17,14,.82)'};color:${hot?'#fff':'#E8C9A0'};box-shadow:0 2px 5px rgba(0,0,0,.3);backdrop-filter:blur(3px)` };
+  }
   cardBaseList(){
     if(this._cbList) return this._cbList;
     this._cbList=Object.values(this.cardDb());
@@ -2854,6 +2879,7 @@ class Component extends DCLogic {
         name:c.name, qty:c.qty, meta, dot:I?I.dark:'#CDBF9F', img:imc, noImg:!imc, imgEl:this.imgEl(imc,c.name,{borderRadius:'10px'}),
         canSwap:vfilesC.length>1, onSwap:()=>this.setState({variantPick:c.name}), onZoom:()=>this.zoomCard(c.name),
         ink:this.inkBtn(c.name, (this.cardMeta(c.name)||{}).ik),
+        price:this.priceChip(c.name),
         slotId:'card_'+k.replace(/[^a-z0-9]+/g,'_'),
         title:di>0?c.name.slice(0,di):c.name, sub:di>0?c.name.slice(di+3):'',
         rarity:c.rarity||'', foilStr:c.foil?('✦ '+c.foil):'',
@@ -2882,6 +2908,7 @@ class Component extends DCLogic {
         return { name:r.name, countStr:Math.min(have,r.qty)+'/'+r.qty, missing:miss, img:im, noImg:!im, imgEl:this.imgEl(im,r.name,{borderRadius:'10px'}),
           canSwap:vfiles.length>1, onSwap:()=>this.setState({variantPick:r.name}), onZoom:()=>this.zoomCard(r.name),
           ink:this.inkBtn(r.name, (this.cardMeta(r.name)||{}).ik),
+          price:this.priceChip(r.name),
           setTag:(()=>{ const meta=this.cardMeta(r.name); return meta&&meta.setNum!=null?('Set '+meta.setNum):''; })(),
           slotId:'card_'+k.replace(/[^a-z0-9]+/g,'_'),
           frameBg:I?`linear-gradient(165deg, ${I.bg}, var(--panel2) 70%)`:'var(--panel2)',
@@ -3015,6 +3042,7 @@ class Component extends DCLogic {
         owned, hasOwned:owned>0, ownedLabel:owned>0?('×'+owned):'0',
         ownedColor:owned>0?'var(--text)':'var(--text3)',
         ink:this.inkBtn(c.n, c.ik),
+        price:this.priceChip(c.n),
         onPlus:(e)=>{ e.stopPropagation(); this.bumpCollection(c,1); },
         onMinus:(e)=>{ e.stopPropagation(); this.bumpCollection(c,-1); },
         canSwap:vfiles.length>1, onSwap:(e)=>{ e.stopPropagation(); this.setState({variantPick:c.n}); } };
