@@ -1817,9 +1817,9 @@ class Component extends DCLogic {
     const on=eff===1;
     const known=eff===0||eff===1;
     return {
-      glyph: on?'◆':'◇',
+      glyph: '',
       title: on?'Inkable — click to mark uninkable':(eff===0?'Uninkable — click to mark inkable':'Inkable status unknown — click to set'),
-      style:`position:absolute;top:6px;left:6px;width:22px;height:22px;border-radius:50%;border:1px solid ${on?'#2A6FDB':(known?'#9aa0a6':'var(--border-soft)')};background:${on?'#2A6FDB':'rgba(250,250,252,.92)'};color:${on?'#fff':(known?'#5b6169':'var(--text3)')};font-size:.72rem;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1;z-index:3;box-shadow:0 2px 5px rgba(0,0,0,.18);padding:0`,
+      style:`position:absolute;top:6px;left:6px;width:22px;height:22px;border-radius:50%;border:${on?4:2}px solid ${on?'#4F9BFF':(known?'#C9CDD3':'rgba(230,232,236,.7)')};background:rgba(20,24,33,.32);cursor:pointer;z-index:3;padding:0;box-shadow:0 1px 4px rgba(0,0,0,.45), inset 0 0 0 1px rgba(0,0,0,.25)`,
       onToggle:this.requireAdmin((e)=>{ if(e&&e.stopPropagation)e.stopPropagation(); this.toggleInkable(name, baseIk); })
     };
   }
