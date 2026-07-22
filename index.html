@@ -683,6 +683,19 @@
                 </div>
               </div>
             </sc-if>
+            <sc-if value="{{ col.insights.hasWish }}" hint-placeholder-val="{{ false }}">
+              <div>
+                <div style="font-family:'Space Mono',monospace;font-size:.58rem;letter-spacing:.12em;text-transform:uppercase;color:var(--text3);margin-bottom:9px">Wishlist · {{ col.insights.wishCount }} · {{ col.insights.wishTotalLabel }}</div>
+                <div style="display:flex;flex-direction:column;gap:5px">
+                  <sc-for list="{{ col.insights.wishItems }}" as="w" hint-placeholder-count="0">
+                    <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;padding:6px 10px;background:var(--panel2);border:1px solid var(--border-soft);border-radius:8px;font-size:.76rem">
+                      <span onClick="{{ w.onZoom }}" style="color:var(--text);cursor:pointer;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1">{{ w.name }}</span>
+                      <a href="{{ w.buyUrl }}" target="_blank" rel="noopener" style="font-family:'Space Mono',monospace;font-size:.64rem;color:#CC785C;text-decoration:none;white-space:nowrap">{{ w.priceLabel }} ↗</a>
+                    </div>
+                  </sc-for>
+                </div>
+              </div>
+            </sc-if>
           </div>
         </sc-if>
       </div>
@@ -1138,6 +1151,7 @@
         <p style="font-size:.8rem;line-height:1.5;color:var(--text2);margin:12px 0 0;white-space:pre-wrap">{{ buyPreview.text }}</p>
       </sc-if>
       <a href="{{ buyPreview.buyUrl }}" target="_blank" rel="noopener" style="display:flex;align-items:center;justify-content:center;gap:8px;margin-top:14px;border-radius:12px;padding:11px 16px;font-family:inherit;font-weight:700;font-size:.85rem;text-decoration:none;background:#CC785C;color:#fff">Buy on LigaLorcana<sc-if value="{{ buyPreview.hasPrice }}" hint-placeholder-val="{{ false }}"> · {{ buyPreview.priceLabel }}</sc-if></a>
+      <button onclick="{{ buyPreview.onWish }}" style="{{ buyPreview.wishStyle }};width:100%">{{ buyPreview.wishLabel }}</button>
     </div>
   </div>
   </sc-if>
@@ -1719,6 +1733,7 @@ class Component extends DCLogic {
     this.KEY='lorcanaAtlas_games_v1__'+this.NS; this.DKEY='lorcanaAtlas_deck_v1__'+this.NS; this.TKEY='lorcanaAtlas_tab_v1__'+this.NS; this.LKEY='lorcanaAtlas_decks_v1__'+this.NS; this.CKEY='lorcanaAtlas_collection_v1__'+this.NS; this.CSEED='lorcanaAtlas_colSeed_v1__'+this.NS;
     this.GKEY='lorcanaAtlas_gh_token_v1'; this.TOMB='lorcanaAtlas_tombs_v1__'+this.NS; this.SURL='lorcanaAtlas_syncurl_v1';
     this.MKEY='lorcanaAtlas_munotes_v1__'+this.NS;
+    this.WKEY='lorcanaAtlas_wishlist_v1__'+this.NS;
     this.GH={owner:'luiscredie', repo:'lorcana', branch:'main', path:this.pathForUser(this.CURRENT_USER)};
     // Public read path (same origin as the site) — only meaningful once logged in; each
     // account reads its own file.
@@ -1837,7 +1852,9 @@ class Component extends DCLogic {
     try{ const mn=JSON.parse(localStorage.getItem(this.MKEY)); if(mn&&typeof mn==='object'&&!Array.isArray(mn)) muNotes=mn; }catch(e){}
     let inkable={};
     try{ const ik=JSON.parse(localStorage.getItem(this.IKKEY)); if(ik&&typeof ik==='object'&&!Array.isArray(ik)) inkable=ik; }catch(e){}
-    this.setState({ ready:true, store, deck, tab, lib, collection, variants, muNotes, inkable, ...(cbSetInit?{cbSet:cbSetInit}:{}) });
+    let wishlist={};
+    try{ const wl=JSON.parse(localStorage.getItem(this.WKEY)); if(wl&&typeof wl==='object'&&!Array.isArray(wl)) wishlist=wl; }catch(e){}
+    this.setState({ ready:true, store, deck, tab, lib, collection, variants, muNotes, inkable, wishlist, ...(cbSetInit?{cbSet:cbSetInit}:{}) });
     setTimeout(()=>this.doSync(), 400);
     // Re-pull the shared atlas whenever the tab regains focus so every browser converges.
     if(typeof window!=='undefined' && !this._focusHook){
@@ -1918,6 +1935,15 @@ class Component extends DCLogic {
   }
   persistInkable(v){ try{ localStorage.setItem(this.IKKEY, JSON.stringify(v)); localStorage.setItem(this.IKKEY+'_stamp', new Date().toISOString()); }catch(e){} this.queueSync(); }
   inkableStamp(){ try{ return localStorage.getItem(this.IKKEY+'_stamp')||''; }catch(e){ return ''; } }
+  wishStamp(){ try{ return localStorage.getItem(this.WKEY+'_stamp')||''; }catch(e){ return ''; } }
+  isWished(name){ return !!(this.state.wishlist||{})[this.colKey(name)]; }
+  toggleWish(name){
+    const k=this.colKey(name); const w={...(this.state.wishlist||{})};
+    if(w[k]) delete w[k]; else w[k]=1;
+    try{ localStorage.setItem(this.WKEY, JSON.stringify(w)); localStorage.setItem(this.WKEY+'_stamp', new Date().toISOString()); }catch(e){}
+    this.setState({wishlist:w}); this.queueSync();
+    this.toast(w[k]?'Added to wishlist':'Removed from wishlist');
+  }
   // Render data for the top-left inkable toggle chip on a card.
   inkBtn(name, baseIk){
     const eff=this.effInkable(name, baseIk);
@@ -1929,7 +1955,7 @@ class Component extends DCLogic {
     return {
       glyph: '',
       title: on?'Inkable — click to mark uninkable':(eff===0?'Uninkable — click to mark inkable':'Inkable status unknown — click to set'),
-      style:`position:absolute;top:4px;left:4px;width:22px;height:22px;border-radius:50%;border:${ring}px solid ${col};background:rgba(20,24,33,.32);cursor:pointer;z-index:3;padding:0;box-shadow:0 1px 4px rgba(0,0,0,.45), inset 0 0 0 1px rgba(0,0,0,.25)`,
+      style:`position:absolute;top:4px;left:2px;width:22px;height:22px;border-radius:50%;border:${ring}px solid ${col};background:rgba(20,24,33,.32);cursor:pointer;z-index:3;padding:0;box-shadow:0 1px 4px rgba(0,0,0,.45), inset 0 0 0 1px rgba(0,0,0,.25)`,
       onToggle:this.requireAdmin((e)=>{ if(e&&e.stopPropagation)e.stopPropagation(); this.toggleInkable(name, baseIk); })
     };
   }
@@ -2063,10 +2089,15 @@ class Component extends DCLogic {
         inkable=rd.inkable; inkableUpdated=rd.inkableUpdated;
         try{ localStorage.setItem(this.IKKEY, JSON.stringify(inkable)); localStorage.setItem(this.IKKEY+'_stamp', inkableUpdated); }catch(e){}
       }
+      let wishlist=s.wishlist||{}, wishlistUpdated=this.wishStamp();
+      if(rd&&rd.wishlist&&typeof rd.wishlist==='object'&&!Array.isArray(rd.wishlist)&&(rd.wishlistUpdated||'')>(wishlistUpdated||'')){
+        wishlist=rd.wishlist; wishlistUpdated=rd.wishlistUpdated;
+        try{ localStorage.setItem(this.WKEY, JSON.stringify(wishlist)); localStorage.setItem(this.WKEY+'_stamp', wishlistUpdated); }catch(e){}
+      }
       this.persist(store); this.persistLib(lib);
       let deck=s.deck; if(!lib.find(d=>d.id===deck)) deck=lib[0].id;
-      this.setState({store, lib, collection, variants, muNotes, inkable, deck});
-      return {v:1, updated:new Date().toISOString(), store, lib, collection, colUpdated, variants, variantsUpdated, muNotes, muNotesUpdated, inkable, inkableUpdated,
+      this.setState({store, lib, collection, variants, muNotes, inkable, wishlist, deck});
+      return {v:1, updated:new Date().toISOString(), store, lib, collection, colUpdated, variants, variantsUpdated, muNotes, muNotesUpdated, inkable, inkableUpdated, wishlist, wishlistUpdated,
         deletedGames:[...delG].sort(), deletedDecks:[...delD].sort()};
     } finally { this._merging=false; }
   }
@@ -2080,7 +2111,7 @@ class Component extends DCLogic {
       let remote=null;
       try{ remote=await this.ghGet(); }catch(e){ if(w) throw e; }
       const doc=this.mergeAll(remote&&remote.doc);
-      const sig=(o)=>{ try{ return JSON.stringify({s:o.store,l:o.lib,c:o.collection,cu:o.colUpdated,v:o.variants,vu:o.variantsUpdated,mn:o.muNotes,mnu:o.muNotesUpdated,ik:o.inkable,iku:o.inkableUpdated,dg:(o.deletedGames||[]).slice().sort(),dd:(o.deletedDecks||[]).slice().sort()}); }catch(e){ return Math.random()+''; } };
+      const sig=(o)=>{ try{ return JSON.stringify({s:o.store,l:o.lib,c:o.collection,cu:o.colUpdated,v:o.variants,vu:o.variantsUpdated,mn:o.muNotes,mnu:o.muNotesUpdated,ik:o.inkable,iku:o.inkableUpdated,wl:o.wishlist,wlu:o.wishlistUpdated,dg:(o.deletedGames||[]).slice().sort(),dd:(o.deletedDecks||[]).slice().sort()}); }catch(e){ return Math.random()+''; } };
       const same=!!(remote&&remote.doc)&&sig(remote.doc)===sig(doc);
       const token=this.adminToken();
       if(w&&!same&&token&&this.isAdmin()){
@@ -3202,7 +3233,8 @@ class Component extends DCLogic {
       if(sd.loading) return {has:false, loading:true};
       const inkOrder=['amber','amethyst','emerald','ruby','sapphire','steel'];
       const curveMax=Math.max(1, ...Object.values(sd.curve));
-      const curve=[0,1,2,3,4,5,6,7].map(c=>({label:c===7?'7+':(''+c), n:sd.curve[c]||0,
+      const buckets=(sd.curve[0]>0?[0,1,2,3,4,5,6,7]:[1,2,3,4,5,6,7]);
+      const curve=buckets.map(c=>({label:c===7?'7+':(''+c), n:sd.curve[c]||0,
         h:Math.round(((sd.curve[c]||0)/curveMax)*100), accent:this.INKS[D.inks&&D.inks[0]]?this.INKS[D.inks[0]].dark:'#CC785C'}));
       const maxInk=Math.max(1,...inkOrder.map(k=>sd.inkCounts[k]||0));
       const inkBars=inkOrder.filter(k=>sd.inkCounts[k]).map(k=>{
@@ -3242,8 +3274,12 @@ class Component extends DCLogic {
         const trend=hist.map(h=>({ym:h.ym, val:this.fmtBRL(h.val), h:Math.round(h.val/hmax*100)}));
         const first=hist[0], lastH=hist[hist.length-1];
         const delta=(first&&lastH)?(lastH.val-first.val):0;
+        const wl=this.state.wishlist||{}; const wnames=Object.keys(wl);
+        const wishItems=wnames.map(k=>{ const c=(this.state.collection||{})[k]; const nm=(c&&c.name)||(this.cardDb()[k]&&this.cardDb()[k].n)||k; const v=this.priceBRL(nm)||0; return {key:k, name:nm, priceLabel:v>0?this.fmtBRL(v):'—', val:v, buyUrl:this.buyUrl(nm), onZoom:()=>this.zoomCard(nm)}; }).sort((a,b)=>b.val-a.val);
+        const wishTotal=wishItems.reduce((x,i)=>x+i.val,0);
         return { open:!!s.colInsightsOpen, onToggle:()=>this.setState({colInsightsOpen:!s.colInsightsOpen}), chevron:s.colInsightsOpen?'▾':'▸',
           setBars:sc, top, buildable:bld, hasBuildable:bld.length>0,
+          wishItems, hasWish:wishItems.length>0, wishTotalLabel:this.fmtBRL(wishTotal), wishCount:wishItems.length,
           trend, hasTrend:trend.length>1, trendDelta:(delta>=0?'+':'')+this.fmtBRL(Math.abs(delta)), trendColor:delta>=0?'#4E9D6B':'#B3232C' };
       })(),
       isGrid:view==='grid', isList:view==='list',
@@ -3442,7 +3478,7 @@ class Component extends DCLogic {
       rainCols: this.buildRainCols(s.rainTick),
       rainFilter: this.rainFilter(s.theme),
       showLoader: !this._fileTreeReady,
-      buyPreview: (()=>{ const bp=s.buyPreview; if(!bp) return {open:false}; const u=this.imgUrl(bp.name); const meta=this.cardMeta(bp.name); const metaChips=meta?[meta.c!=null?('Cost '+meta.c):'', meta.i||'', meta.l!=null?(meta.l+' lore'):'', meta.r||''].filter(Boolean):[]; const info=this.priceInfo(bp.name); const priceLabel=info.brl==null?'':(info.ambiguous?('R$ '+info.min.toFixed(2).replace('.',',')+'+'):this.fmtBRL(info.brl||0)); return { open:true, name:bp.name, img:u, noImg:!u, imgEl:this.imgEl(u,bp.name,{borderRadius:'12px'}), metaChips, hasMeta:metaChips.length>0, text:meta?meta.tx:'', priceLabel, hasPrice:!!priceLabel, buyUrl:this.buyUrl(bp.name), onClose:()=>this.setState({buyPreview:null}) }; })(),
+      buyPreview: (()=>{ const bp=s.buyPreview; if(!bp) return {open:false}; const u=this.imgUrl(bp.name); const meta=this.cardMeta(bp.name); const metaChips=meta?[meta.c!=null?('Cost '+meta.c):'', meta.i||'', meta.l!=null?(meta.l+' lore'):'', meta.r||''].filter(Boolean):[]; const info=this.priceInfo(bp.name); const priceLabel=info.brl==null?'':(info.ambiguous?('R$ '+info.min.toFixed(2).replace('.',',')+'+'):this.fmtBRL(info.brl||0)); const wished=this.isWished(bp.name); return { open:true, name:bp.name, img:u, noImg:!u, imgEl:this.imgEl(u,bp.name,{borderRadius:'12px'}), metaChips, hasMeta:metaChips.length>0, text:meta?meta.tx:'', priceLabel, hasPrice:!!priceLabel, buyUrl:this.buyUrl(bp.name), wished, wishLabel:wished?'♥ In wishlist':'♡ Add to wishlist', wishStyle:'display:flex;align-items:center;justify-content:center;gap:8px;margin-top:8px;border-radius:12px;padding:10px 16px;font-family:inherit;font-weight:700;font-size:.82rem;cursor:pointer;background:'+(wished?'rgba(204,120,92,.16)':'var(--chip-bg)')+';color:'+(wished?'#CC785C':'var(--text2)')+';border:1px solid '+(wished?'#CC785C':'var(--border)'), onWish:this.requireAdmin(()=>this.toggleWish(bp.name)), onClose:()=>this.setState({buyPreview:null}) }; })(),
       ddOpen: !!s.openDD,
       onCloseDD: ()=>this.setState({openDD:null}),
       siteAuthed, gateVisible, onGateKeydown,
