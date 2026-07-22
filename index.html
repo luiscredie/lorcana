@@ -625,8 +625,12 @@
       <div style="background:linear-gradient(var(--panel),var(--panel)) padding-box, linear-gradient(135deg, rgba(204,120,92,.55), rgba(167,139,250,.4) 35%, rgba(74,222,128,.3) 65%, rgba(204,120,92,.55)) border-box;background-size:100% 100%, 300% 300%;border:1px solid transparent;border-radius:22px;box-shadow:var(--shadow);backdrop-filter:blur(24px);animation:borderFlow 10s linear infinite;padding:24px;margin-top:16px">
             <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px;flex-wrap:wrap">
               <div style="font-family:'Space Mono',monospace;font-size:.66rem;font-weight:700;letter-spacing:.15em;text-transform:uppercase;color:var(--text3)">Owned cards · {{ col.count }}</div>
-              <div style="display:flex;align-items:center;gap:10px">
+              <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
                 <span style="font-family:'Space Mono',monospace;font-size:.6rem;letter-spacing:.08em;text-transform:uppercase;color:var(--text3)">{{ col.copies }} copies</span>
+                <span style="display:flex;gap:3px;background:var(--chip-bg);border-radius:11px;padding:3px">
+                  <button onclick="{{ col.onSortSet }}" style="{{ col.sortSetStyle }}" title="Group by set">By set</button>
+                  <button onclick="{{ col.onSortValue }}" style="{{ col.sortValueStyle }}" title="Most valuable first">By value</button>
+                </span>
                 <span style="display:flex;gap:3px;background:var(--chip-bg);border-radius:11px;padding:3px">
                   <button onclick="{{ col.onGrid }}" style="{{ col.gridBtnStyle }}">Grid</button>
                   <button onclick="{{ col.onList }}" style="{{ col.listBtnStyle }}">List</button>
@@ -640,7 +644,7 @@
                 <sc-for list="{{ col.groups }}" as="g" hint-placeholder-count="2">
                   <div onClick="{{ g.onToggle }}" style="display:flex;align-items:center;justify-content:space-between;gap:10px;font-family:'Space Mono',monospace;font-size:.6rem;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:#9a6c0f;background:#F4E8CC;border-radius:8px;padding:6px 11px;margin:14px 0 8px;cursor:pointer;user-select:none">
                     <span>{{ g.label }} · {{ g.count }}</span>
-                    <span style="letter-spacing:0">{{ g.chevron }}</span>
+                    <span style="display:flex;align-items:center;gap:10px"><span style="color:#CC785C">{{ g.valueLabel }}</span><span style="letter-spacing:0">{{ g.chevron }}</span></span>
                   </div>
                   <sc-if value="{{ g.open }}" hint-placeholder-val="{{ true }}">
                   <sc-if value="{{ col.isGrid }}" hint-placeholder-val="{{ true }}">
@@ -2927,9 +2931,16 @@ class Component extends DCLogic {
     const allKeys=Object.keys(collection);
     const copies=allKeys.reduce((x,k)=>x+(collection[k].qty||0),0);
     const filter=this.colKey(s.colFilter||'');
+    const colSort=s.colSort||'set';
+    const byValue=colSort==='value';
     const sortedKeys=allKeys.filter(k=>!filter||k.includes(filter))
       .sort((x,y)=>{
         const a=collection[x], b=collection[y];
+        if(byValue){
+          const va=(this.priceBRL(a.name)||0)*(a.qty||0), vb=(this.priceBRL(b.name)||0)*(b.qty||0);
+          if(vb!==va) return vb-va;
+          return a.name.localeCompare(b.name);
+        }
         const sa=parseInt(a.set,10)||999, sb=parseInt(b.set,10)||999;
         const na=(a.num!=null)?a.num:9999, nb=(b.num!=null)?b.num:9999;
         return (sa-sb) || (na-nb) || a.name.localeCompare(b.name);
@@ -2940,13 +2951,14 @@ class Component extends DCLogic {
       const ink=(String(c.color||'').split(/[\s,\/]+/)[0]||'').toLowerCase();
       const I=this.INKS[ink];
       const setN=parseInt(c.set,10)||null;
-      const label=setN?('Set '+setN):'No set';
+      const label=byValue?'By value · most valuable first':(setN?('Set '+setN):'No set');
       if(!curGroup||curGroup.label!==label){
         const closed=!!(s.colClosedSets&&s.colClosedSets[label]);
-        curGroup={label, rows:[], open:!closed, chevron:closed?'▸':'▾',
+        curGroup={label, rows:[], open:!closed, chevron:closed?'▸':'▾', value:0,
           onToggle:()=>this.setState({colClosedSets:{...(this.state.colClosedSets||{}),[label]:!closed}})};
         colGroups.push(curGroup);
       }
+      curGroup.value += (this.priceBRL(c.name)||0)*(c.qty||0);
       const di=c.name.indexOf(' - ');
       const imc=this.imgUrl(c.name);
       const vfilesC=this.variantFiles(c.name);
@@ -2965,7 +2977,7 @@ class Component extends DCLogic {
       });
       shownCount++;
     });
-    colGroups.forEach(g=>{ g.count=g.rows.length+(g.rows.length===1?' card':' cards'); });
+    colGroups.forEach(g=>{ g.count=g.rows.length+(g.rows.length===1?' card':' cards'); g.valueLabel=this.fmtBRL(g.value); });
     const view=s.colView||'grid';
     const vBtn=(on)=>`border:0;border-radius:9px;padding:5px 12px;font-family:'Space Mono',monospace;font-size:.6rem;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;background:${on?'#CC785C':'transparent'};color:${on?'#fff':'var(--text2)'}`;
     const reqs=this.deckReqs(D);
@@ -3036,6 +3048,9 @@ class Component extends DCLogic {
       gridBtnStyle:vBtn(view==='grid'), listBtnStyle:vBtn(view==='list'),
       onGrid:()=>this.setState({colView:'grid'}), onList:()=>this.setState({colView:'list'}),
       onFilter:(e)=>this.setState({colFilter:e.target.value}),
+      sort:s.colSort||'set',
+      onSortSet:()=>this.setState({colSort:'set'}), onSortValue:()=>this.setState({colSort:'value'}),
+      sortSetStyle:vBtn((s.colSort||'set')==='set'), sortValueStyle:vBtn((s.colSort||'set')==='value'),
       onImportCsv:(e)=>this.onImportCsv(e),
       onImportCol:(e)=>this.onImportCol(e),
       onBrowseBase:()=>this.setTab('cardbase'),
