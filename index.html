@@ -628,6 +628,64 @@
           </sc-if>
         </div>
       </sc-if>
+      <div style="margin:0 0 16px;border:1px solid var(--border-soft);background:var(--panel);border-radius:14px;overflow:hidden">
+        <div onClick="{{ col.insights.onToggle }}" style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px 16px;cursor:pointer;font-family:'Space Mono',monospace;font-size:.66rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#CC785C">
+          <span>◈ Collection insights</span>
+          <span>{{ col.insights.chevron }}</span>
+        </div>
+        <sc-if value="{{ col.insights.open }}" hint-placeholder-val="{{ false }}">
+          <div style="padding:2px 16px 18px;display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:22px">
+            <div>
+              <div style="font-family:'Space Mono',monospace;font-size:.58rem;letter-spacing:.12em;text-transform:uppercase;color:var(--text3);margin-bottom:9px">Set completion</div>
+              <div style="display:flex;flex-direction:column;gap:7px">
+                <sc-for list="{{ col.insights.setBars }}" as="b" hint-placeholder-count="4">
+                  <div style="display:flex;align-items:center;gap:8px">
+                    <span style="font-size:.72rem;color:var(--text2);width:52px;flex-shrink:0">{{ b.label }}</span>
+                    <div style="flex:1;height:8px;background:var(--chip-bg);border-radius:5px;overflow:hidden"><div style="height:100%;border-radius:5px;background:#CC785C;width:{{ b.pctLabel }}"></div></div>
+                    <span style="font-family:'Space Mono',monospace;font-size:.64rem;color:var(--text3);width:74px;text-align:right;flex-shrink:0;white-space:nowrap">{{ b.owned }}/{{ b.total }} · {{ b.pctLabel }}</span>
+                  </div>
+                </sc-for>
+              </div>
+              <sc-if value="{{ col.insights.hasTrend }}" hint-placeholder-val="{{ false }}">
+                <div style="font-family:'Space Mono',monospace;font-size:.58rem;letter-spacing:.12em;text-transform:uppercase;color:var(--text3);margin:16px 0 9px">Value trend · <span style="color:{{ col.insights.trendColor }}">{{ col.insights.trendDelta }}</span></div>
+                <div style="display:flex;align-items:flex-end;gap:4px;height:44px">
+                  <sc-for list="{{ col.insights.trend }}" as="t" hint-placeholder-count="6">
+                    <div title="{{ t.ym }} · {{ t.val }}" style="flex:1;border-radius:3px 3px 0 0;min-height:2px;height:{{ t.h }}%;background:#A78BFA;opacity:.8"></div>
+                  </sc-for>
+                </div>
+              </sc-if>
+            </div>
+            <div>
+              <div style="font-family:'Space Mono',monospace;font-size:.58rem;letter-spacing:.12em;text-transform:uppercase;color:var(--text3);margin-bottom:9px">Most valuable owned</div>
+              <div style="display:flex;flex-direction:column;gap:5px">
+                <sc-for list="{{ col.insights.top }}" as="t" hint-placeholder-count="6">
+                  <div onClick="{{ t.onZoom }}" style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:6px 10px;background:var(--panel2);border:1px solid var(--border-soft);border-radius:8px;cursor:pointer;font-size:.76rem">
+                    <span style="color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ t.name }} <span style="color:var(--text3)">×{{ t.qty }}</span></span>
+                    <span style="font-family:'Space Mono',monospace;font-size:.66rem;color:#CC785C;white-space:nowrap">{{ t.unit }}</span>
+                  </div>
+                </sc-for>
+              </div>
+            </div>
+            <sc-if value="{{ col.insights.hasBuildable }}" hint-placeholder-val="{{ false }}">
+              <div>
+                <div style="font-family:'Space Mono',monospace;font-size:.58rem;letter-spacing:.12em;text-transform:uppercase;color:var(--text3);margin-bottom:9px">What you can build</div>
+                <div style="display:flex;flex-direction:column;gap:7px">
+                  <sc-for list="{{ col.insights.buildable }}" as="b" hint-placeholder-count="3">
+                    <div onClick="{{ b.onOpen }}" style="cursor:pointer">
+                      <div style="display:flex;align-items:baseline;justify-content:space-between;gap:8px">
+                        <span style="font-size:.76rem;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ b.title }}</span>
+                        <span style="font-family:'Space Mono',monospace;font-size:.64rem;color:{{ b.barColor }};white-space:nowrap">{{ b.pctLabel }}</span>
+                      </div>
+                      <div style="height:7px;background:var(--chip-bg);border-radius:5px;overflow:hidden;margin:3px 0 2px"><div style="height:100%;border-radius:5px;background:{{ b.barColor }};width:{{ b.pctLabel }}"></div></div>
+                      <div style="font-size:.62rem;color:var(--text3)">{{ b.missLabel }}</div>
+                    </div>
+                  </sc-for>
+                </div>
+              </div>
+            </sc-if>
+          </div>
+        </sc-if>
+      </div>
       <div style="background:linear-gradient(var(--panel),var(--panel)) padding-box, linear-gradient(135deg, rgba(204,120,92,.55), rgba(167,139,250,.4) 35%, rgba(74,222,128,.3) 65%, rgba(204,120,92,.55)) border-box;background-size:100% 100%, 300% 300%;border:1px solid transparent;border-radius:22px;box-shadow:var(--shadow);backdrop-filter:blur(24px);animation:borderFlow 10s linear infinite;padding:24px">
             <div style="font-family:'Space Mono',monospace;font-size:.66rem;font-weight:700;letter-spacing:.15em;text-transform:uppercase;color:var(--text3);margin-bottom:12px">Add cards you own</div>
             <div style="display:flex;gap:9px;flex-wrap:wrap">
@@ -1079,6 +1137,7 @@
       <sc-if value="{{ buyPreview.text }}" hint-placeholder-val="{{ false }}">
         <p style="font-size:.8rem;line-height:1.5;color:var(--text2);margin:12px 0 0;white-space:pre-wrap">{{ buyPreview.text }}</p>
       </sc-if>
+      <a href="{{ buyPreview.buyUrl }}" target="_blank" rel="noopener" style="display:flex;align-items:center;justify-content:center;gap:8px;margin-top:14px;border-radius:12px;padding:11px 16px;font-family:inherit;font-weight:700;font-size:.85rem;text-decoration:none;background:#CC785C;color:#fff">Buy on LigaLorcana<sc-if value="{{ buyPreview.hasPrice }}" hint-placeholder-val="{{ false }}"> · {{ buyPreview.priceLabel }}</sc-if></a>
     </div>
   </div>
   </sc-if>
@@ -1468,6 +1527,14 @@
   </div>
   </sc-if>
 
+  <sc-if value="{{ pendingImport }}" hint-placeholder-val="{{ false }}">
+  <div style="position:fixed;top:14px;left:50%;transform:translateX(-50%);z-index:90;background:#1B1712;border:1px solid #CC785C;border-radius:14px;box-shadow:0 18px 40px -16px #000;padding:12px 16px;display:flex;align-items:center;gap:14px;max-width:92vw">
+    <span style="font-size:.84rem;color:#F1EBDD">Shared deck: <b>{{ pendingTitle }}</b> · {{ pendingCount }} lines</span>
+    <button onclick="{{ onAcceptImport }}" style="border:0;border-radius:10px;padding:8px 15px;font-family:inherit;font-weight:700;font-size:.8rem;cursor:pointer;background:#CC785C;color:#fff">Import</button>
+    <button onclick="{{ onDismissImport }}" style="border:0;border-radius:10px;padding:8px 12px;font-family:inherit;font-weight:700;font-size:.8rem;cursor:pointer;background:var(--chip-bg);color:var(--text)">Dismiss</button>
+  </div>
+  </sc-if>
+
   <sc-if value="{{ shareOpen }}" hint-placeholder-val="{{ false }}">
   <div onClick="{{ share.onClose }}" style="position:fixed;inset:0;z-index:85;background:rgba(37,29,20,.45);backdrop-filter:blur(3px);display:flex;align-items:center;justify-content:center;padding:20px">
     <div onClick="{{ stopClick }}" style="background:var(--panel2);border:1px solid var(--border-soft);border-radius:20px;box-shadow:0 30px 60px -20px rgba(0,0,0,.5);backdrop-filter:blur(28px);max-width:460px;width:100%;max-height:86vh;overflow:auto;padding:24px">
@@ -1478,6 +1545,9 @@
       <textarea readonly="readonly" value="{{ share.text }}" style="width:100%;box-sizing:border-box;border:1px solid var(--border);border-radius:12px;padding:12px;font-family:'Space Mono',monospace;font-size:.76rem;line-height:1.55;min-height:190px;resize:vertical;background:var(--panel);color:var(--text);margin-top:12px"></textarea>
       <div style="display:flex;gap:9px;flex-wrap:wrap;margin-top:14px">
         <button onclick="{{ share.onCopy }}" style="border:0;border-radius:12px;padding:11px 18px;font-family:inherit;font-weight:700;font-size:.85rem;cursor:pointer;background:#CC785C;color:#fff">Copy to clipboard</button>
+        <sc-if value="{{ share.hasLink }}" hint-placeholder-val="{{ false }}">
+          <button onclick="{{ share.onCopyLink }}" style="border:1px solid var(--border);border-radius:12px;padding:11px 16px;font-family:inherit;font-weight:700;font-size:.85rem;cursor:pointer;background:var(--panel);color:var(--text)">Copy share link</button>
+        </sc-if>
         <button onclick="{{ share.onDownload }}" style="border:1px solid var(--border);border-radius:12px;padding:11px 16px;font-family:inherit;font-weight:700;font-size:.85rem;cursor:pointer;background:var(--panel);color:var(--text)">Download .txt</button>
         <sc-if value="{{ share.canNative }}" hint-placeholder-val="{{ false }}">
           <button onclick="{{ share.onNative }}" style="border:1px solid var(--border);border-radius:12px;padding:11px 16px;font-family:inherit;font-weight:700;font-size:.85rem;cursor:pointer;background:var(--panel);color:var(--text)">Share…</button>
@@ -1625,6 +1695,7 @@ class Component extends DCLogic {
     let theme='dark'; try{ theme=localStorage.getItem('lorcanaAtlas_theme_v1')||'dark'; }catch(e){}
     this.setState({theme});
     this.loadPrices();
+    this.checkSharedDeck();
     this._rainTimer = setInterval(()=>{ this.setState(s=>({rainTick:((s.rainTick||0)+1)%10000})); }, 900);
     // Light deterrent against casual copying — not real protection (any browser that
     // renders this page must download the full source; devtools can't be blocked).
@@ -1640,8 +1711,7 @@ class Component extends DCLogic {
       this._escHook=1;
       document.addEventListener('keydown', e=>{ if((e.key||'')==='Escape' && this.state.editor) this.setState({editor:null}); });
     }
-    this.ADMIN_KEY='lorcanaAtlas_admin_v1';
-    // Every account gets its own private data file & local cache namespace — decks, games and
+    this.ADMIN_KEY='lorcanaAtlas_admin_v1';    // Every account gets its own private data file & local cache namespace — decks, games and
     // collection never mix between users. this.NS is derived from the logged-in username.
     const _session=this.sessionInfo();
     this.CURRENT_USER=_session?_session.user:null;
@@ -2360,6 +2430,43 @@ class Component extends DCLogic {
   looseKey(n){ return String(n||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[\u2010\u2011\u2012\u2013\u2014\u2015]/g,'-').replace(/[\u2018\u2019\u02BC]/g,"'").replace(/\s*\([^)]*\)\s*$/,'').toLowerCase().replace(/^the\s+/,'').replace(/[&,]/g,' ').replace(/[^a-z0-9']+/g,'').trim(); }
   priceBRL(name){
     return this.priceInfo(name).brl;
+  }
+  // ---- Collection insights (set completion, top-value, buildability, value trend) ----
+  setCompletion(){
+    const db=this.cardDb(); const col=this.state.collection||{};
+    const totals={}, owned={};
+    Object.values(db).forEach(c=>{ const sn=c.setNum; if(sn==null) return; (totals[sn]=totals[sn]||new Set()).add(this.colKey(c.n)); });
+    Object.keys(col).forEach(k=>{ if(!(col[k].qty>0)) return; const m=db[k]; const sn=m&&m.setNum; if(sn==null) return; (owned[sn]=owned[sn]||new Set()).add(k); });
+    return Object.keys(totals).map(sn=>({set:sn, total:totals[sn].size, owned:(owned[sn]||new Set()).size}))
+      .map(r=>({...r, pct:r.total?Math.round(r.owned/r.total*100):0}))
+      .sort((a,b)=>(+a.set)-(+b.set));
+  }
+  topOwned(n){
+    const col=this.state.collection||{};
+    return Object.values(col).filter(c=>c.qty>0).map(c=>{ const v=this.priceBRL(c.name)||0; return {name:c.name, qty:c.qty, unit:v, total:v*c.qty}; })
+      .filter(x=>x.unit>0).sort((a,b)=>b.unit-a.unit).slice(0,n||8);
+  }
+  buildability(){
+    const lib=(this.state.lib||[]).filter(d=>d.id!==this.ALL && d.cards && d.cards.length);
+    const col=this.state.collection||{};
+    return lib.map(d=>{
+      const reqs=this.deckReqs(d)||[]; let need=0, have=0, missVal=0;
+      reqs.forEach(r=>{ const owned=(col[this.colKey(r.name)]||{qty:0}).qty; need+=r.qty; have+=Math.min(owned,r.qty); const m=Math.max(0,r.qty-owned); const v=this.priceBRL(r.name); if(m&&v&&v>0) missVal+=v*m; });
+      return {id:d.id, title:d.title, pct:need?Math.round(have/need*100):0, missing:need-have, missVal};
+    }).sort((a,b)=>b.pct-a.pct);
+  }
+  // Monthly snapshot of total collection value (last 24 points), stored + synced-friendly.
+  VHIST_KEY(){ return 'lorcanaAtlas_valhist_v1__'+this.NS; }
+  valueHistory(){
+    let hist=[]; try{ hist=JSON.parse(localStorage.getItem(this.VHIST_KEY()))||[]; }catch(e){}
+    if(!Array.isArray(hist)) hist=[];
+    const now=new Date(); const ym=now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0');
+    const val=Math.round(this.collectionValue().sum);
+    const last=hist[hist.length-1];
+    if(!last || last.ym!==ym){ hist.push({ym, val}); } else if(last.val!==val){ last.val=val; }
+    hist=hist.slice(-24);
+    try{ localStorage.setItem(this.VHIST_KEY(), JSON.stringify(hist)); }catch(e){}
+    return hist;
   }
   fmtBRL(v){
     const n=(v||0).toFixed(2).split('.');
@@ -3124,6 +3231,21 @@ class Component extends DCLogic {
         open:!!s.colAuditOpen, onToggle:()=>this.setState({colAuditOpen:!s.colAuditOpen}),
         label:(a.missing.length+a.ambiguous.length)+' price issue'+((a.missing.length+a.ambiguous.length)===1?'':'s'),
         hasIssues:(a.missing.length+a.ambiguous.length)>0, missingCount:a.missing.length, ambiguousCount:a.ambiguous.length, chevron:s.colAuditOpen?'▾':'▸' }; })(),
+      insights:(()=>{
+        const sc=this.setCompletion().map(r=>({label:'Set '+r.set, owned:r.owned, total:r.total, pct:r.pct, pctLabel:r.pct+'%'}));
+        const top=this.topOwned(8).map(t=>({name:t.name, qty:t.qty, unit:this.fmtBRL(t.unit), total:this.fmtBRL(t.total), onZoom:()=>this.zoomCard(t.name)}));
+        const bld=this.buildability().map(b=>({title:b.title, pct:b.pct, pctLabel:b.pct+'%', missing:b.missing,
+          missLabel:b.missing? (b.missing+' missing · '+this.fmtBRL(b.missVal)) : 'Complete ✓',
+          barColor:b.pct>=100?'#4E9D6B':(b.pct>=70?'#9a6c0f':'#B3232C'), onOpen:()=>this.setDeck(b.id)}));
+        const hist=this.valueHistory();
+        const hmax=Math.max(1,...hist.map(h=>h.val));
+        const trend=hist.map(h=>({ym:h.ym, val:this.fmtBRL(h.val), h:Math.round(h.val/hmax*100)}));
+        const first=hist[0], lastH=hist[hist.length-1];
+        const delta=(first&&lastH)?(lastH.val-first.val):0;
+        return { open:!!s.colInsightsOpen, onToggle:()=>this.setState({colInsightsOpen:!s.colInsightsOpen}), chevron:s.colInsightsOpen?'▾':'▸',
+          setBars:sc, top, buildable:bld, hasBuildable:bld.length>0,
+          trend, hasTrend:trend.length>1, trendDelta:(delta>=0?'+':'')+this.fmtBRL(Math.abs(delta)), trendColor:delta>=0?'#4E9D6B':'#B3232C' };
+      })(),
       isGrid:view==='grid', isList:view==='list',
       gridBtnStyle:vBtn(view==='grid'), listBtnStyle:vBtn(view==='list'),
       onGrid:()=>this.setState({colView:'grid'}), onList:()=>this.setState({colView:'list'}),
@@ -3320,7 +3442,7 @@ class Component extends DCLogic {
       rainCols: this.buildRainCols(s.rainTick),
       rainFilter: this.rainFilter(s.theme),
       showLoader: !this._fileTreeReady,
-      buyPreview: (()=>{ const bp=s.buyPreview; if(!bp) return {open:false}; const u=this.imgUrl(bp.name); const meta=this.cardMeta(bp.name); const metaChips=meta?[meta.c!=null?('Cost '+meta.c):'', meta.i||'', meta.l!=null?(meta.l+' lore'):'', meta.r||''].filter(Boolean):[]; return { open:true, name:bp.name, img:u, noImg:!u, imgEl:this.imgEl(u,bp.name,{borderRadius:'12px'}), metaChips, hasMeta:metaChips.length>0, text:meta?meta.tx:'', onClose:()=>this.setState({buyPreview:null}) }; })(),
+      buyPreview: (()=>{ const bp=s.buyPreview; if(!bp) return {open:false}; const u=this.imgUrl(bp.name); const meta=this.cardMeta(bp.name); const metaChips=meta?[meta.c!=null?('Cost '+meta.c):'', meta.i||'', meta.l!=null?(meta.l+' lore'):'', meta.r||''].filter(Boolean):[]; const info=this.priceInfo(bp.name); const priceLabel=info.brl==null?'':(info.ambiguous?('R$ '+info.min.toFixed(2).replace('.',',')+'+'):this.fmtBRL(info.brl||0)); return { open:true, name:bp.name, img:u, noImg:!u, imgEl:this.imgEl(u,bp.name,{borderRadius:'12px'}), metaChips, hasMeta:metaChips.length>0, text:meta?meta.tx:'', priceLabel, hasPrice:!!priceLabel, buyUrl:this.buyUrl(bp.name), onClose:()=>this.setState({buyPreview:null}) }; })(),
       ddOpen: !!s.openDD,
       onCloseDD: ()=>this.setState({openDD:null}),
       siteAuthed, gateVisible, onGateKeydown,
@@ -3422,10 +3544,15 @@ class Component extends DCLogic {
       shareOpen:!!s.share,
       share:s.share?{
         title:s.share.title, subtitle:s.share.subtitle, text:s.share.text, canNative:!!s.share.canNative,
+        link:s.share.link||'', hasLink:!!s.share.link,
+        onCopyLink:()=>this.copyToClipboard(s.share.link, 'Share link copied'),
         onCopy:()=>this.copyToClipboard(s.share.text, 'Copied to clipboard'),
         onDownload:()=>this.shareDownload(), onNative:()=>this.shareNative(), onClose:()=>this.closeShare()
       }:{},
       stopClick:(e)=>e.stopPropagation(),
+      pendingImport:!!s.pendingImport, pendingTitle:s.pendingImport?s.pendingImport.title:'',
+      pendingCount:s.pendingImport?s.pendingImport.cards.length:0,
+      onAcceptImport:()=>this.acceptSharedDeck(), onDismissImport:()=>this.dismissSharedDeck(),
       ov, mu, ck, cb, gm, off, parsedView, onExportDeckList:this.onExportDeckList.bind(this), replayView,
       goGames:()=>this.setTab('games'),
       onLogInput:(e)=>this.setState({logText:e.target.value}),
@@ -3602,9 +3729,9 @@ class Component extends DCLogic {
     this.setState({muNotes:mn, muEditKey:null, muDraft:''});
     this.toast(t?'Matchup note saved':'Matchup note cleared');
   }
-  openShare(title, subtitle, text, filename){
+  openShare(title, subtitle, text, filename, link){
     if(!text||!text.trim()){ this.toast('Nothing to share yet'); return; }
-    this.setState({share:{title, subtitle, text, filename:filename||'lorcana-list', canNative:!!(navigator.share)}});
+    this.setState({share:{title, subtitle, text, filename:filename||'lorcana-list', link:link||'', canNative:!!(navigator.share)}});
   }
   closeShare(){ this.setState({share:null}); }
   shareDownload(){
@@ -3635,8 +3762,35 @@ class Component extends DCLogic {
     if(!reqs||!reqs.length){ this.toast('This deck has no card list saved'); return; }
     const text=reqs.map(r=>`${r.qty} ${r.name}`).join('\n');
     const total=reqs.reduce((x,r)=>x+r.qty,0);
-    this.openShare(D.title||'Deck list', total+' cards', text, (D.title||'deck')+' - deck list');
+    const link=this.deckShareLink(D.title||'Deck', reqs.map(r=>`${r.qty} ${r.name}`));
+    this.openShare(D.title||'Deck list', total+' cards · Dreamborn-compatible', text, (D.title||'deck')+' - deck list', link);
   }
+  b64u(s){ return btoa(unescape(encodeURIComponent(s))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,''); }
+  b64uDec(s){ try{ let t=String(s).replace(/-/g,'+').replace(/_/g,'/'); while(t.length%4)t+='='; return decodeURIComponent(escape(atob(t))); }catch(e){ return ''; } }
+  deckShareLink(title, lines){
+    const payload=this.b64u(JSON.stringify({t:title, c:lines}));
+    const base=(typeof location!=='undefined')?(location.origin+location.pathname):'';
+    return base+'#d='+payload;
+  }
+  // On load, if the URL carries a shared deck (#d=…), stage it for one-tap import.
+  checkSharedDeck(){
+    try{
+      const h=(location.hash||''); const m=h.match(/[#&]d=([^&]+)/); if(!m) return;
+      const obj=JSON.parse(this.b64uDec(m[1])); if(!obj||!Array.isArray(obj.c)) return;
+      this.setState({pendingImport:{title:obj.t||'Shared deck', cards:obj.c}});
+      try{ history.replaceState(null,'',location.pathname); }catch(e){}
+    }catch(e){}
+  }
+  acceptSharedDeck(){
+    const p=this.state.pendingImport; if(!p) return;
+    if(!this.isAdmin()){ this.setState({adminOpen:true}); return; }
+    this.setState({pendingImport:null});
+    this.openEditor(null);
+    this.setState(s=>({editor:{...s.editor, title:p.title, cards:p.cards.join('\n')}}));
+    this.toast('Imported shared deck into the editor — review and Save');
+  }
+  dismissSharedDeck(){ this.setState({pendingImport:null}); }
+  buyUrl(name){ const base=String(name||'').split(' - ')[0]; return 'https://www.ligalorcana.com.br/?view=cards/search&card='+encodeURIComponent(base)+'&tipo=1'; }
   onImport(e){
     const f=e.target.files&&e.target.files[0]; if(!f)return;
     const r=new FileReader();
