@@ -119,7 +119,7 @@
         </div>
       </header>
 
-      
+      <!-- ============ DECK SWITCHER ============ -->
       <div data-screen-label="Deck switcher" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px;margin-top:26px">
         <sc-for list="{{ deckCards }}" as="d" hint-placeholder-count="3">
           <div onClick="{{ d.onClick }}" style="{{ d.style }}">
@@ -141,7 +141,7 @@
         </button>
       </div>
 
-      
+      <!-- ============ HERO ============ -->
       <div data-screen-label="Hero" style="position:relative;margin:24px 0 26px;padding:34px;border-radius:28px;overflow:hidden;background:linear-gradient(var(--panel),var(--panel)) padding-box, linear-gradient(135deg, rgba(204,120,92,.65), rgba(167,139,250,.5) 35%, rgba(74,222,128,.4) 65%, rgba(204,120,92,.65)) border-box;background-size:100% 100%, 300% 300%;border:1px solid transparent;box-shadow:var(--shadow);backdrop-filter:blur(24px);animation:borderFlow 8s linear infinite">
         <div style="position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,#CC785C,transparent);animation:scanline 4s ease-in-out infinite;pointer-events:none"></div>
         <div style="position:relative;display:grid;grid-template-columns:1fr auto;gap:26px;align-items:center" data-hero-grid="1">
@@ -198,7 +198,7 @@
       </div>
     </div>
 
-    
+    <!-- ============ EMPTY DOSSIER ============ -->
     <sc-if value="{{ showEmpty }}" hint-placeholder-val="{{ false }}">
     <section data-screen-label="Empty dossier" style="padding:18px 0 70px">
       <div style="background:var(--panel);border:1px dashed var(--border-soft);border-radius:20px;padding:44px 28px;text-align:center">
@@ -210,7 +210,7 @@
     </section>
     </sc-if>
 
-    
+    <!-- ============ OVERVIEW ============ -->
     <sc-if value="{{ isOverview }}" hint-placeholder-val="{{ true }}">
     <section data-screen-label="Overview" style="padding:18px 0 70px">
       <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px">
@@ -238,9 +238,6 @@
         <div style="font-family:'Space Mono',monospace;font-size:.58rem;letter-spacing:.08em;text-transform:uppercase;color:var(--text3);margin-top:8px">Oldest → newest · green win, red loss</div>
       </div>
       </sc-if>
-
-      <div style="background:linear-gradient(var(--panel),var(--panel)) padding-box, linear-gradient(135deg, rgba(204,120,92,.55), rgba(167,139,250,.4) 35%, rgba(74,222,128,.3) 65%, rgba(204,120,92,.55)) border-box;background-size:100% 100%, 300% 300%;border:1px solid transparent;border-radius:22px;box-shadow:var(--shadow);backdrop-filter:blur(24px);animation:borderFlow 10s linear infinite;padding:24px;margin-top:14px">
-        <div style="font-family:'Space Mono',monospace;font-size:.66rem;font-weight:700;letter-spacing:.15em;text-transform:uppercase;color:var(--text3);margin-bottom:10px">What the data says</div>
 <sc-for list="{{ ov.insights }}" as="ins" hint-placeholder-count="4">
           <div style="display:flex;gap:13px;align-items:flex-start;padding:12px 14px;border-radius:14px;background:var(--panel2);margin-bottom:8px">
             <div style="width:32px;height:32px;border-radius:10px;flex:0 0 auto;display:flex;align-items:center;justify-content:center;font-size:1rem;background:{{ ins.bg }};color:{{ ins.color }}">{{ ins.icon }}</div>
@@ -286,7 +283,7 @@
     </section>
     </sc-if>
 
-    
+    <!-- ============ MATCHUPS ============ -->
     <sc-if value="{{ isMatchups }}" hint-placeholder-val="{{ false }}">
     <section data-screen-label="Matchups" style="padding:18px 0 70px">
       <div style="display:flex;align-items:baseline;gap:14px;margin:6px 0 22px">
@@ -327,7 +324,7 @@
     </section>
     </sc-if>
 
-    
+    <!-- ============ CLOCK ============ -->
     <sc-if value="{{ isClock }}" hint-placeholder-val="{{ false }}">
     <section data-screen-label="Clock" style="padding:18px 0 70px">
       <div style="display:flex;align-items:baseline;gap:14px;margin:6px 0 22px">
@@ -414,7 +411,7 @@
     </section>
     </sc-if>
 
-    
+    <!-- ============ COMBOS ============ -->
     <sc-if value="{{ isCombos }}" hint-placeholder-val="{{ false }}">
     <section data-screen-label="Combos" style="padding:18px 0 70px">
       <div style="display:flex;align-items:baseline;gap:14px;margin:6px 0 22px">
@@ -438,7 +435,7 @@
     </section>
     </sc-if>
 
-    
+    <!-- ============ DECK ============ -->
     <sc-if value="{{ isDeckTab }}" hint-placeholder-val="{{ false }}">
     <section data-screen-label="Deck" style="padding:18px 0 70px">
       <div style="display:flex;align-items:baseline;justify-content:space-between;flex-wrap:wrap;gap:14px;margin:6px 0 22px">
@@ -548,7 +545,7 @@
                     {{ r.imgEl }}<sc-if value="{{ r.noImg }}" hint-placeholder-val="{{ false }}"><span style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;text-align:center;padding:8px;font-size:.62rem;font-weight:600;color:var(--text2);line-height:1.3">{{ r.name }}</span></sc-if>
                     <span style="position:absolute;top:-7px;right:-6px;font-family:'Space Mono',monospace;font-size:.62rem;font-weight:700;border-radius:999px;padding:2px 8px;box-shadow:0 3px 7px rgba(40,25,10,.3);pointer-events:none;z-index:2;background:{{ r.chipBg2 }};color:{{ r.chipColor2 }}">{{ r.countStr }}</span>
                     <button onclick="{{ r.onZoom }}" title="View card" style="position:absolute;bottom:6px;left:6px;width:22px;height:22px;border-radius:50%;border:1px solid var(--border-soft);background:rgba(255,253,248,.92);color:var(--text2);font-size:.66rem;line-height:1;cursor:pointer;z-index:3;display:flex;align-items:center;justify-content:center">⌕</button>
-                    <button onclick="{{ r.ink.onToggle }}" title="{{ r.ink.title }}" style="{{ r.ink.style }}">{{ r.ink.glyph }}</button><sc-if value="{{ r.price.has }}" hint-placeholder-val="{{ false }}"><span style="{{ r.price.style }}">{{ r.price.label }}</span></sc-if><sc-if value="{{ r.canSwap }}" hint-placeholder-val="{{ false }}"><button onclick="{{ r.onSwap }}" title="Choose a different printing" style="position:absolute;bottom:6px;right:6px;width:22px;height:22px;border-radius:50%;border:1px solid var(--border-soft);background:rgba(255,253,248,.92);color:var(--text2);font-size:.62rem;line-height:1;cursor:pointer;z-index:3;display:flex;align-items:center;justify-content:center">⇄</button></sc-if>
+                    <button onclick="{{ r.ink.onToggle }}" title="{{ r.ink.title }}" style="{{ r.ink.style }}">{{ r.ink.glyph }}</button><sc-if value="{{ r.price.has }}" hint-placeholder-val="{{ false }}"><span title="{{ r.price.title }}" style="{{ r.price.style }}">{{ r.price.label }}</span></sc-if><sc-if value="{{ r.canSwap }}" hint-placeholder-val="{{ false }}"><button onclick="{{ r.onSwap }}" title="Choose a different printing" style="position:absolute;bottom:6px;right:6px;width:22px;height:22px;border-radius:50%;border:1px solid var(--border-soft);background:rgba(255,253,248,.92);color:var(--text2);font-size:.62rem;line-height:1;cursor:pointer;z-index:3;display:flex;align-items:center;justify-content:center">⇄</button></sc-if>
                   </div>
                   <span style="display:grid;grid-template-columns:1fr auto;gap:5px;align-items:center;margin-top:6px;padding:0 2px">
                     <span style="font-weight:600;font-size:.7rem;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ r.name }}</span>
@@ -589,7 +586,7 @@
     </section>
     </sc-if>
 
-    
+    <!-- ============ COLLECTION ============ -->
     <sc-if value="{{ isCollection }}" hint-placeholder-val="{{ false }}">
     <section data-screen-label="Collection" style="padding:18px 0 70px">
       <div style="display:flex;align-items:baseline;gap:14px;margin:6px 0 22px">
@@ -600,6 +597,37 @@
           <div style="font-family:'Space Mono',monospace;font-size:.56rem;letter-spacing:.12em;text-transform:uppercase;color:var(--text3);margin-top:3px">Collection value · {{ col.valueSub }}</div>
         </div>
       </div>
+      <sc-if value="{{ col.audit.hasIssues }}" hint-placeholder-val="{{ false }}">
+        <div style="margin:0 0 16px;border:1px solid #E9C46A;background:rgba(233,196,106,.08);border-radius:14px;overflow:hidden">
+          <div onClick="{{ col.audit.onToggle }}" style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:11px 15px;cursor:pointer;font-family:'Space Mono',monospace;font-size:.66rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#8a5a12">
+            <span>⚠ {{ col.audit.label }} · tap to review</span>
+            <span>{{ col.audit.chevron }}</span>
+          </div>
+          <sc-if value="{{ col.audit.open }}" hint-placeholder-val="{{ false }}">
+            <div style="padding:4px 15px 14px">
+              <sc-if value="{{ col.audit.ambiguousCount }}" hint-placeholder-val="{{ false }}">
+                <div style="font-family:'Space Mono',monospace;font-size:.58rem;letter-spacing:.12em;text-transform:uppercase;color:var(--text3);margin:8px 0 6px">Ambiguous — pick the printing you own</div>
+                <div style="display:flex;flex-direction:column;gap:5px">
+                  <sc-for list="{{ col.audit.ambiguous }}" as="a" hint-placeholder-count="0">
+                    <div onClick="{{ a.onPick }}" style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:7px 11px;background:var(--panel2);border:1px solid var(--border-soft);border-radius:9px;cursor:pointer;font-size:.78rem">
+                      <span style="color:var(--text)">{{ a.name }}</span>
+                      <span style="font-family:'Space Mono',monospace;font-size:.68rem;color:#9a6c0f;white-space:nowrap">{{ a.range }} ▸</span>
+                    </div>
+                  </sc-for>
+                </div>
+              </sc-if>
+              <sc-if value="{{ col.audit.missingCount }}" hint-placeholder-val="{{ false }}">
+                <div style="font-family:'Space Mono',monospace;font-size:.58rem;letter-spacing:.12em;text-transform:uppercase;color:var(--text3);margin:12px 0 6px">No price on file</div>
+                <div style="display:flex;flex-wrap:wrap;gap:6px">
+                  <sc-for list="{{ col.audit.missing }}" as="m" hint-placeholder-count="0">
+                    <span style="font-size:.72rem;color:var(--text2);padding:4px 9px;background:var(--panel2);border:1px solid var(--border-soft);border-radius:7px">{{ m.name }}</span>
+                  </sc-for>
+                </div>
+              </sc-if>
+            </div>
+          </sc-if>
+        </div>
+      </sc-if>
       <div style="background:linear-gradient(var(--panel),var(--panel)) padding-box, linear-gradient(135deg, rgba(204,120,92,.55), rgba(167,139,250,.4) 35%, rgba(74,222,128,.3) 65%, rgba(204,120,92,.55)) border-box;background-size:100% 100%, 300% 300%;border:1px solid transparent;border-radius:22px;box-shadow:var(--shadow);backdrop-filter:blur(24px);animation:borderFlow 10s linear infinite;padding:24px">
             <div style="font-family:'Space Mono',monospace;font-size:.66rem;font-weight:700;letter-spacing:.15em;text-transform:uppercase;color:var(--text3);margin-bottom:12px">Add cards you own</div>
             <div style="display:flex;gap:9px;flex-wrap:wrap">
@@ -655,7 +683,7 @@
                             {{ r.imgEl }}<sc-if value="{{ r.noImg }}" hint-placeholder-val="{{ false }}"><span style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;text-align:center;padding:8px;font-size:.62rem;font-weight:600;color:var(--text2);line-height:1.3">{{ r.name }}</span></sc-if>
                             <span style="position:absolute;top:-7px;right:-6px;background:var(--text);color:var(--bg);font-family:'Space Mono',monospace;font-size:.66rem;font-weight:700;border-radius:999px;padding:2px 8px;box-shadow:0 3px 7px rgba(40,25,10,.35);pointer-events:none;z-index:2">×{{ r.qty }}</span>
                             <button onclick="{{ r.onZoom }}" title="View card" style="position:absolute;bottom:6px;left:6px;width:22px;height:22px;border-radius:50%;border:1px solid var(--border-soft);background:rgba(255,253,248,.92);color:var(--text2);font-size:.66rem;line-height:1;cursor:pointer;z-index:3;display:flex;align-items:center;justify-content:center">⤢</button>
-                            <button onclick="{{ r.ink.onToggle }}" title="{{ r.ink.title }}" style="{{ r.ink.style }}">{{ r.ink.glyph }}</button><sc-if value="{{ r.price.has }}" hint-placeholder-val="{{ false }}"><span style="{{ r.price.style }}">{{ r.price.label }}</span></sc-if><sc-if value="{{ r.canSwap }}" hint-placeholder-val="{{ false }}"><button onclick="{{ r.onSwap }}" title="Choose a different printing" style="position:absolute;bottom:6px;right:6px;width:22px;height:22px;border-radius:50%;border:1px solid var(--border-soft);background:rgba(255,253,248,.92);color:var(--text2);font-size:.62rem;line-height:1;cursor:pointer;z-index:3;display:flex;align-items:center;justify-content:center">⇄</button></sc-if>
+                            <button onclick="{{ r.ink.onToggle }}" title="{{ r.ink.title }}" style="{{ r.ink.style }}">{{ r.ink.glyph }}</button><sc-if value="{{ r.price.has }}" hint-placeholder-val="{{ false }}"><span title="{{ r.price.title }}" style="{{ r.price.style }}">{{ r.price.label }}</span></sc-if><sc-if value="{{ r.canSwap }}" hint-placeholder-val="{{ false }}"><button onclick="{{ r.onSwap }}" title="Choose a different printing" style="position:absolute;bottom:6px;right:6px;width:22px;height:22px;border-radius:50%;border:1px solid var(--border-soft);background:rgba(255,253,248,.92);color:var(--text2);font-size:.62rem;line-height:1;cursor:pointer;z-index:3;display:flex;align-items:center;justify-content:center">⇄</button></sc-if>
                           </div>
                           <span style="display:grid;grid-template-columns:auto 1fr auto;gap:5px;align-items:start;margin-top:6px;padding:0 2px">
                             <i style="width:8px;height:8px;border-radius:50%;display:block;background:{{ r.dot }};margin-top:3px"></i>
@@ -696,7 +724,7 @@
     </section>
     </sc-if>
 
-    
+    <!-- ============ CARD BASE ============ -->
     <sc-if value="{{ isCardBase }}" hint-placeholder-val="{{ false }}">
     <section data-screen-label="Card Base" style="padding:18px 0 70px">
       <div style="display:flex;align-items:baseline;gap:14px;margin:6px 0 22px">
@@ -767,7 +795,7 @@
               <div>
                 <div onClick="{{ r.onZoom }}" style="position:relative;aspect-ratio:5/7;border-radius:11px;border:1px solid var(--border-soft);background:var(--panel2);box-shadow:0 6px 12px -8px rgba(60,40,20,.3);cursor:pointer;overflow:hidden">
                   {{ r.imgEl }}<sc-if value="{{ r.noImg }}" hint-placeholder-val="{{ false }}"><span style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;text-align:center;padding:8px;font-size:.62rem;font-weight:600;color:var(--text2);line-height:1.3">{{ r.name }}</span></sc-if>
-                  <button onclick="{{ r.ink.onToggle }}" title="{{ r.ink.title }}" style="{{ r.ink.style }}">{{ r.ink.glyph }}</button><sc-if value="{{ r.price.has }}" hint-placeholder-val="{{ false }}"><span style="{{ r.price.style }}">{{ r.price.label }}</span></sc-if><sc-if value="{{ r.canSwap }}" hint-placeholder-val="{{ false }}"><button onclick="{{ r.onSwap }}" title="Choose a different printing" style="position:absolute;bottom:6px;right:6px;width:22px;height:22px;border-radius:50%;border:1px solid var(--border-soft);background:rgba(255,253,248,.92);color:var(--text2);font-size:.62rem;line-height:1;cursor:pointer;z-index:3;display:flex;align-items:center;justify-content:center">⇄</button></sc-if>
+                  <button onclick="{{ r.ink.onToggle }}" title="{{ r.ink.title }}" style="{{ r.ink.style }}">{{ r.ink.glyph }}</button><sc-if value="{{ r.price.has }}" hint-placeholder-val="{{ false }}"><span title="{{ r.price.title }}" style="{{ r.price.style }}">{{ r.price.label }}</span></sc-if><sc-if value="{{ r.canSwap }}" hint-placeholder-val="{{ false }}"><button onclick="{{ r.onSwap }}" title="Choose a different printing" style="position:absolute;bottom:6px;right:6px;width:22px;height:22px;border-radius:50%;border:1px solid var(--border-soft);background:rgba(255,253,248,.92);color:var(--text2);font-size:.62rem;line-height:1;cursor:pointer;z-index:3;display:flex;align-items:center;justify-content:center">⇄</button></sc-if>
                 </div>
                 <div style="font-weight:600;font-size:.74rem;line-height:1.25;margin-top:7px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">{{ r.name }}</div>
                 <div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:5px">
@@ -789,7 +817,7 @@
     </section>
     </sc-if>
 
-    
+    <!-- ============ GAMES ============ -->
     <sc-if value="{{ isGames }}" hint-placeholder-val="{{ false }}">
     <section data-screen-label="Games" style="padding:18px 0 70px">
       <div style="background:linear-gradient(var(--panel),var(--panel)) padding-box, linear-gradient(135deg, rgba(204,120,92,.55), rgba(167,139,250,.4) 35%, rgba(74,222,128,.3) 65%, rgba(204,120,92,.55)) border-box;background-size:100% 100%, 300% 300%;border:1px solid transparent;border-radius:22px;box-shadow:var(--shadow);backdrop-filter:blur(24px);animation:borderFlow 10s linear infinite;padding:24px">
@@ -1066,7 +1094,7 @@
         </div>
       </div>
 
-      
+      <!-- ===== Board: opponent (top) — hand above table, discard below lore ===== -->
       <div style="margin-top:16px;border:1px solid var(--border-soft);border-radius:16px;background:linear-gradient(160deg, rgba(120,90,200,.08), transparent 60%);padding:14px">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
           <div style="font-family:'Space Mono',monospace;font-size:.62rem;letter-spacing:.12em;text-transform:uppercase;color:var(--text3)">Opponent's hand</div>
@@ -1119,7 +1147,7 @@
         </div>
       </div>
 
-      
+      <!-- ===== Board: me (bottom) — discard above lore, hand below table ===== -->
       <div style="margin-top:8px;border:1px solid var(--border-soft);border-radius:16px;background:linear-gradient(340deg, rgba(204,120,92,.08), transparent 60%);padding:14px">
         <div style="display:flex;gap:12px;align-items:stretch;margin-bottom:12px">
           <div style="flex:0 0 auto;display:flex;flex-direction:column;align-items:center;gap:8px;justify-content:flex-end;padding-right:12px;border-right:1px solid var(--border-soft)">
@@ -1279,7 +1307,7 @@
   </sc-if>
 
   <sc-if value="{{ editorOpen }}" hint-placeholder-val="{{ false }}">
-  <div onClick="{{ onEditorCancel }}" style="position:fixed;inset:0;z-index:80;background:rgba(37,29,20,.45);backdrop-filter:blur(3px);display:flex;align-items:center;justify-content:center;padding:20px">
+  <div style="position:fixed;inset:0;z-index:80;background:rgba(37,29,20,.45);backdrop-filter:blur(3px);display:flex;align-items:center;justify-content:center;padding:20px;overflow:auto">
     <div onClick="{{ stopClick }}" style="{{ ed.dialogStyle }}">
       <div style="display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin-bottom:18px">
         <h3 style="font-family:'Chakra Petch',sans-serif;font-weight:600;font-size:1.45rem;letter-spacing:-.01em;margin:0">{{ ed.heading }}</h3>
@@ -1347,11 +1375,11 @@
               <div style="font-family:'Space Mono',monospace;font-size:.56rem;letter-spacing:.16em;text-transform:uppercase;color:var(--text3);margin-bottom:5px">Ink balance</div>
               <sc-if value="{{ ed.hasList }}" hint-placeholder-val="{{ false }}">
                 <div style="display:flex;flex-direction:column;gap:3px">
-                  <sc-for list="{{ ed.anInkBars }}" as="bb" hint-placeholder-count="2">
+                  <sc-for list="{{ ed.anInkBars }}" as="b" hint-placeholder-count="2">
                     <div style="display:flex;align-items:center;gap:6px">
-                      <i style="width:8px;height:8px;border-radius:50%;background:{{ bb.dot }};display:block"></i>
-                      <span style="font-size:.68rem;color:var(--text2);flex:1">{{ bb.label }}</span>
-                      <span style="font-family:'Space Mono',monospace;font-size:.66rem;color:var(--text3)">{{ bb.count }}</span>
+                      <i style="width:8px;height:8px;border-radius:50%;background:{{ b.dot }};display:block"></i>
+                      <span style="font-size:.68rem;color:var(--text2);flex:1">{{ b.label }}</span>
+                      <span style="font-family:'Space Mono',monospace;font-size:.66rem;color:var(--text3)">{{ b.count }}</span>
                     </div>
                   </sc-for>
                 </div>
@@ -1440,8 +1468,6 @@
   </div>
   </sc-if>
 
-  <footer style="text-align:center;color:var(--text2);font-size:.7rem;padding:20px 0 52px;font-family:'Space Mono',monospace;letter-spacing:.1em;text-transform:uppercase"><span style="display:inline-block;border-top:1px dashed var(--border-soft);padding-top:14px">The Construct · Simulated deck intelligence</span></footer>
-
   <sc-if value="{{ shareOpen }}" hint-placeholder-val="{{ false }}">
   <div onClick="{{ share.onClose }}" style="position:fixed;inset:0;z-index:85;background:rgba(37,29,20,.45);backdrop-filter:blur(3px);display:flex;align-items:center;justify-content:center;padding:20px">
     <div onClick="{{ stopClick }}" style="background:var(--panel2);border:1px solid var(--border-soft);border-radius:20px;box-shadow:0 30px 60px -20px rgba(0,0,0,.5);backdrop-filter:blur(28px);max-width:460px;width:100%;max-height:86vh;overflow:auto;padding:24px">
@@ -1461,6 +1487,7 @@
     </div>
   </div>
   </sc-if>
+  <footer style="text-align:center;color:var(--text2);font-size:.7rem;padding:20px 0 52px;font-family:'Space Mono',monospace;letter-spacing:.1em;text-transform:uppercase"><span style="display:inline-block;border-top:1px dashed var(--border-soft);padding-top:14px">The Construct · Simulated deck intelligence</span></footer>
 
   <sc-if value="{{ toast }}" hint-placeholder-val="{{ false }}">
     <div style="position:fixed;bottom:22px;left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:14px;background:#1C1917;color:#F5F1E8;padding:11px 20px;border-radius:13px;font-size:.85rem;font-weight:600;z-index:60;box-shadow:0 14px 30px -12px rgba(0,0,0,.4)">
@@ -1517,7 +1544,7 @@
 </div>
 
 </x-dc>
-<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1060,&quot;height&quot;:920},&quot;defaultDeck&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;default&quot;:&quot;dale&quot;,&quot;options&quot;:[&quot;dale&quot;,&quot;woody&quot;,&quot;sid&quot;],&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Behavior&quot;}}">
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1060,&quot;height&quot;:920},&quot;defaultDeck&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;default&quot;:&quot;__all__&quot;,&quot;options&quot;:[&quot;__all__&quot;,&quot;dale&quot;,&quot;woody&quot;,&quot;sid&quot;],&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Behavior&quot;}}">
 class Component extends DCLogic {
   state = { ready:false, deck:'dale', tab:'overview', store:null, logText:'', parsed:null, clockSel:null, toast:'', pv:{venue:'',notes:''}, theme:'dark', openDD:null,
     offlineOpen:false, off:{ result:'W', method:'concession', onPlay:'yes', mulligan:'0', myLore:'', oppLore:'', gameTurns:'', firstQuestMyTurn:'', cross10MyTurn:'', archetype:'Other / Unknown', venue:'', notes:'' } };
@@ -1608,6 +1635,10 @@ class Component extends DCLogic {
         const k=(e.key||'').toLowerCase();
         if(k==='f12' || (e.ctrlKey&&e.shiftKey&&(k==='i'||k==='j'||k==='c')) || (e.ctrlKey&&k==='u')) e.preventDefault();
       });
+    }
+    if(typeof document!=='undefined' && !this._escHook){
+      this._escHook=1;
+      document.addEventListener('keydown', e=>{ if((e.key||'')==='Escape' && this.state.editor) this.setState({editor:null}); });
     }
     this.ADMIN_KEY='lorcanaAtlas_admin_v1';
     // Every account gets its own private data file & local cache namespace — decks, games and
@@ -1798,6 +1829,7 @@ class Component extends DCLogic {
   variantsStamp(){ try{ return localStorage.getItem(this.VKEY+'_stamp')||''; }catch(e){ return ''; } }
   // ---- Inkable overrides (manual corrections to the card DB's inkwell flag) ----
   inkOverride(name){ const v=(this.state.inkable||{})[this.colKey(name)]; return (v===0||v===1)?v:null; }
+  // Effective inkable for a card: override wins, else the DB flag (1 inkable, 0 uninkable, undefined unknown)
   effInkable(name, baseIk){
     const o=this.inkOverride(name);
     if(o===0||o===1) return o;
@@ -1806,7 +1838,7 @@ class Component extends DCLogic {
   toggleInkable(name, baseIk){
     const k=this.colKey(name);
     const cur=this.effInkable(name, baseIk);
-    const next=cur===1?0:1;
+    const next=cur===1?0:1; // flip whatever is currently shown
     const base=(baseIk===0||baseIk===1)?baseIk:null;
     const map={...(this.state.inkable||{})};
     if(base!=null && next===base) delete map[k]; else map[k]=next;
@@ -1816,14 +1848,18 @@ class Component extends DCLogic {
   }
   persistInkable(v){ try{ localStorage.setItem(this.IKKEY, JSON.stringify(v)); localStorage.setItem(this.IKKEY+'_stamp', new Date().toISOString()); }catch(e){} this.queueSync(); }
   inkableStamp(){ try{ return localStorage.getItem(this.IKKEY+'_stamp')||''; }catch(e){ return ''; } }
+  // Render data for the top-left inkable toggle chip on a card.
   inkBtn(name, baseIk){
     const eff=this.effInkable(name, baseIk);
     const on=eff===1;
     const known=eff===0||eff===1;
+    // Inkable = fat ring, uninkable = slim ring, both with a transparent centre so art shows through.
+    const ring = on ? 4 : 2;
+    const col = on ? '#4F9BFF' : (known ? '#C9CDD3' : 'rgba(230,232,236,.7)');
     return {
       glyph: '',
       title: on?'Inkable — click to mark uninkable':(eff===0?'Uninkable — click to mark inkable':'Inkable status unknown — click to set'),
-      style:`position:absolute;top:-7px;left:-7px;width:22px;height:22px;border-radius:50%;border:${on?4:2}px solid ${on?'#4F9BFF':(known?'#C9CDD3':'rgba(230,232,236,.7)')};background:rgba(20,24,33,.32);cursor:pointer;z-index:3;padding:0;box-shadow:0 1px 4px rgba(0,0,0,.45), inset 0 0 0 1px rgba(0,0,0,.25)`,
+      style:`position:absolute;top:4px;left:4px;width:22px;height:22px;border-radius:50%;border:${ring}px solid ${col};background:rgba(20,24,33,.32);cursor:pointer;z-index:3;padding:0;box-shadow:0 1px 4px rgba(0,0,0,.45), inset 0 0 0 1px rgba(0,0,0,.25)`,
       onToggle:this.requireAdmin((e)=>{ if(e&&e.stopPropagation)e.stopPropagation(); this.toggleInkable(name, baseIk); })
     };
   }
@@ -2095,6 +2131,7 @@ class Component extends DCLogic {
     let lib=(this.state.lib||[]).slice();
     let heroArts=(ed.heroArts&&ed.heroArts.length)?ed.heroArts.slice(0,3):null;
     if(!heroArts){
+      // Auto-pick cover art: three highest-cost characters in the list that resolve in the DB.
       const db=this.cardDb();
       if(Object.keys(db).length){
         const scored=cards.map(l=>{ const r=this.parseReq(l); const m=db[this.colKey(r.name)]; return m?{name:r.name, cost:(m.c!=null?m.c:-1), t:m.t}:null; })
@@ -2188,6 +2225,7 @@ class Component extends DCLogic {
     return {total, unknown, curve, inkCounts, typeCounts, inkInk, inkUnink, costed, inkable, uninkable, avgCost: costed? (costSum/costed):0};
   }
   edTabStyle(on){ return `flex:1;border:0;border-radius:9px;padding:8px 12px;font-family:inherit;font-weight:700;font-size:.8rem;cursor:pointer;transition:.15s;background:${on?'#CC785C':'transparent'};color:${on?'#fff':'var(--text2)'}`; }
+  // The deck as it stands right now — small thumbnails for the Pick view.
   edCurrentDeck(){
     const {map, order}=this.edDeckMap();
     const db=this.cardDb();
@@ -2253,7 +2291,7 @@ class Component extends DCLogic {
       const k=this.colKey(c.n), im=this.imgUrl(c.n);
       const inDeck=(map[k]||{}).qty||0, owned=(col[k]||{}).qty||0;
       return {name:c.n, imgEl:this.imgEl(im,c.n,{borderRadius:'10px'}), noImg:!im,
-        inDeck, inDeckLabel: inDeck>0?('\u00d7'+inDeck):'0', inDeckColor: inDeck>0?'#CC785C':'var(--text3)',
+        inDeck, inDeckLabel: inDeck>0?('×'+inDeck):'0', inDeckColor: inDeck>0?'#CC785C':'var(--text3)',
         ownedLabel: owned>0?('you own '+owned):'not owned', ownedColor: owned>0?'#3d7d54':'var(--text3)',
         onZoom:()=>this.zoomCard(c.n),
         onPlus:(e)=>{ e.stopPropagation(); this.edBumpCard(c.n,1); },
@@ -2273,8 +2311,10 @@ class Component extends DCLogic {
       this._pricesLoading=false; this.forceUpdate();
     }).catch(()=>{ this._pricesLoading=false; this._prices={}; });
   }
+  // Accept either the processed map ({prices:{colKey:{brl}}}) or the raw
+  // LigaLorcana export ({cards:[...]}) and normalise to colKey -> {brl}.
   buildPriceMap(j){
-    this._priceBySetNum={};
+    this._priceBySetNum={}; this._priceAll={};
     if(!j) return {};
     if(j.prices && typeof j.prices==='object'){
       Object.values(j.prices).forEach(p=>{ if(p&&p.set!=null&&p.num!=null) this._priceBySetNum[String(p.set).padStart(3,'0')+'|'+p.num]=p; });
@@ -2290,11 +2330,28 @@ class Component extends DCLogic {
       out[k]=lower(out[k], e);
       const lk=this.looseKey(baseName(c.name));
       this._pricesLoose[lk]=lower(this._pricesLoose[lk], e);
+      const printing={brl:c.minimum_price_brl||0, id:c.id, edition:c.edition, num:c.number};
+      (this._priceAll[k]=this._priceAll[k]||[]).push(printing);
       const m=String(c.edition||'').match(/^LOR(\d+)$/);
       if(m){ const num=parseInt(c.number,10); if(!isNaN(num)) this._priceBySetNum[String(m[1]).padStart(3,'0')+'|'+num]=e; }
     });
     return out;
   }
+  // Resolve pricing for a card, distinguishing exact-printing from ambiguous multi-printing.
+  priceInfo(name){
+    const sk=this.variantSetNum(name);
+    if(sk && this._priceBySetNum && this._priceBySetNum[sk]) return {brl:this._priceBySetNum[sk].brl, exact:true, ambiguous:false};
+    const list=(this._priceAll&&this._priceAll[this.colKey(name)])||[];
+    const vals=list.map(p=>p.brl).filter(v=>v>0);
+    if(vals.length>1){
+      const min=Math.min(...vals), max=Math.max(...vals);
+      if(max!==min) return {brl:min, min, max, exact:false, ambiguous:true, count:vals.length};
+      return {brl:min, exact:false, ambiguous:false};
+    }
+    const p=this._prices&&this._prices[this.colKey(name)]; if(p) return {brl:p.brl, exact:false, ambiguous:false};
+    const lp=this._pricesLoose&&this._pricesLoose[this.looseKey(name)]; return lp?{brl:lp.brl, exact:false, ambiguous:false}:{brl:null, exact:false, ambiguous:false};
+  }
+  // Parse the chosen art file ("SET - NUM - Name.jpg") to a set|num printing key.
   variantSetNum(name){
     const file=this.variantChoice(name); if(!file) return null;
     const m=String(file).match(/^\s*(\d+)\s*-\s*(\d+)\s*-/); if(!m) return null;
@@ -2302,10 +2359,7 @@ class Component extends DCLogic {
   }
   looseKey(n){ return String(n||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[\u2010\u2011\u2012\u2013\u2014\u2015]/g,'-').replace(/[\u2018\u2019\u02BC]/g,"'").replace(/\s*\([^)]*\)\s*$/,'').toLowerCase().replace(/^the\s+/,'').replace(/[&,]/g,' ').replace(/[^a-z0-9']+/g,'').trim(); }
   priceBRL(name){
-    const sk=this.variantSetNum(name);
-    if(sk && this._priceBySetNum && this._priceBySetNum[sk]) return this._priceBySetNum[sk].brl;
-    const p=this._prices&&this._prices[this.colKey(name)]; if(p) return p.brl;
-    const lp=this._pricesLoose&&this._pricesLoose[this.looseKey(name)]; return lp?lp.brl:null;
+    return this.priceInfo(name).brl;
   }
   fmtBRL(v){
     const n=(v||0).toFixed(2).split('.');
@@ -2316,6 +2370,20 @@ class Component extends DCLogic {
     const col=this.state.collection||{}; let sum=0, priced=0, missing=0;
     Object.values(col).forEach(c=>{ const v=this.priceBRL(c.name); const q=c.qty||0; if(v==null||v===0){ missing+=q; } else { sum+=v*q; priced+=q; } });
     return {sum, priced, missing};
+  }
+  // Audit owned cards whose price is missing or ambiguous (multi-printing, no art picked).
+  priceAudit(){
+    const col=this.state.collection||{};
+    const missing=[], ambiguous=[];
+    Object.values(col).forEach(c=>{
+      if(!c.qty) return;
+      const info=this.priceInfo(c.name);
+      if(info.brl==null||info.brl===0) missing.push({name:c.name});
+      else if(info.ambiguous) ambiguous.push({name:c.name, range:'R$ '+info.min.toFixed(2).replace('.',',')+' – R$ '+info.max.toFixed(2).replace('.',','), onPick:()=>this.setState({variantPick:c.name})});
+    });
+    missing.sort((a,b)=>a.name.localeCompare(b.name));
+    ambiguous.sort((a,b)=>a.name.localeCompare(b.name));
+    return {missing, ambiguous};
   }
   deckValue(D){
     const reqs=this.deckReqs(D)||[]; let sum=0, priced=0, missing=0;
@@ -2329,11 +2397,17 @@ class Component extends DCLogic {
     return 'R$ '+v.toFixed(2).replace('.',',');
   }
   priceChip(name){
-    const label=this.priceLabel(name);
-    if(label==null) return { has:false, label:'', style:'' };
-    const v=this.priceBRL(name);
-    const hot=v>=20;
-    return { has:true, label, style:`position:absolute;top:6px;right:6px;z-index:3;font-family:'Space Mono',monospace;font-size:.56rem;font-weight:700;letter-spacing:.01em;padding:2px 6px;border-radius:7px;background:${hot?'rgba(179,35,44,.92)':'rgba(20,17,14,.82)'};color:${hot?'#fff':'#E8C9A0'};box-shadow:0 2px 5px rgba(0,0,0,.3);backdrop-filter:blur(3px)` };
+    const info=this.priceInfo(name);
+    if(info.brl==null) return { has:false, label:'', style:'', title:'' };
+    if(info.ambiguous){
+      const label='R$ '+info.min.toFixed(2).replace('.',',')+'+';
+      return { has:true, label, title:info.count+' printings · R$ '+info.min.toFixed(2).replace('.',',')+' – R$ '+info.max.toFixed(2).replace('.',',')+' — pick this card\u2019s art to set its exact price',
+        style:`position:absolute;top:6px;right:6px;z-index:3;font-family:'Space Mono',monospace;font-size:.56rem;font-weight:700;letter-spacing:.01em;padding:2px 6px;border-radius:7px;background:rgba(154,108,15,.92);color:#fff;box-shadow:0 2px 5px rgba(0,0,0,.3);backdrop-filter:blur(3px)` };
+    }
+    if(info.brl===0) return { has:true, label:'R$ —', title:'No price on file', style:`position:absolute;top:6px;right:6px;z-index:3;font-family:'Space Mono',monospace;font-size:.56rem;font-weight:700;padding:2px 6px;border-radius:7px;background:rgba(20,17,14,.82);color:#8B7A63;box-shadow:0 2px 5px rgba(0,0,0,.3)` };
+    const v=info.brl, hot=v>=20;
+    return { has:true, label:'R$ '+v.toFixed(2).replace('.',','), title:info.exact?'Exact printing price':'Price for this card',
+      style:`position:absolute;top:6px;right:6px;z-index:3;font-family:'Space Mono',monospace;font-size:.56rem;font-weight:700;letter-spacing:.01em;padding:2px 6px;border-radius:7px;background:${hot?'rgba(179,35,44,.92)':'rgba(20,17,14,.82)'};color:${hot?'#fff':'#E8C9A0'};box-shadow:0 2px 5px rgba(0,0,0,.3);backdrop-filter:blur(3px)` };
   }
   cardBaseList(){
     if(this._cbList) return this._cbList;
@@ -2623,6 +2697,7 @@ class Component extends DCLogic {
     const wins=G.filter(g=>g.result==='W'), losses=G.filter(g=>g.result==='L');
     const zero=losses.filter(g=>g.myLore===0).length;
     const insights=[];
+    // Recent-form sparkline (last up to 10 games, chronological)
     const recent=G.slice(-10);
     const recentW=recent.filter(g=>g.result==='W').length;
     const recentWr=recent.length?Math.round(recentW/recent.length*100):0;
@@ -2937,7 +3012,7 @@ class Component extends DCLogic {
       .sort((x,y)=>{
         const a=collection[x], b=collection[y];
         if(byValue){
-          const va=(this.priceBRL(a.name)||0)*(a.qty||0), vb=(this.priceBRL(b.name)||0)*(b.qty||0);
+          const va=this.priceBRL(a.name)||0, vb=this.priceBRL(b.name)||0;
           if(vb!==va) return vb-va;
           return a.name.localeCompare(b.name);
         }
@@ -3013,6 +3088,7 @@ class Component extends DCLogic {
     const covDeckValue=covRows.reduce((x,r)=>{ const v=this.priceBRL(r.name); return x+((v&&v>0)?v*r.qty:0); },0);
     const covHaveValue=covRows.reduce((x,r)=>{ const v=this.priceBRL(r.name); const owned=Math.min(r.have!=null?r.have:(r.qty-r.missing), r.qty); return x+((v&&v>0)?v*Math.max(0,owned):0); },0);
     const covPctVal=this.pct(covHave, covNeed||1);
+    // Deck analytics (cost curve / ink / types)
     const deckStats=(()=>{
       const sd=this.deckStatsData(D);
       if(!sd) return {has:false};
@@ -3044,6 +3120,10 @@ class Component extends DCLogic {
       shown:shownCount, filter:s.colFilter||'',
       valueLabel:(()=>{ const v=this.collectionValue(); return this.fmtBRL(v.sum); })(),
       valueSub:(()=>{ const v=this.collectionValue(); return v.missing? (v.missing+' unpriced') : 'LigaLorcana · BRL'; })(),
+      audit:(()=>{ const a=this.priceAudit(); return { missing:a.missing, ambiguous:a.ambiguous, count:a.missing.length+a.ambiguous.length,
+        open:!!s.colAuditOpen, onToggle:()=>this.setState({colAuditOpen:!s.colAuditOpen}),
+        label:(a.missing.length+a.ambiguous.length)+' price issue'+((a.missing.length+a.ambiguous.length)===1?'':'s'),
+        hasIssues:(a.missing.length+a.ambiguous.length)>0, missingCount:a.missing.length, ambiguousCount:a.ambiguous.length, chevron:s.colAuditOpen?'▾':'▸' }; })(),
       isGrid:view==='grid', isList:view==='list',
       gridBtnStyle:vBtn(view==='grid'), listBtnStyle:vBtn(view==='list'),
       onGrid:()=>this.setState({colView:'grid'}), onList:()=>this.setState({colView:'list'}),
