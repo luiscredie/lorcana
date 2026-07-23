@@ -2465,9 +2465,10 @@ class Component extends DCLogic {
     return out;
   }
   // Resolve pricing for a card, distinguishing exact-printing from ambiguous multi-printing.
-  priceInfo(name){
+  priceInfo(name, keyHint){
     const sk=this.variantSetNum(name);
     if(sk && this._priceBySetNum && this._priceBySetNum[sk]) return {brl:this._priceBySetNum[sk].brl, exact:true, ambiguous:false};
+    if(keyHint && this._priceBySetNum && this._priceBySetNum[keyHint]) return {brl:this._priceBySetNum[keyHint].brl, exact:true, ambiguous:false};
     const list=(this._priceAll&&this._priceAll[this.colKey(name)])||[];
     const vals=list.map(p=>p.brl).filter(v=>v>0);
     if(vals.length>1){
@@ -2485,9 +2486,11 @@ class Component extends DCLogic {
     return String(parseInt(m[1],10)).padStart(3,'0')+'|'+parseInt(m[2],10);
   }
   looseKey(n){ return String(n||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[\u2010\u2011\u2012\u2013\u2014\u2015]/g,'-').replace(/[\u2018\u2019\u02BC]/g,"'").replace(/\s*\([^)]*\)\s*$/,'').toLowerCase().replace(/^the\s+/,'').replace(/[&,]/g,' ').replace(/[^a-z0-9']+/g,'').trim(); }
-  priceBRL(name){
-    return this.priceInfo(name).brl;
+  priceBRL(name, keyHint){
+    return this.priceInfo(name, keyHint).brl;
   }
+  // Build a "SSS|N" printing key from a collection entry's stored set/num.
+  pkey(c){ if(!c||c.set==null||c.num==null) return null; const s=parseInt(c.set,10), n=parseInt(c.num,10); if(isNaN(s)||isNaN(n)) return null; return String(s).padStart(3,'0')+'|'+n; }
   // ---- Collection insights (set completion, top-value, buildability, value trend) ----
   setCompletion(){
     const db=this.cardDb(); const col=this.state.collection||{};
@@ -2500,7 +2503,7 @@ class Component extends DCLogic {
   }
   topOwned(n){
     const col=this.state.collection||{};
-    return Object.values(col).filter(c=>c.qty>0).map(c=>{ const v=this.priceBRL(c.name)||0; return {name:c.name, qty:c.qty, unit:v, total:v*c.qty}; })
+    return Object.values(col).filter(c=>c.qty>0).map(c=>{ const v=this.priceBRL(c.name, this.pkey(c))||0; return {name:c.name, qty:c.qty, unit:v, total:v*c.qty}; })
       .filter(x=>x.unit>0).sort((a,b)=>b.unit-a.unit).slice(0,n||8);
   }
   buildability(){
@@ -2532,7 +2535,7 @@ class Component extends DCLogic {
   }
   collectionValue(){
     const col=this.state.collection||{}; let sum=0, priced=0, missing=0;
-    Object.values(col).forEach(c=>{ const v=this.priceBRL(c.name); const q=c.qty||0; if(v==null||v===0){ missing+=q; } else { sum+=v*q; priced+=q; } });
+    Object.values(col).forEach(c=>{ const v=this.priceBRL(c.name, this.pkey(c)); const q=c.qty||0; if(v==null||v===0){ missing+=q; } else { sum+=v*q; priced+=q; } });
     return {sum, priced, missing};
   }
   // Audit owned cards whose price is missing or ambiguous (multi-printing, no art picked).
@@ -2541,7 +2544,7 @@ class Component extends DCLogic {
     const missing=[], ambiguous=[];
     Object.values(col).forEach(c=>{
       if(!c.qty) return;
-      const info=this.priceInfo(c.name);
+      const info=this.priceInfo(c.name, this.pkey(c));
       if(info.brl==null||info.brl===0) missing.push({name:c.name});
       else if(info.ambiguous) ambiguous.push({name:c.name, range:'R$ '+info.min.toFixed(2).replace('.',',')+' – R$ '+info.max.toFixed(2).replace('.',','), onPick:()=>this.setState({variantPick:c.name})});
     });
@@ -2560,8 +2563,8 @@ class Component extends DCLogic {
     if(v===0) return 'R$ —';
     return 'R$ '+v.toFixed(2).replace('.',',');
   }
-  priceChip(name){
-    const info=this.priceInfo(name);
+  priceChip(name, keyHint){
+    const info=this.priceInfo(name, keyHint);
     if(info.brl==null) return { has:false, label:'', style:'', title:'' };
     if(info.ambiguous){
       const label='R$ '+info.min.toFixed(2).replace('.',',')+'+';
@@ -3194,7 +3197,7 @@ class Component extends DCLogic {
       .sort((x,y)=>{
         const a=collection[x], b=collection[y];
         if(byValue){
-          const va=this.priceBRL(a.name)||0, vb=this.priceBRL(b.name)||0;
+          const va=this.priceBRL(a.name, this.pkey(a))||0, vb=this.priceBRL(b.name, this.pkey(b))||0;
           if(vb!==va) return vb-va;
           return a.name.localeCompare(b.name);
         }
@@ -3215,7 +3218,7 @@ class Component extends DCLogic {
           onToggle:()=>this.setState({colClosedSets:{...(this.state.colClosedSets||{}),[label]:!closed}})};
         colGroups.push(curGroup);
       }
-      curGroup.value += (this.priceBRL(c.name)||0)*(c.qty||0);
+      curGroup.value += (this.priceBRL(c.name, this.pkey(c))||0)*(c.qty||0);
       const di=c.name.indexOf(' - ');
       const imc=this.imgUrl(c.name);
       const vfilesC=this.variantFiles(c.name);
@@ -3224,7 +3227,7 @@ class Component extends DCLogic {
         name:c.name, qty:c.qty, meta, dot:I?I.dark:'#CDBF9F', img:imc, noImg:!imc, imgEl:this.imgEl(imc,c.name,{borderRadius:'10px'}),
         canSwap:vfilesC.length>1, onSwap:()=>this.setState({variantPick:c.name}), onZoom:()=>this.zoomCard(c.name),
         ink:this.inkBtn(c.name, (this.cardMeta(c.name)||{}).ik),
-        price:this.priceChip(c.name),
+        price:this.priceChip(c.name, this.pkey(c)),
         slotId:'card_'+k.replace(/[^a-z0-9]+/g,'_'),
         title:di>0?c.name.slice(0,di):c.name, sub:di>0?c.name.slice(di+3):'',
         rarity:c.rarity||'', foilStr:c.foil?('✦ '+c.foil):'',
