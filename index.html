@@ -2415,9 +2415,39 @@ class Component extends DCLogic {
   // Accept either the processed map ({prices:{colKey:{brl}}}) or the raw
   // LigaLorcana export ({cards:[...]}) and normalise to colKey -> {brl}.
   buildPriceMap(j){
-    this._priceBySetNum={}; this._priceAll={};
+    this._priceBySetNum={}; this._priceAll={}; this._pricesLoose={};
     if(!j) return {};
-    if(j.prices && typeof j.prices==='object'){
+    const out={};
+    const lowest=(a,b)=>{ if(a==null)return b; if(b==null)return a; return b<a?b:a; };
+    // Schema v3: prices keyed by "SET-NUM" with {card_db_key, base_name, printings:[{edition,number,minimum_price_brl}], regular}
+    if(j.prices && typeof j.prices==='object' && !Array.isArray(j.prices)){
+      const sample=Object.values(j.prices)[0];
+      if(sample && (sample.printings || sample.card_db_key)){
+        Object.keys(j.prices).forEach(entryKey=>{
+          const e=j.prices[entryKey]; if(!e) return;
+          const ck=e.card_db_key || this.colKey(e.base_name||'');
+          if(!ck) return;
+          const prints=(e.printings&&e.printings.length)?e.printings:(e.regular?[e.regular]:[]);
+          const brls=[];
+          prints.forEach(p=>{
+            const v=(p&&p.minimum_price_brl!=null)?p.minimum_price_brl:null;
+            if(v!=null && v>0) brls.push(v);
+            // per-printing exact key from edition LOR{n} + number
+            const m=String((p&&p.edition)||'').match(/^LOR(\d+)$/i);
+            if(m && p.number!=null){ const num=parseInt(p.number,10); if(!isNaN(num) && v!=null) this._priceBySetNum[String(parseInt(m[1],10)).padStart(3,'0')+'|'+num]={brl:v}; }
+          });
+          // canonical entry key "SET-NUM"
+          const km=String(entryKey).match(/^(\d+)\s*-\s*(\w+)/);
+          if(km){ const num=parseInt(km[2],10); const cheap=brls.length?Math.min(...brls):null; if(!isNaN(num) && cheap!=null && this._priceBySetNum[String(parseInt(km[1],10)).padStart(3,'0')+'|'+num]==null) this._priceBySetNum[String(parseInt(km[1],10)).padStart(3,'0')+'|'+num]={brl:cheap}; }
+          if(brls.length){ (this._priceAll[ck]=this._priceAll[ck]||[]).push(...brls.map(b=>({brl:b}))); }
+          const cheapest=brls.length?Math.min(...brls):0;
+          const prev=out[ck]?out[ck].brl:null;
+          out[ck]={brl:(prev!=null && prev>0 && (cheapest===0||prev<cheapest))?prev:cheapest};
+          const lk=this.looseKey(e.base_name||ck); const lv=this._pricesLoose[lk]; this._pricesLoose[lk]={brl:(lv&&lv.brl>0&&(cheapest===0||lv.brl<cheapest))?lv.brl:cheapest};
+        });
+        return out;
+      }
+      // Legacy processed shape: {colKey:{brl}}
       Object.values(j.prices).forEach(p=>{ if(p&&p.set!=null&&p.num!=null) this._priceBySetNum[String(p.set).padStart(3,'0')+'|'+p.num]=p; });
       return j.prices;
     }
