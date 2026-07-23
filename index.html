@@ -2467,8 +2467,10 @@ class Component extends DCLogic {
   // Resolve pricing for a card, distinguishing exact-printing from ambiguous multi-printing.
   priceInfo(name, keyHint){
     const sk=this.variantSetNum(name);
-    if(sk && this._priceBySetNum && this._priceBySetNum[sk]) return {brl:this._priceBySetNum[sk].brl, exact:true, ambiguous:false};
-    if(keyHint && this._priceBySetNum && this._priceBySetNum[keyHint]) return {brl:this._priceBySetNum[keyHint].brl, exact:true, ambiguous:false};
+    // A specific printing is targeted (chosen art, or the card's filed set/num).
+    // If that exact printing has no price, report N/A rather than another printing's price.
+    if(sk){ const hit=this._priceBySetNum&&this._priceBySetNum[sk]; return hit?{brl:hit.brl, exact:true, ambiguous:false}:{brl:null, exact:true, missing:true, ambiguous:false}; }
+    if(keyHint){ const hit=this._priceBySetNum&&this._priceBySetNum[keyHint]; return hit?{brl:hit.brl, exact:true, ambiguous:false}:{brl:null, exact:true, missing:true, ambiguous:false}; }
     const list=(this._priceAll&&this._priceAll[this.colKey(name)])||[];
     const vals=list.map(p=>p.brl).filter(v=>v>0);
     if(vals.length>1){
@@ -2565,6 +2567,7 @@ class Component extends DCLogic {
   }
   priceChip(name, keyHint){
     const info=this.priceInfo(name, keyHint);
+    if(info.missing) return { has:true, label:'N/A', title:'No price on file for this printing', style:`position:absolute;top:6px;right:6px;z-index:3;font-family:'Space Mono',monospace;font-size:.56rem;font-weight:700;padding:2px 6px;border-radius:7px;background:rgba(20,17,14,.82);color:#8B7A63;box-shadow:0 2px 5px rgba(0,0,0,.3)` };
     if(info.brl==null) return { has:false, label:'', style:'', title:'' };
     if(info.ambiguous){
       const label='R$ '+info.min.toFixed(2).replace('.',',')+'+';
