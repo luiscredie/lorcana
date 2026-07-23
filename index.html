@@ -2593,6 +2593,24 @@ class Component extends DCLogic {
     return {qty:1, name:line.trim()};
   }
   deckReqs(D){ if(!D.cards||!D.cards.length) return null; return D.cards.map(l=>this.parseReq(l)); }
+  // Deck card ordering: by type (character→action→song→item→location), then ink cost,
+  // then inkable before uninkable, then name.
+  cardTypeRank(m){
+    const t=(m&&m.t||'').toLowerCase(); const cl=((m&&m.cl)||'')+' '+((m&&m.tags)||'')+' '+t;
+    if(/song/.test(cl)) return 2;
+    if(/character/.test(t)) return 0;
+    if(/action/.test(t)) return 1;
+    if(/item/.test(t)) return 3;
+    if(/location/.test(t)) return 4;
+    return 5;
+  }
+  cardSortCmp(nameA, nameB){
+    const a=this.cardMeta(nameA)||{}, b=this.cardMeta(nameB)||{};
+    const ta=this.cardTypeRank(a), tb=this.cardTypeRank(b); if(ta!==tb) return ta-tb;
+    const ca=a.c!=null?a.c:99, cb=b.c!=null?b.c:99; if(ca!==cb) return ca-cb;
+    const ia=this.effInkable(nameA,a.ik)===1?0:1, ib=this.effInkable(nameB,b.ik)===1?0:1; if(ia!==ib) return ia-ib;
+    return String(nameA).localeCompare(String(nameB));
+  }
   persistCol(col){ try{ localStorage.setItem(this.CKEY, JSON.stringify(col)); }catch(e){} this.queueSync(); }
   addCard(){
     const name=(this.state.colName||'').trim();
@@ -3219,6 +3237,7 @@ class Component extends DCLogic {
           chipBg:miss?'#F6DED9':'#E4EFE2', chipColor:miss?'#9F2731':'#3F7D56',
           chipBg2:miss?'#9F2731':'#356B4E', chipColor2:'#fff' };
       });
+      covRows.sort((a,b)=>this.cardSortCmp(a.name,b.name));
     }
     const shopping=covRows.filter(r=>r.missing).map(r=>({label:r.missing+'× '+r.name, name:r.name, onClick:()=>this.zoomCard(r.name)}));
     const covMissTotal=covRows.reduce((x,r)=>x+r.missing,0);
