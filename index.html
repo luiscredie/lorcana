@@ -2432,10 +2432,10 @@ class Component extends DCLogic {
             const v=(p&&p.minimum_price_brl!=null)?p.minimum_price_brl:null;
             if(v!=null && v>0) brls.push(v);
             const m=String((p&&p.edition)||'').match(/^LOR(\d+)$/i);
-            if(m && p.number!=null){ const num=parseInt(p.number,10); if(!isNaN(num) && v!=null) this._priceBySetNum[String(parseInt(m[1],10)).padStart(3,'0')+'|'+num]={brl:v}; }
+            if(m && p.number!=null){ const num=parseInt(p.number,10); if(!isNaN(num) && v!=null) this._priceBySetNum[String(parseInt(m[1],10)).padStart(3,'0')+'|'+num]={brl:v, ck}; }
           });
           const km=String(entryKey).match(/^(\d+)\s*-\s*(\w+)/);
-          if(km){ const num=parseInt(km[2],10); const cheap=brls.length?Math.min(...brls):null; if(!isNaN(num) && cheap!=null && this._priceBySetNum[String(parseInt(km[1],10)).padStart(3,'0')+'|'+num]==null) this._priceBySetNum[String(parseInt(km[1],10)).padStart(3,'0')+'|'+num]={brl:cheap}; }
+          if(km){ const num=parseInt(km[2],10); const cheap=brls.length?Math.min(...brls):null; if(!isNaN(num) && cheap!=null && this._priceBySetNum[String(parseInt(km[1],10)).padStart(3,'0')+'|'+num]==null) this._priceBySetNum[String(parseInt(km[1],10)).padStart(3,'0')+'|'+num]={brl:cheap, ck}; }
           if(brls.length){ (this._priceAll[ck]=this._priceAll[ck]||[]).push(...brls.map(b=>({brl:b}))); }
           const cheapest=brls.length?Math.min(...brls):0;
           const prev=v3out[ck]?v3out[ck].brl:null;
@@ -2460,18 +2460,20 @@ class Component extends DCLogic {
       const printing={brl:c.minimum_price_brl||0, id:c.id, edition:c.edition, num:c.number};
       (this._priceAll[k]=this._priceAll[k]||[]).push(printing);
       const m=String(c.edition||'').match(/^LOR(\d+)$/);
-      if(m){ const num=parseInt(c.number,10); if(!isNaN(num)) this._priceBySetNum[String(m[1]).padStart(3,'0')+'|'+num]=e; }
+      if(m){ const num=parseInt(c.number,10); if(!isNaN(num)) this._priceBySetNum[String(m[1]).padStart(3,'0')+'|'+num]={brl:e.brl, id:e.id, ck:k}; }
     });
     return out;
   }
   // Resolve pricing for a card, distinguishing exact-printing from ambiguous multi-printing.
   priceInfo(name, keyHint){
+    const ck=this.colKey(name);
+    const nameOk=(hit)=>hit && (hit.ck==null || hit.ck===ck);
     const sk=this.variantSetNum(name);
     // A specific printing is targeted (chosen art, or the card's filed set/num).
-    // If that exact printing has no price, report N/A rather than another printing's price.
-    if(sk){ const hit=this._priceBySetNum&&this._priceBySetNum[sk]; return hit?{brl:hit.brl, exact:true, ambiguous:false}:{brl:null, exact:true, missing:true, ambiguous:false}; }
-    if(keyHint){ const hit=this._priceBySetNum&&this._priceBySetNum[keyHint]; return hit?{brl:hit.brl, exact:true, ambiguous:false}:{brl:null, exact:true, missing:true, ambiguous:false}; }
-    const list=(this._priceAll&&this._priceAll[this.colKey(name)])||[];
+    // Only trust the match if it belongs to THIS card; else report N/A rather than another card's price.
+    if(sk){ const hit=this._priceBySetNum&&this._priceBySetNum[sk]; return nameOk(hit)?{brl:hit.brl, exact:true, ambiguous:false}:{brl:null, exact:true, missing:true, ambiguous:false}; }
+    if(keyHint){ const hit=this._priceBySetNum&&this._priceBySetNum[keyHint]; return nameOk(hit)?{brl:hit.brl, exact:true, ambiguous:false}:{brl:null, exact:true, missing:true, ambiguous:false}; }
+    const list=(this._priceAll&&this._priceAll[ck])||[];
     const vals=list.map(p=>p.brl).filter(v=>v>0);
     if(vals.length>1){
       const min=Math.min(...vals), max=Math.max(...vals);
