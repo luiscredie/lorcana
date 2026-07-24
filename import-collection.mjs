@@ -1,98 +1,469 @@
 #!/usr/bin/env node
-// Reusable, idempotent collection importer for the Lorcana Dashboard.
+// Idempotent Dreamborn -> LigaLorcana collection importer.
 //
-//   node import-collection.mjs
+// The catalogue is shared by every account. Ownership is written only to the
+// explicitly selected user document, so collections, decks and games never mix.
 //
-// Reads (UTF-8/BOM, quoted-comma safe):
-//   uploads/lorcana_card_database_master.csv     — full catalogue (3442 printings)
-//   uploads/mapeamento_dreamborn_ligalorcana.csv  — owned snapshot (528 rows)
-//   collection.json (existing)                    — only to preserve the legacy set/num representative
+// Example:
+//   node import-collection.mjs \
+//     --master uploads/lorcana_card_database_master.csv \
+//     --map uploads/mapeamento_dreamborn_ligalorcana.csv \
+//     --user-data atlas-data.json
 //
-// Writes three layers:
-//   card-catalog-master.json   — every printing, keyed by Database ID (primary), ligaId secondary
-//   collection-printings.json  — exact owned snapshot, keyed "ligaId:variant" (source of truth)
-//   collection.json            — derived legacy per-name view (backward compatible)
+// For another account, use its own document:
+//   node import-collection.mjs ... --user-data data/thaiscredie.json
 //
-// Rerunning REPLACES the snapshot (never sums). Fails loudly on ambiguity.
-import { readFileSync, writeFileSync, existsSync } from 'node:fs';
+// Optional offline exports (not required by the site):
+//   --legacy-output export/collection.json
+//   --printings-output export/collection-printings.json
+//
+// The importer replaces the selected user's collection snapshot. It never sums
+// with an earlier import and preserves all unrelated user fields.
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { dirname, resolve } from 'node:path';
 
-const MASTER='uploads/lorcana_card_database_master.csv';
-const MAP='uploads/mapeamento_dreamborn_ligalorcana.csv';
+const DEFAULTS = {
+  master: 'uploads/lorcana_card_database_master.csv',
+  map: 'uploads/mapeamento_dreamborn_ligalorcana.csv',
+  userData: '',
+  catalogOutput: 'card-catalog-master.json',
+  legacyOutput: '',
+  printingsOutput: '',
+};
 
-function parseCSV(t){ t=t.replace(/^\uFEFF/,''); const rows=[]; let f=[],cur='',q=false;
-  for(let i=0;i<t.length;i++){const ch=t[i];
-    if(q){ if(ch==='"'){ if(t[i+1]==='"'){cur+='"';i++;} else q=false;} else cur+=ch; }
-    else { if(ch==='"')q=true; else if(ch===','){f.push(cur);cur='';} else if(ch==='\n'){f.push(cur);rows.push(f);f=[];cur='';} else if(ch==='\r'){} else cur+=ch; } }
-  if(cur!==''||f.length){f.push(cur);rows.push(f);} return rows; }
-const obj=(H,r)=>{const o={};H.forEach((h,i)=>o[h]=r[i]!=null?r[i]:'');return o;};
-const decode=s=>String(s||'').replace(/&amp;/g,'&').replace(/&#8208;/g,'-').replace(/&ndash;/g,'\u2013').replace(/&mdash;/g,'\u2014').replace(/&rsquo;/g,'\u2019');
-const decodeFull=s=>decode(decode(s));
-const colKey=n=>String(n||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[\u2018\u2019\u02BC]/g,"'").replace(/[\\/:*?"<>|]/g,'').replace(/\s+/g,' ').trim().replace(/4\s*-?\s*town\b/g,'4town');
-const setNum=code=>{ const m=String(code||'').match(/^LOR(\d+)$/i); return m?String(parseInt(m[1],10)).padStart(3,'0'):code; };
-const isRegular=p=>/^LOR\d+$/i.test(p.set) && !/epic|enchanted/i.test((p.rarity||'')+(p.ligaNameRaw||''));
-const COLOR={S:'Sapphire',A:'Amber',E:'Emerald',R:'Ruby',T:'Steel',M:'Amethyst'};
+const FLAG_MAP = {
+  '--master': 'master',
+  '--map': 'map',
+  '--user-data': 'userData',
+  '--catalog-output': 'catalogOutput',
+  '--legacy-output': 'legacyOutput',
+  '--printings-output': 'printingsOutput',
+};
 
-function build(){
-  // 1. Master catalogue
-  const mrows=parseCSV(readFileSync(MASTER,'utf8')); const MH=mrows[0];
-  const mdata=mrows.slice(1).filter(r=>r.length>=MH.length && r[0]);
-  const catalog={}; const eds=new Set();
-  for(const r of mdata){ const o=obj(MH,r); const id=o['Database ID'];
-    if(catalog[id]) throw new Error('Duplicate Database ID: '+id);
-    eds.add(o['Edicao (Sigla)']);
-    catalog[id]={ databaseId:id, ligaId:o['LigaLorcana ID'], displayName:o['Display Name'], imageUrl:o['Image URL']||'',
-      editionName:o['Edicao (EN)'], editionCode:o['Edicao (Sigla)'], cardNumber:o['Card #'],
-      ligaNameRaw:o['Card (EN)'], rarity:o['Raridade'], color:o['Cor (C D O E Y F R G L M P W)'], extra:o['Extras'],
-      ownedNormal:+o['Owned Normal']||0, ownedFoil:+o['Owned Foil']||0, inCollection:o['In Collection']==='TRUE' }; }
-  writeFileSync('card-catalog-master.json', JSON.stringify(catalog));
+const RARITY = {
+  C: 'Common',
+  U: 'Uncommon',
+  R: 'Rare',
+  SR: 'Super Rare',
+  L: 'Legendary',
+  E: 'Enchanted',
+  EP: 'Epic',
+  P: 'Promo',
+};
 
-  // 2. Exact printings snapshot
-  const prows=parseCSV(readFileSync(MAP,'utf8')); const PH=prows[0];
-  const pdata=prows.slice(1).filter(r=>r.length>=PH.length && r[PH.indexOf('LigaLorcana ID')]);
-  const printings={}; let total=0,foilRows=0,noUrl=0; const ids=new Set(),urls=new Set();
-  for(const r of pdata){ const o=obj(PH,r); const ligaId=o['LigaLorcana ID']; const variant=(o['Variant']||'normal').toLowerCase();
-    const count=+o['Count']||0; const id=ligaId+':'+variant;
-    if(printings[id]) throw new Error('Duplicate collection row: '+id);
-    if(!ligaId) throw new Error('Empty LigaLorcana ID in row: '+JSON.stringify(o));
-    total+=count; if(variant==='foil')foilRows++; ids.add(ligaId); if(o['Image URL'])urls.add(o['Image URL']); else noUrl++;
-    printings[id]={ id, ligaId, variant, count, set:o['LigaLorcana Edition Code'], num:o['LigaLorcana Card Number'],
-      name:o['Name'], ligaNameRaw:o['LigaLorcana Card Name'], displayName:decodeFull(o['LigaLorcana Card Name']||o['Name']),
-      color:o['LigaLorcana Color Code'], rarity:o['LigaLorcana Rarity Code'], imageUrl:o['Image URL']||'',
-      dbSet:o['Set Number'], dbNum:o['Card Number'] }; }
-  writeFileSync('collection-printings.json', JSON.stringify(printings));
+const COLOR = {
+  S: 'Sapphire',
+  A: 'Amber',
+  E: 'Emerald',
+  R: 'Ruby',
+  T: 'Steel',
+  M: 'Amethyst',
+};
 
-  // 3. Derived legacy per-name view
-  const existing = existsSync('collection.json') ? JSON.parse(readFileSync('collection.json','utf8')) : {};
-  const groups={}; for(const p of Object.values(printings)){ const k=colKey(p.name); (groups[k]=groups[k]||[]).push(p); }
-  const legacy={}; const fallbacks=[];
-  for(const k of Object.keys(groups)){
-    const ps=groups[k]; let normalQty=0,foilQty=0;
-    for(const p of ps){ if(p.variant==='foil')foilQty+=p.count; else normalQty+=p.count; }
-    const printingCount=new Set(ps.map(p=>p.ligaId)).size;
-    let rep=null; const ex=existing[k];
-    if(ex&&ex.set!=null&&ex.num!=null) rep=ps.find(p=>setNum(p.set)===String(ex.set)&&String(p.num)===String(ex.num));
-    if(!rep){ const regs=ps.filter(isRegular); const pool=regs.length?regs:ps;
-      const normals=pool.filter(p=>p.variant==='normal'); const cand=(normals.length?normals:pool).slice();
-      cand.sort((a,b)=>(parseInt(a.num,10)||9999)-(parseInt(b.num,10)||9999)); rep=cand[0];
-      if(!regs.length) fallbacks.push(ps[0].name+' (no regular printing owned)'); }
-    const rec={ name:ps[0].name, qty:normalQty+foilQty, foil:foilQty>0?1:0,
-      color:(ex&&ex.color)||COLOR[rep.color]||'', rarity:(ex&&ex.rarity)||'',
-      set:setNum(rep.set), num:parseInt(rep.num,10),
-      normalQty, foilQty, printingCount, pricingApproximate:(printingCount>1)||(normalQty>0&&foilQty>0) };
-    legacy[k]=rec;
-  }
-  writeFileSync('collection.json', JSON.stringify(legacy));
-
-  // Validation report
-  const sumQty=Object.values(legacy).reduce((x,r)=>x+r.qty,0);
-  console.log('— Master catalogue —');
-  console.log('  records: '+Object.keys(catalog).length+'  editions: '+eds.size);
-  console.log('— Exact collection —');
-  console.log('  rows: '+Object.keys(printings).length+'  total copies: '+total+'  distinct ligaId: '+ids.size);
-  console.log('  rows with URL: '+urls.size+'  rows without URL: '+noUrl+'  foil rows: '+foilRows);
-  console.log('— Legacy view —');
-  console.log('  names: '+Object.keys(legacy).length+'  sum qty: '+sumQty+'  approximate: '+Object.values(legacy).filter(r=>r.pricingApproximate).length);
-  if(fallbacks.length){ console.log('— Fallback representatives —'); fallbacks.forEach(f=>console.log('  '+f)); }
-  if(sumQty!==total) throw new Error('Legacy qty sum ('+sumQty+') != snapshot total ('+total+')');
+function usage() {
+  return [
+    'Usage:',
+    '  node import-collection.mjs --master <catalog.csv> --map <mapping.csv> --user-data <user.json>',
+    '',
+    'Required for a collection import:',
+    '  --user-data          User document to update (atlas-data.json or data/<user>.json)',
+    '',
+    'Optional:',
+    '  --catalog-output     Shared catalogue output (default: card-catalog-master.json)',
+    '  --legacy-output      Additional legacy collection export',
+    '  --printings-output   Additional exact-printings export',
+    '  --help               Show this help',
+  ].join('\n');
 }
-build();
+
+function parseArgs(argv) {
+  const options = { ...DEFAULTS };
+  for (let i = 0; i < argv.length; i += 1) {
+    const flag = argv[i];
+    if (flag === '--help' || flag === '-h') {
+      console.log(usage());
+      process.exit(0);
+    }
+    const key = FLAG_MAP[flag];
+    if (!key) throw new Error(`Unknown option: ${flag}\n\n${usage()}`);
+    const value = argv[++i];
+    if (!value || value.startsWith('--')) throw new Error(`Missing value for ${flag}`);
+    options[key] = value;
+  }
+  if (!options.userData) {
+    throw new Error(`--user-data is required so ownership is never written globally.\n\n${usage()}`);
+  }
+  return Object.fromEntries(Object.entries(options).map(([key, value]) => [key, value ? resolve(value) : '']));
+}
+
+function parseCSV(text) {
+  const source = String(text || '').replace(/^\uFEFF/, '');
+  const rows = [];
+  let row = [];
+  let field = '';
+  let quoted = false;
+
+  for (let i = 0; i < source.length; i += 1) {
+    const char = source[i];
+    if (quoted) {
+      if (char === '"') {
+        if (source[i + 1] === '"') {
+          field += '"';
+          i += 1;
+        } else {
+          quoted = false;
+        }
+      } else {
+        field += char;
+      }
+    } else if (char === '"') {
+      quoted = true;
+    } else if (char === ',') {
+      row.push(field);
+      field = '';
+    } else if (char === '\n') {
+      row.push(field);
+      rows.push(row);
+      row = [];
+      field = '';
+    } else if (char !== '\r') {
+      field += char;
+    }
+  }
+
+  if (quoted) throw new Error('Malformed CSV: unclosed quoted field');
+  if (field !== '' || row.length) {
+    row.push(field);
+    rows.push(row);
+  }
+  return rows;
+}
+
+function rowObject(headers, row) {
+  return Object.fromEntries(headers.map((header, index) => [header, row[index] ?? '']));
+}
+
+function requireHeaders(headers, required, label) {
+  const missing = required.filter((header) => !headers.includes(header));
+  if (missing.length) throw new Error(`${label} is missing columns: ${missing.join(', ')}`);
+}
+
+function decodeEntities(value) {
+  const named = {
+    amp: '&',
+    apos: "'",
+    quot: '"',
+    ndash: '–',
+    mdash: '—',
+    rsquo: '’',
+  };
+  return String(value || '')
+    .replace(/&#x([0-9a-f]+);/gi, (_, hex) => String.fromCodePoint(parseInt(hex, 16)))
+    .replace(/&#(\d+);/g, (_, number) => String.fromCodePoint(parseInt(number, 10)))
+    .replace(/&([a-z]+);/gi, (match, name) => named[name.toLowerCase()] ?? match);
+}
+
+function colKey(name) {
+  return String(name || '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/[\u2018\u2019\u02BC]/g, "'")
+    .replace(/[\\/:*?"<>|]/g, '')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .replace(/4\s*-?\s*town\b/g, '4town');
+}
+
+function normalizedSet(value) {
+  const source = String(value || '').trim();
+  const lor = source.match(/^LOR(\d+)$/i);
+  if (lor) return String(parseInt(lor[1], 10)).padStart(3, '0');
+  if (/^\d+$/.test(source)) return String(parseInt(source, 10)).padStart(3, '0');
+  return source;
+}
+
+function normalizedNumber(value) {
+  const source = String(value || '').trim();
+  return /^\d+$/.test(source) ? parseInt(source, 10) : source;
+}
+
+function isRegular(printing) {
+  return /^LOR\d+$/i.test(printing.set)
+    && !/epic|enchanted/i.test(`${printing.rarity || ''} ${printing.ligaNameRaw || ''}`);
+}
+
+function readJson(path, fallback = {}) {
+  if (!path || !existsSync(path)) return fallback;
+  const value = JSON.parse(readFileSync(path, 'utf8'));
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+    throw new Error(`Expected a JSON object in ${path}`);
+  }
+  return value;
+}
+
+function writeJson(path, value) {
+  mkdirSync(dirname(path), { recursive: true });
+  writeFileSync(path, `${JSON.stringify(value)}\n`);
+}
+
+function buildCatalogue(path) {
+  const rows = parseCSV(readFileSync(path, 'utf8'));
+  const headers = rows[0] || [];
+  requireHeaders(headers, [
+    'Database ID',
+    'LigaLorcana ID',
+    'Display Name',
+    'Edicao (EN)',
+    'Edicao (Sigla)',
+    'Card #',
+    'Card (EN)',
+    'Raridade',
+    'Cor (C D O E Y F R G L M P W)',
+  ], 'Master catalogue');
+
+  const catalogue = {};
+  const editions = new Set();
+  for (const row of rows.slice(1)) {
+    const record = rowObject(headers, row);
+    const databaseId = record['Database ID'];
+    if (!databaseId) continue;
+    if (catalogue[databaseId]) throw new Error(`Duplicate Database ID: ${databaseId}`);
+    editions.add(record['Edicao (Sigla)']);
+    catalogue[databaseId] = {
+      databaseId,
+      ligaId: record['LigaLorcana ID'],
+      displayName: record['Display Name'],
+      imageUrl: record['Image URL'] || '',
+      editionName: record['Edicao (EN)'],
+      editionCode: record['Edicao (Sigla)'],
+      cardNumber: record['Card #'],
+      ligaNameRaw: record['Card (EN)'],
+      rarity: record.Raridade,
+      color: record['Cor (C D O E Y F R G L M P W)'],
+      extra: record.Extras,
+    };
+  }
+  return { catalogue, editionCount: editions.size };
+}
+
+function buildPrintings(path) {
+  const rows = parseCSV(readFileSync(path, 'utf8'));
+  const headers = rows[0] || [];
+  requireHeaders(headers, [
+    'LigaLorcana ID',
+    'Variant',
+    'Count',
+    'LigaLorcana Edition Code',
+    'LigaLorcana Card Number',
+    'Name',
+    'LigaLorcana Card Name',
+    'LigaLorcana Color Code',
+    'LigaLorcana Rarity Code',
+    'Image URL',
+  ], 'Collection mapping');
+
+  const printings = {};
+  const ligaIds = new Set();
+  let total = 0;
+  let normalCopies = 0;
+  let foilCopies = 0;
+  let foilRows = 0;
+  let rowsWithoutUrl = 0;
+
+  for (const row of rows.slice(1)) {
+    const record = rowObject(headers, row);
+    const ligaId = String(record['LigaLorcana ID'] || '').trim();
+    if (!ligaId) continue;
+    const variant = String(record.Variant || 'normal').trim().toLowerCase();
+    if (variant !== 'normal' && variant !== 'foil') {
+      throw new Error(`Unsupported variant for ${ligaId}: ${variant}`);
+    }
+    const count = parseInt(record.Count, 10);
+    if (!Number.isInteger(count) || count <= 0) {
+      throw new Error(`Invalid count for ${ligaId}:${variant}: ${record.Count}`);
+    }
+    const id = `${ligaId}:${variant}`;
+    if (printings[id]) throw new Error(`Duplicate collection row: ${id}`);
+
+    const imageUrl = String(record['Image URL'] || '').trim();
+    if (!imageUrl) rowsWithoutUrl += 1;
+    total += count;
+    ligaIds.add(ligaId);
+    if (variant === 'foil') {
+      foilCopies += count;
+      foilRows += 1;
+    } else {
+      normalCopies += count;
+    }
+
+    printings[id] = {
+      id,
+      ligaId,
+      variant,
+      count,
+      set: record['LigaLorcana Edition Code'],
+      num: record['LigaLorcana Card Number'],
+      name: record.Name,
+      ligaNameRaw: record['LigaLorcana Card Name'],
+      displayName: decodeEntities(record['LigaLorcana Card Name'] || record.Name),
+      color: record['LigaLorcana Color Code'],
+      rarity: record['LigaLorcana Rarity Code'],
+      imageUrl,
+      dbSet: record['Set Number'],
+      dbNum: record['Card Number'],
+    };
+  }
+
+  return {
+    printings,
+    stats: {
+      rows: Object.keys(printings).length,
+      total,
+      normalCopies,
+      foilCopies,
+      foilRows,
+      distinctLigaIds: ligaIds.size,
+      rowsWithoutUrl,
+    },
+  };
+}
+
+function buildLegacy(printings, existing) {
+  const groups = {};
+  for (const printing of Object.values(printings)) {
+    const key = colKey(printing.name);
+    (groups[key] ||= []).push(printing);
+  }
+
+  const legacy = {};
+  const fallbackRepresentatives = [];
+  for (const [key, ownedPrintings] of Object.entries(groups)) {
+    const normalQty = ownedPrintings
+      .filter((printing) => printing.variant === 'normal')
+      .reduce((sum, printing) => sum + printing.count, 0);
+    const foilQty = ownedPrintings
+      .filter((printing) => printing.variant === 'foil')
+      .reduce((sum, printing) => sum + printing.count, 0);
+    const printingCount = new Set(ownedPrintings.map((printing) => printing.ligaId)).size;
+    const previous = existing[key];
+
+    let representative = null;
+    if (previous && previous.set != null && previous.num != null) {
+      representative = ownedPrintings.find((printing) =>
+        normalizedSet(printing.set) === normalizedSet(previous.set)
+        && String(normalizedNumber(printing.num)) === String(normalizedNumber(previous.num)));
+    }
+    if (!representative) {
+      const regular = ownedPrintings.filter(isRegular);
+      const pool = regular.length ? regular : ownedPrintings;
+      const normal = pool.filter((printing) => printing.variant === 'normal');
+      representative = (normal.length ? normal : pool)
+        .slice()
+        .sort((a, b) =>
+          (parseInt(a.num, 10) || 9999) - (parseInt(b.num, 10) || 9999)
+          || String(a.ligaId).localeCompare(String(b.ligaId)))[0];
+      if (!regular.length) fallbackRepresentatives.push(`${ownedPrintings[0].name} (no regular printing owned)`);
+    }
+
+    const set = normalizedSet(representative.set);
+    legacy[key] = {
+      name: ownedPrintings[0].name,
+      qty: normalQty + foilQty,
+      foil: foilQty,
+      color: previous?.color || COLOR[representative.color] || representative.color || '',
+      rarity: previous?.rarity || RARITY[representative.rarity] || representative.rarity || '',
+      set,
+      num: normalizedNumber(representative.num),
+      normalQty,
+      foilQty,
+      printingCount,
+      pricingApproximate: printingCount > 1 || foilQty > 0 || !/^\d+$/.test(set),
+    };
+  }
+  return { legacy, fallbackRepresentatives };
+}
+
+function validate(catalogue, printings, legacy, stats) {
+  const catalogueIds = Object.keys(catalogue);
+  if (new Set(catalogueIds).size !== catalogueIds.length) {
+    throw new Error('Catalogue contains duplicate Database IDs');
+  }
+
+  const printingIds = Object.keys(printings);
+  if (new Set(printingIds).size !== printingIds.length) {
+    throw new Error('Collection contains duplicate printing IDs');
+  }
+
+  const legacyTotal = Object.values(legacy).reduce((sum, record) => sum + record.qty, 0);
+  const legacyNormal = Object.values(legacy).reduce((sum, record) => sum + record.normalQty, 0);
+  const legacyFoil = Object.values(legacy).reduce((sum, record) => sum + record.foil, 0);
+  const missingRarity = Object.values(legacy).filter((record) => !record.rarity).length;
+
+  if (legacyTotal !== stats.total) {
+    throw new Error(`Legacy total (${legacyTotal}) differs from exact snapshot (${stats.total})`);
+  }
+  if (legacyNormal !== stats.normalCopies) {
+    throw new Error(`Legacy normal total (${legacyNormal}) differs from exact snapshot (${stats.normalCopies})`);
+  }
+  if (legacyFoil !== stats.foilCopies) {
+    throw new Error(`Legacy foil total (${legacyFoil}) differs from exact snapshot (${stats.foilCopies})`);
+  }
+  if (stats.rowsWithoutUrl) {
+    throw new Error(`${stats.rowsWithoutUrl} owned printing row(s) have no image URL`);
+  }
+  if (missingRarity) {
+    throw new Error(`${missingRarity} legacy card(s) have no rarity`);
+  }
+
+  return {
+    catalogueRecords: catalogueIds.length,
+    printingRows: printingIds.length,
+    legacyNames: Object.keys(legacy).length,
+    legacyTotal,
+    legacyNormal,
+    legacyFoil,
+    missingRarity,
+  };
+}
+
+function main() {
+  const options = parseArgs(process.argv.slice(2));
+  const userData = readJson(options.userData, { v: 1 });
+  const existingCollection = userData.collection && typeof userData.collection === 'object'
+    && !Array.isArray(userData.collection) ? userData.collection : {};
+
+  const { catalogue, editionCount } = buildCatalogue(options.master);
+  const { printings, stats } = buildPrintings(options.map);
+  const { legacy, fallbackRepresentatives } = buildLegacy(printings, existingCollection);
+  const report = validate(catalogue, printings, legacy, stats);
+  const importedAt = new Date().toISOString();
+
+  const updatedUserData = {
+    ...userData,
+    v: userData.v || 1,
+    updated: importedAt,
+    collection: legacy,
+    colUpdated: importedAt,
+    collectionPrintings: printings,
+    collectionPrintingsUpdated: importedAt,
+  };
+
+  writeJson(options.catalogOutput, catalogue);
+  writeJson(options.userData, updatedUserData);
+  if (options.legacyOutput) writeJson(options.legacyOutput, legacy);
+  if (options.printingsOutput) writeJson(options.printingsOutput, printings);
+
+  console.log('— Shared card catalogue —');
+  console.log(`  records: ${report.catalogueRecords}  editions: ${editionCount}`);
+  console.log('— Selected user collection —');
+  console.log(`  exact rows: ${report.printingRows}  distinct ligaId: ${stats.distinctLigaIds}`);
+  console.log(`  copies: ${report.legacyTotal} (${report.legacyNormal} normal + ${report.legacyFoil} foil)`);
+  console.log(`  names: ${report.legacyNames}  image URLs missing: ${stats.rowsWithoutUrl}  rarities missing: ${report.missingRarity}`);
+  console.log(`  user data: ${options.userData}`);
+  if (fallbackRepresentatives.length) {
+    console.log(`  representative fallbacks: ${fallbackRepresentatives.length}`);
+  }
+}
+
+main();

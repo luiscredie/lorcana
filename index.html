@@ -74,7 +74,7 @@
           </div>
         </div>
         <div style="font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:1.15rem;margin-bottom:5px">Sign in to continue</div>
-        <div style="font-size:.82rem;color:var(--text2);margin-bottom:20px">This site is private. Enter your credentials to view decks, stats, and games.</div>
+        <div style="font-size:.82rem;color:var(--text2);margin-bottom:20px">Sign in to load the collection, decks, stats, and games assigned to your account.</div>
         <label style="display:flex;flex-direction:column;gap:5px;font-size:.72rem;color:var(--text2);font-weight:600;margin-bottom:12px">Username
           <input type="text" value="{{ loginUser }}" onchange="{{ onLoginUser }}" autocomplete="username" onkeydown="{{ onGateKeydown }}" style="border:1px solid var(--border);border-radius:11px;padding:11px 12px;font-family:inherit;font-size:.9rem;background:var(--panel2);color:var(--text)">
         </label>
@@ -1366,7 +1366,7 @@
     <div onClick="{{ stopClick }}" style="background:var(--panel2);border:1px solid var(--border-soft);border-radius:20px;box-shadow:0 30px 60px -20px rgba(0,0,0,.5);backdrop-filter:blur(28px);max-width:560px;width:100%;max-height:84vh;overflow:auto;padding:24px">
       <h3 style="font-family:'Chakra Petch',sans-serif;font-weight:600;font-size:1.25rem;margin:0 0 4px;letter-spacing:-.01em">Cloud sync</h3>
       <div style="font-family:'Space Mono',monospace;font-size:.68rem;letter-spacing:.06em;color:var(--text2);margin-bottom:12px">Status: {{ sync.statusLine }}</div>
-      <p style="color:var(--text2);font-size:.84rem;margin:0 0 14px;line-height:1.55">Everything — games, decks, collection, card-art picks — lives in <b>lorcana/atlas-data.json</b> in your repo, so every device shows the same atlas. <b>Reading is automatic and needs nothing.</b> To <b>save</b> changes without putting a token in the browser, paste the URL of your save server (a free Cloudflare Worker that holds the token) below — see the setup notes shipped alongside the site.</p>
+      <p style="color:var(--text2);font-size:.84rem;margin:0 0 14px;line-height:1.55">Your games, decks, collection, exact printings and card-art choices live in a <b>separate account file</b>. The shared cardbase is read-only; your signed session tells the Worker which user file may be read or saved. The GitHub token always stays on the server.</p>
       <div style="display:flex;gap:9px;flex-wrap:wrap">
         <input type="text" value="{{ sync.url }}" onchange="{{ sync.onUrl }}" placeholder="https://your-worker.workers.dev" style="flex:1;min-width:220px;border:1px solid var(--border);border-radius:11px;padding:10px 12px;font-family:'Space Mono',monospace;font-size:.8rem;background:var(--panel2);color:var(--text)">
         <button onclick="{{ sync.onSaveUrl }}" style="border:0;border-radius:12px;padding:10px 18px;font-family:inherit;font-weight:700;font-size:.85rem;cursor:pointer;background:#CC785C;color:#fff">Save</button>
@@ -1590,7 +1590,7 @@
     <div style="position:fixed;inset:0;z-index:90;background:rgba(0,0,0,.6);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;padding:24px" onclick="{{ onCloseAdmin }}">
       <div style="background:var(--panel);border:1px solid var(--border-soft);border-radius:22px;box-shadow:0 30px 60px -20px rgba(0,0,0,.6);backdrop-filter:blur(28px);max-width:360px;width:100%;padding:26px" onclick="{{ stopClick }}">
         <sc-if value="{{ isAdminNow }}" hint-placeholder-val="{{ false }}">
-          <div style="font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:1.1rem;margin-bottom:6px">Admin session active</div>
+          <div style="font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:1.1rem;margin-bottom:6px">Editing session active</div>
           <div style="font-size:.82rem;color:var(--text2);margin-bottom:18px">You can save changes on this device. Session ends automatically after 1 hour.</div>
           <div style="display:flex;gap:9px">
             <button onclick="{{ onLogout }}" style="flex:1;border:0;border-radius:12px;padding:10px 16px;font-family:inherit;font-weight:700;font-size:.85rem;cursor:pointer;background:var(--chip-bg);color:var(--text)">Log out of site</button>
@@ -1598,8 +1598,8 @@
           </div>
         </sc-if>
         <sc-if value="{{ showLoginForm }}" hint-placeholder-val="{{ true }}">
-          <div style="font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:1.1rem;margin-bottom:6px">Log in as admin</div>
-          <div style="font-size:.82rem;color:var(--text2);margin-bottom:16px">You're signed in to view. Enter admin credentials here to unlock saving changes on this device.</div>
+          <div style="font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:1.1rem;margin-bottom:6px">Log in to edit</div>
+          <div style="font-size:.82rem;color:var(--text2);margin-bottom:16px">You're signed in to view. Use an account with editor or admin permission to save this user's data.</div>
           <label style="display:flex;flex-direction:column;gap:5px;font-size:.72rem;color:var(--text2);font-weight:600;margin-bottom:12px">Username
             <input type="text" value="{{ loginUser }}" onchange="{{ onLoginUser }}" autocomplete="username" style="border:1px solid var(--border);border-radius:11px;padding:10px 12px;font-family:inherit;font-size:.88rem;background:var(--panel2);color:var(--text)">
           </label>
@@ -1725,12 +1725,13 @@ class Component extends DCLogic {
       this._escHook=1;
       document.addEventListener('keydown', e=>{ if((e.key||'')==='Escape' && this.state.editor) this.setState({editor:null}); });
     }
-    this.ADMIN_KEY='lorcanaAtlas_admin_v1';    // Every account gets its own private data file & local cache namespace — decks, games and
+    this.ADMIN_KEY='lorcanaAtlas_admin_v1';    // Every account gets its own separate data file & local cache namespace — decks, games and
     // collection never mix between users. this.NS is derived from the logged-in username.
     const _session=this.sessionInfo();
     this.CURRENT_USER=_session?_session.user:null;
     this.NS=this.CURRENT_USER?this.safeUserKey(this.CURRENT_USER):'anon';
-    this.KEY='lorcanaAtlas_games_v1__'+this.NS; this.DKEY='lorcanaAtlas_deck_v1__'+this.NS; this.TKEY='lorcanaAtlas_tab_v1__'+this.NS; this.LKEY='lorcanaAtlas_decks_v1__'+this.NS; this.CKEY='lorcanaAtlas_collection_v1__'+this.NS; this.CSEED='lorcanaAtlas_colSeed_v1__'+this.NS;
+    this.IS_PRIMARY=this.NS==='luiscredie';
+    this.KEY='lorcanaAtlas_games_v1__'+this.NS; this.DKEY='lorcanaAtlas_deck_v1__'+this.NS; this.TKEY='lorcanaAtlas_tab_v1__'+this.NS; this.LKEY='lorcanaAtlas_decks_v1__'+this.NS; this.CKEY='lorcanaAtlas_collection_v1__'+this.NS; this.PKEY='lorcanaAtlas_collection_printings_v1__'+this.NS; this.CSEED='lorcanaAtlas_colSeed_v1__'+this.NS;
     this.GKEY='lorcanaAtlas_gh_token_v1'; this.TOMB='lorcanaAtlas_tombs_v1__'+this.NS; this.SURL='lorcanaAtlas_syncurl_v1';
     this.MKEY='lorcanaAtlas_munotes_v1__'+this.NS;
     this.WKEY='lorcanaAtlas_wishlist_v1__'+this.NS;
@@ -1742,9 +1743,10 @@ class Component extends DCLogic {
     this.SYNC_URL='https://lorcana.luis-credie.workers.dev';
     this.IMG_BASE='https://luiscredie.github.io/lorcana/Lorcana%20Cards%20Named/';
     this.TREE_API='https://api.github.com/repos/luiscredie/lorcana/git/trees/main?recursive=1';
+    // Cardbase/file-tree caches are shared. Every preference or owned-data key is per-user.
     this.TREEKEY='lorcanaAtlas_fileTree_v2';
-    this.VKEY='lorcanaAtlas_variants_v1';
-    this.IKKEY='lorcanaAtlas_inkable_v1';
+    this.VKEY='lorcanaAtlas_variants_v1__'+this.NS;
+    this.IKKEY='lorcanaAtlas_inkable_v1__'+this.NS;
     this._fileTreeReady=false;
     this.loadFileTree();
     this.DECKS={
@@ -1791,20 +1793,25 @@ class Component extends DCLogic {
     let store=this.load();
     if(!store){
       let daleGames=null;
-      try{ const old=JSON.parse(localStorage.getItem('lorcanaPixar_games_v1')); if(Array.isArray(old)&&old.length) daleGames=old; }catch(e){}
-      store={ dale: daleGames||window.LORCANA_SEED.slice(), woody:[], sid:[] };
+      if(this.IS_PRIMARY){
+        try{ const old=JSON.parse(localStorage.getItem('lorcanaPixar_games_v1')); if(Array.isArray(old)&&old.length) daleGames=old; }catch(e){}
+      }
+      store={ dale:this.IS_PRIMARY?(daleGames||window.LORCANA_SEED.slice()):[], woody:[], sid:[] };
       this.persist(store);
     }
-    // Sync Dale games from the shipped export (uploads on 2026-07-07): file wins by id, local-only games kept
-    fetch('dale-games.json').then(r=>r.json()).then(fileGames=>{
-      if(!Array.isArray(fileGames)||!fileGames.length) return;
-      const cur=(this.state.store&&this.state.store.dale)||store.dale||[];
-      const ids=new Set(fileGames.map(g=>g.id));
-      const merged=[...fileGames, ...cur.filter(g=>!ids.has(g.id))];
-      if(merged.length===cur.length && cur.every((g,i)=>ids.has(g.id))) { /* still refresh tags */ }
-      const s2={...(this.state.store||store), dale:merged};
-      this.persist(s2); this.setState({store:s2});
-    }).catch(()=>{});
+    // The shipped game history belongs only to the primary account. Other accounts start
+    // with independent, empty game logs and pull only their own server document.
+    if(this.IS_PRIMARY){
+      fetch('dale-games.json').then(r=>r.json()).then(fileGames=>{
+        if(!Array.isArray(fileGames)||!fileGames.length) return;
+        const cur=(this.state.store&&this.state.store.dale)||store.dale||[];
+        const ids=new Set(fileGames.map(g=>g.id));
+        const merged=[...fileGames, ...cur.filter(g=>!ids.has(g.id))];
+        if(merged.length===cur.length && cur.every((g,i)=>ids.has(g.id))) { /* still refresh tags */ }
+        const s2={...(this.state.store||store), dale:merged};
+        this.persist(s2); this.setState({store:s2});
+      }).catch(()=>{});
+    }
     let lib=null;
     try{ lib=JSON.parse(localStorage.getItem(this.LKEY)); }catch(e){}
     if(!Array.isArray(lib)||!lib.length){
@@ -1822,6 +1829,8 @@ class Component extends DCLogic {
     if(tab==='cardbase'||tab==='deck') this.ensureCardDb();
     let collection={};
     try{ const c=JSON.parse(localStorage.getItem(this.CKEY)); if(c&&typeof c==='object'&&!Array.isArray(c)) collection=c; }catch(e){}
+    let collectionPrintings={};
+    try{ const p=JSON.parse(localStorage.getItem(this.PKEY)); if(p&&typeof p==='object'&&!Array.isArray(p)) collectionPrintings=p; }catch(e){}
     let variants={};
     try{ const v=JSON.parse(localStorage.getItem(this.VKEY)); if(v&&typeof v==='object'&&!Array.isArray(v)) variants=v; }catch(e){}
     // Backfill set/number metadata from the baked-in card index (works offline, no fetch)
@@ -1834,19 +1843,8 @@ class Component extends DCLogic {
       });
       if(changed) this.persistCol(collection);
     }
-    let seeded=false; try{ seeded=localStorage.getItem(this.CSEED); }catch(e){}
-    if(seeded!=='3'&&seeded!=='user'){
-      // v3 reseed: authoritative rebuild from the shipped collection export (uploads CSV, 2026-07-08).
-      // Fully replaces any stored catalogue — fixes bad merges from earlier seeds.
-      fetch((typeof window!=='undefined'&&window.__resources&&window.__resources.collectionJson)||'collection.json').then(r=>r.json()).then(file=>{
-        if(!file||typeof file!=='object'||Array.isArray(file)) return;
-        let cur=''; try{ cur=localStorage.getItem(this.CSEED); }catch(e){}
-        if(cur==='user') return; // a server collection was adopted meanwhile — don't overwrite it
-        this.persistCol(file);
-        try{ localStorage.setItem(this.CSEED,'3'); }catch(e){}
-        this.setState({collection:file});
-      }).catch(()=>{});
-    }
+    // No global collection seed: a logged-in account starts from its own local/server data.
+    // This prevents a new account from inheriting the primary user's collection.
     const cbSetInit = tab==='cardbase' ? {'Wilds Unknown':true} : undefined;
     let muNotes={};
     try{ const mn=JSON.parse(localStorage.getItem(this.MKEY)); if(mn&&typeof mn==='object'&&!Array.isArray(mn)) muNotes=mn; }catch(e){}
@@ -1854,14 +1852,32 @@ class Component extends DCLogic {
     try{ const ik=JSON.parse(localStorage.getItem(this.IKKEY)); if(ik&&typeof ik==='object'&&!Array.isArray(ik)) inkable=ik; }catch(e){}
     let wishlist={};
     try{ const wl=JSON.parse(localStorage.getItem(this.WKEY)); if(wl&&typeof wl==='object'&&!Array.isArray(wl)) wishlist=wl; }catch(e){}
-    this.setState({ ready:true, store, deck, tab, lib, collection, variants, muNotes, inkable, wishlist, ...(cbSetInit?{cbSet:cbSetInit}:{}) });
+    this.setState({ ready:true, store, deck, tab, lib, collection, collectionPrintings, variants, muNotes, inkable, wishlist, ...(cbSetInit?{cbSet:cbSetInit}:{}) });
     setTimeout(()=>this.doSync(), 400);
-    // Re-pull the shared atlas whenever the tab regains focus so every browser converges.
+    // One-time migration for the primary account's existing exact-printing backup. It is
+    // adopted only when every name/count still matches that account's current collection.
+    setTimeout(()=>this.migratePrimaryPrintings(), 1400);
+    // Re-pull this account's document whenever the tab regains focus so its devices converge.
     if(typeof window!=='undefined' && !this._focusHook){
       this._focusHook=()=>{ if(document.visibilityState==='visible') this.doSync(); };
       window.addEventListener('focus', this._focusHook);
       document.addEventListener('visibilitychange', this._focusHook);
     }
+  }
+  migratePrimaryPrintings(){
+    if(!this.IS_PRIMARY||this._primaryPrintingsLoading||Object.keys(this.state.collectionPrintings||{}).length) return;
+    this._primaryPrintingsLoading=true;
+    fetch('collection-printings.json').then(r=>r.ok?r.json():null).then(printings=>{
+      this._primaryPrintingsLoading=false;
+      if(!printings||typeof printings!=='object'||Array.isArray(printings)) return;
+      const totals={};
+      Object.values(printings).forEach(p=>{ if(p&&p.name&&p.count>0){ const k=this.colKey(p.name); totals[k]=(totals[k]||0)+p.count; } });
+      const collection=this.state.collection||{}, keys=Object.keys(collection);
+      if(!keys.length||keys.length!==Object.keys(totals).length||keys.some(k=>(collection[k].qty||0)!==totals[k])) return;
+      this.stampPrintings(); this.persistPrintings(printings);
+      this.setState({collectionPrintings:printings});
+      this.toast('Exact card printings linked to this account');
+    }).catch(()=>{ this._primaryPrintingsLoading=false; });
   }
   imgEl(src,alt,extra){
     if(!src) return null;
@@ -1992,9 +2008,9 @@ class Component extends DCLogic {
     this.setState({lib, heroPick:null});
     this.toast(name?('Framed: '+name):'Frame cleared');
   }
-  // ---------- Cloud sync (tokenless) ----------
-  // Reads: the public atlas file in the repo (no credential). Writes: a Cloudflare Worker
-  // that holds the GitHub token server-side; the browser only ever knows the Worker URL.
+  // ---------- Per-user cloud sync ----------
+  // Reads and writes go through the authenticated Worker. The signed session decides the
+  // account file; the browser never chooses another user's path.
   syncUrl(){ try{ return (localStorage.getItem(this.SURL)||this.SYNC_URL||'').trim().replace(/\/$/,''); }catch(e){ return (this.SYNC_URL||'').trim(); } }
   setSyncUrl(u){ try{ if(u) localStorage.setItem(this.SURL,u); else localStorage.removeItem(this.SURL); }catch(e){} }
   tombs(){ try{ const t=JSON.parse(localStorage.getItem(this.TOMB)); if(t&&Array.isArray(t.games)&&Array.isArray(t.decks)) return t; }catch(e){} return {games:[],decks:[]}; }
@@ -2003,6 +2019,15 @@ class Component extends DCLogic {
   removeTomb(kind,id){ const t=this.tombs(); t[kind]=t[kind].filter(x=>x!==id); this.saveTombs(t); }
   colStamp(){ try{ return localStorage.getItem(this.CKEY+'_stamp')||''; }catch(e){ return ''; } }
   stampCol(){ try{ localStorage.setItem(this.CKEY+'_stamp', new Date().toISOString()); }catch(e){} }
+  printingsStamp(){ try{ return localStorage.getItem(this.PKEY+'_stamp')||''; }catch(e){ return ''; } }
+  stampPrintings(){ const now=new Date().toISOString(); try{ localStorage.setItem(this.PKEY+'_stamp', now); }catch(e){} return now; }
+  persistPrintings(printings){ try{ localStorage.setItem(this.PKEY, JSON.stringify(printings||{})); }catch(e){} this.queueSync(); }
+  invalidatePrintings(){
+    const printings={};
+    this.stampPrintings();
+    this.persistPrintings(printings);
+    return printings;
+  }
   b64e(s){ return btoa(unescape(encodeURIComponent(s))); }
   b64d(s){ return decodeURIComponent(escape(atob(String(s).replace(/\s/g,'')))); }
   safeUserKey(user){ return String(user||'').toLowerCase().replace(/[^a-z0-9_-]/g,''); }
@@ -2024,11 +2049,8 @@ class Component extends DCLogic {
       this._wrapFmt=false;
       return {doc:j, sha:null};
     }
-    // Read-only fallback: public per-user atlas file in the repo (same origin as the site)
-    const r=await fetch(this.READ_URL+'?_='+Date.now(), {cache:'no-store'});
-    if(!r.ok) return {doc:null, sha:null};
-    const doc=await r.json().catch(()=>null);
-    return {doc, sha:null};
+    // Fail closed. User data must never fall back to a public static file.
+    return {doc:null, sha:null};
   }
   queueSync(){ if(this._merging) return; clearTimeout(this._st); this._st=setTimeout(()=>this.doSync(), 2200); }
   mergeAll(rd){
@@ -2073,6 +2095,12 @@ class Component extends DCLogic {
         this.persistCol(collection);
         try{ localStorage.setItem(this.CKEY+'_stamp', colUpdated); localStorage.setItem(this.CSEED,'user'); }catch(e){}
       }
+      let collectionPrintings=s.collectionPrintings||{}, collectionPrintingsUpdated=this.printingsStamp();
+      if(rd&&rd.collectionPrintings&&typeof rd.collectionPrintings==='object'&&!Array.isArray(rd.collectionPrintings)&&(rd.collectionPrintingsUpdated||'')>(collectionPrintingsUpdated||'')){
+        collectionPrintings=rd.collectionPrintings; collectionPrintingsUpdated=rd.collectionPrintingsUpdated;
+        this.persistPrintings(collectionPrintings);
+        try{ localStorage.setItem(this.PKEY+'_stamp', collectionPrintingsUpdated); }catch(e){}
+      }
       let variants=s.variants||{}, variantsUpdated=this.variantsStamp();
       if(rd&&rd.variants&&typeof rd.variants==='object'&&!Array.isArray(rd.variants)&&(rd.variantsUpdated||'')>(variantsUpdated||'')){
         variants=rd.variants; variantsUpdated=rd.variantsUpdated;
@@ -2096,8 +2124,8 @@ class Component extends DCLogic {
       }
       this.persist(store); this.persistLib(lib);
       let deck=s.deck; if(!lib.find(d=>d.id===deck)) deck=lib[0].id;
-      this.setState({store, lib, collection, variants, muNotes, inkable, wishlist, deck});
-      return {v:1, updated:new Date().toISOString(), store, lib, collection, colUpdated, variants, variantsUpdated, muNotes, muNotesUpdated, inkable, inkableUpdated, wishlist, wishlistUpdated,
+      this.setState({store, lib, collection, collectionPrintings, variants, muNotes, inkable, wishlist, deck});
+      return {v:1, updated:new Date().toISOString(), store, lib, collection, colUpdated, collectionPrintings, collectionPrintingsUpdated, variants, variantsUpdated, muNotes, muNotesUpdated, inkable, inkableUpdated, wishlist, wishlistUpdated,
         deletedGames:[...delG].sort(), deletedDecks:[...delD].sort()};
     } finally { this._merging=false; }
   }
@@ -2111,7 +2139,7 @@ class Component extends DCLogic {
       let remote=null;
       try{ remote=await this.ghGet(); }catch(e){ if(w) throw e; }
       const doc=this.mergeAll(remote&&remote.doc);
-      const sig=(o)=>{ try{ return JSON.stringify({s:o.store,l:o.lib,c:o.collection,cu:o.colUpdated,v:o.variants,vu:o.variantsUpdated,mn:o.muNotes,mnu:o.muNotesUpdated,ik:o.inkable,iku:o.inkableUpdated,wl:o.wishlist,wlu:o.wishlistUpdated,dg:(o.deletedGames||[]).slice().sort(),dd:(o.deletedDecks||[]).slice().sort()}); }catch(e){ return Math.random()+''; } };
+      const sig=(o)=>{ try{ return JSON.stringify({s:o.store,l:o.lib,c:o.collection,cu:o.colUpdated,cp:o.collectionPrintings,cpu:o.collectionPrintingsUpdated,v:o.variants,vu:o.variantsUpdated,mn:o.muNotes,mnu:o.muNotesUpdated,ik:o.inkable,iku:o.inkableUpdated,wl:o.wishlist,wlu:o.wishlistUpdated,dg:(o.deletedGames||[]).slice().sort(),dd:(o.deletedDecks||[]).slice().sort()}); }catch(e){ return Math.random()+''; } };
       const same=!!(remote&&remote.doc)&&sig(remote.doc)===sig(doc);
       const token=this.adminToken();
       if(w&&!same&&token&&this.isAdmin()){
@@ -2139,7 +2167,7 @@ class Component extends DCLogic {
   }
   // ---- Admin auth: server (Worker) verifies user/pass and issues a signed, time-limited
   // token; the browser only ever stores that token, never the password. ----
-  isAdmin(){ const s=this.sessionInfo(); return !!s && s.role==='admin'; }
+  isAdmin(){ const s=this.sessionInfo(); return !!s && (s.role==='admin'||s.role==='editor'); }
   isLoggedIn(){ return !!this.sessionInfo(); }
   sessionInfo(){
     try{
@@ -2401,7 +2429,18 @@ class Component extends DCLogic {
     return {loading:false, cards, total, shown:capped.length, capped:total>capped.length};
   }
   // ---------- Card Base (full searchable card database) ----------
-  cardDb(){ return (typeof window!=='undefined'&&window.LORCANA_CARD_DB)||{}; }
+  cardDb(){
+    const raw=(typeof window!=='undefined'&&window.LORCANA_CARD_DB)||{};
+    if(this._cardDbRaw===raw&&this._cardDbNorm) return this._cardDbNorm;
+    const normalized={};
+    Object.keys(raw).forEach(rawKey=>{
+      const card=raw[rawKey]; if(!card||!card.n) return;
+      const key=this.colKey(card.n);
+      if(!normalized[key]||rawKey===key) normalized[key]=card;
+    });
+    this._cardDbRaw=raw; this._cardDbNorm=normalized;
+    return normalized;
+  }
   // ---------- Card prices (LigaLorcana.com.br, BRL) ----------
   loadPrices(){
     if(this._pricesLoading || this._prices) return;
@@ -2429,13 +2468,17 @@ class Component extends DCLogic {
           const prints=(e.printings&&e.printings.length)?e.printings:(e.regular?[e.regular]:[]);
           const brls=[];
           prints.forEach(p=>{
+            // The source audit explicitly marks rows where set/number resolved to another
+            // card. Never index or price those rows as if they belonged to this card.
+            if(p&&p.match_status==='matched_name_mismatch') return;
             const v=(p&&p.minimum_price_brl!=null)?p.minimum_price_brl:null;
             if(v!=null && v>0) brls.push(v);
             const m=String((p&&p.edition)||'').match(/^LOR(\d+)$/i);
             if(m && p.number!=null){ const num=parseInt(p.number,10); if(!isNaN(num) && v!=null) this._priceBySetNum[String(parseInt(m[1],10)).padStart(3,'0')+'|'+num]={brl:v, ck}; }
           });
-          const km=String(entryKey).match(/^(\d+)\s*-\s*(\w+)/);
-          if(km){ const num=parseInt(km[2],10); const cheap=brls.length?Math.min(...brls):null; if(!isNaN(num) && cheap!=null && this._priceBySetNum[String(parseInt(km[1],10)).padStart(3,'0')+'|'+num]==null) this._priceBySetNum[String(parseInt(km[1],10)).padStart(3,'0')+'|'+num]={brl:cheap, ck}; }
+          // Do not infer an exact set/number from the aggregate entry key. Some source
+          // entries are known to carry a mismatched key; only validated printing rows may
+          // populate the exact-price index.
           if(brls.length){ (this._priceAll[ck]=this._priceAll[ck]||[]).push(...brls.map(b=>({brl:b}))); }
           const cheapest=brls.length?Math.min(...brls):0;
           const prev=v3out[ck]?v3out[ck].brl:null;
@@ -2468,20 +2511,33 @@ class Component extends DCLogic {
   priceInfo(name, keyHint){
     const ck=this.colKey(name);
     const nameOk=(hit)=>hit && (hit.ck==null || hit.ck===ck);
+    const byName=()=>{
+      const list=(this._priceAll&&this._priceAll[ck])||[];
+      const vals=list.map(p=>p.brl).filter(v=>v>0);
+      if(vals.length>1){
+        const min=Math.min(...vals), max=Math.max(...vals);
+        if(max!==min) return {brl:min,min,max,exact:false,ambiguous:true,count:vals.length};
+        return {brl:min,exact:false,ambiguous:false};
+      }
+      const p=this._prices&&this._prices[ck]; if(p&&p.brl>0) return {brl:p.brl,exact:false,ambiguous:false};
+      const lp=this._pricesLoose&&this._pricesLoose[this.looseKey(name)];
+      return lp&&lp.brl>0?{brl:lp.brl,exact:false,ambiguous:false}:{brl:null,exact:false,ambiguous:false};
+    };
     const sk=this.variantSetNum(name);
     // A specific printing is targeted (chosen art, or the card's filed set/num).
-    // Only trust the match if it belongs to THIS card; else report N/A rather than another card's price.
-    if(sk){ const hit=this._priceBySetNum&&this._priceBySetNum[sk]; return nameOk(hit)?{brl:hit.brl, exact:true, ambiguous:false}:{brl:null, exact:true, missing:true, ambiguous:false}; }
-    if(keyHint){ const hit=this._priceBySetNum&&this._priceBySetNum[keyHint]; return nameOk(hit)?{brl:hit.brl, exact:true, ambiguous:false}:{brl:null, exact:true, missing:true, ambiguous:false}; }
-    const list=(this._priceAll&&this._priceAll[ck])||[];
-    const vals=list.map(p=>p.brl).filter(v=>v>0);
-    if(vals.length>1){
-      const min=Math.min(...vals), max=Math.max(...vals);
-      if(max!==min) return {brl:min, min, max, exact:false, ambiguous:true, count:vals.length};
-      return {brl:min, exact:false, ambiguous:false};
+    // Trust an exact hit only when it belongs to THIS card. Otherwise use the card's safe
+    // name-level price as an approximation instead of displaying another card's value.
+    if(sk){
+      const hit=this._priceBySetNum&&this._priceBySetNum[sk];
+      if(nameOk(hit)) return {brl:hit.brl,exact:true,ambiguous:false};
+      const fallback=byName(); return fallback.brl!=null?{...fallback,approximate:true}:{brl:null,exact:true,missing:true,ambiguous:false};
     }
-    const p=this._prices&&this._prices[this.colKey(name)]; if(p) return {brl:p.brl, exact:false, ambiguous:false};
-    const lp=this._pricesLoose&&this._pricesLoose[this.looseKey(name)]; return lp?{brl:lp.brl, exact:false, ambiguous:false}:{brl:null, exact:false, ambiguous:false};
+    if(keyHint){
+      const hit=this._priceBySetNum&&this._priceBySetNum[keyHint];
+      if(nameOk(hit)) return {brl:hit.brl,exact:true,ambiguous:false};
+      const fallback=byName(); return fallback.brl!=null?{...fallback,approximate:true}:{brl:null,exact:true,missing:true,ambiguous:false};
+    }
+    return byName();
   }
   // Parse the chosen art file ("SET - NUM - Name.jpg") to a set|num printing key.
   variantSetNum(name){
@@ -2646,40 +2702,61 @@ class Component extends DCLogic {
     return String(nameA).localeCompare(String(nameB));
   }
   persistCol(col){ try{ localStorage.setItem(this.CKEY, JSON.stringify(col)); }catch(e){} this.queueSync(); }
+  ownedCounts(card){
+    const qty=Math.max(0,parseInt(card&&card.qty,10)||0);
+    const foilQty=Math.max(0,parseInt(card&&(card.foilQty!=null?card.foilQty:card.foil),10)||0);
+    const normalQty=card&&card.normalQty!=null?Math.max(0,parseInt(card.normalQty,10)||0):Math.max(0,qty-foilQty);
+    return {normalQty,foilQty};
+  }
+  withOwnedCounts(card, normalQty, foilQty){
+    normalQty=Math.max(0,normalQty||0); foilQty=Math.max(0,foilQty||0);
+    return {...card, qty:normalQty+foilQty, foil:foilQty, normalQty, foilQty};
+  }
   addCard(){
     const name=(this.state.colName||'').trim();
     if(!name){ this.toast('Name a card first'); return; }
     const qty=Math.max(1, parseInt(this.state.colQty,10)||1);
-    const col={...this.state.collection}; const k=this.colKey(name);
-    col[k]={ name:(col[k]&&col[k].name)||name, qty:((col[k]&&col[k].qty)||0)+qty };
+    const col={...this.state.collection}; const k=this.colKey(name); const cur=col[k];
+    const counts=this.ownedCounts(cur);
+    col[k]=this.withOwnedCounts({...cur, name:(cur&&cur.name)||name}, counts.normalQty+qty, counts.foilQty);
+    const collectionPrintings=this.invalidatePrintings();
     this.stampCol(); this.persistCol(col);
-    this.setState({collection:col, colName:'', colQty:'4'});
+    this.setState({collection:col, collectionPrintings, colName:'', colQty:'4'});
     this.toast('Catalogued '+qty+'× '+col[k].name);
   }
   bumpCard(k,d){
     const col={...this.state.collection}; const c=col[k]; if(!c) return;
-    const q=c.qty+d;
-    if(q<=0) delete col[k]; else col[k]={...c, qty:q};
-    this.stampCol(); this.persistCol(col); this.setState({collection:col});
+    const counts=this.ownedCounts(c); let normalQty=counts.normalQty, foilQty=counts.foilQty;
+    if(d>0) normalQty+=d;
+    else if(normalQty>0) normalQty=Math.max(0,normalQty+d);
+    else foilQty=Math.max(0,foilQty+d);
+    if(normalQty+foilQty<=0) delete col[k]; else col[k]=this.withOwnedCounts(c,normalQty,foilQty);
+    const collectionPrintings=this.invalidatePrintings();
+    this.stampCol(); this.persistCol(col); this.setState({collection:col,collectionPrintings});
   }
   removeCard(k){
     const col={...this.state.collection}; delete col[k];
-    this.stampCol(); this.persistCol(col); this.setState({collection:col}); this.toast('Removed from catalogue');
+    const collectionPrintings=this.invalidatePrintings();
+    this.stampCol(); this.persistCol(col); this.setState({collection:col,collectionPrintings}); this.toast('Removed from catalogue');
   }
   // Add/remove a single copy straight from the Card Base grid.
   bumpCollection(card, d){
     const name=typeof card==='string'?card:(card&&card.n);
     if(!name) return;
     const col={...this.state.collection}; const k=this.colKey(name);
-    const cur=col[k];
-    const q=((cur&&cur.qty)||0)+d;
-    if(q<=0){ if(!cur) return; delete col[k]; }
-    else if(cur){ col[k]={...cur, qty:q}; }
+    const cur=col[k]; const counts=this.ownedCounts(cur);
+    let normalQty=counts.normalQty, foilQty=counts.foilQty;
+    if(d>0) normalQty+=d;
+    else if(normalQty>0) normalQty=Math.max(0,normalQty+d);
+    else foilQty=Math.max(0,foilQty+d);
+    if(normalQty+foilQty<=0){ if(!cur) return; delete col[k]; }
+    else if(cur){ col[k]=this.withOwnedCounts(cur,normalQty,foilQty); }
     else {
       const c=(typeof card==='object'&&card)||{};
-      col[k]={ name, qty:q, set:c.setNum!=null?String(c.setNum):'', num:c.num!=null?c.num:null, color:c.i||'', rarity:c.r||'' };
+      col[k]=this.withOwnedCounts({ name, set:c.setNum!=null?String(c.setNum):'', num:c.num!=null?c.num:null, color:c.i||'', rarity:c.r||'' },normalQty,foilQty);
     }
-    this.stampCol(); this.persistCol(col); this.setState({collection:col});
+    const collectionPrintings=this.invalidatePrintings();
+    this.stampCol(); this.persistCol(col); this.setState({collection:col,collectionPrintings});
   }
   onImportColText(){
     const raw=(this.state.colPasteText||'').trim();
@@ -2691,72 +2768,125 @@ class Component extends DCLogic {
       const qty=Math.max(1, parseInt(rq.qty,10)||1);
       const k=this.colKey(name); lines++;
       const meta=this.cardMeta(name)||{};
-      const cur=col[k];
-      col[k]=cur ? {...cur, qty:(cur.qty||0)+qty}
-                 : {name, qty, set:meta.setNum!=null?String(meta.setNum):'', num:meta.num!=null?meta.num:null, color:meta.i||'', rarity:meta.r||''};
+      const cur=col[k]; const counts=this.ownedCounts(cur);
+      col[k]=this.withOwnedCounts(cur ? {...cur}
+                 : {name, set:meta.setNum!=null?String(meta.setNum):'', num:meta.num!=null?meta.num:null, color:meta.i||'', rarity:meta.r||''},counts.normalQty+qty,counts.foilQty);
       added+=qty;
     });
     if(!lines){ this.toast('No cards recognised'); return; }
+    const collectionPrintings=this.invalidatePrintings();
     this.stampCol(); this.persistCol(col);
     try{ localStorage.setItem(this.CSEED,'user'); }catch(e){}
-    this.setState({collection:col, colPasteText:''});
+    this.setState({collection:col, collectionPrintings, colPasteText:''});
     this.toast('Added '+added+' copies from list');
   }
   onImportCol(e){
     const f=e.target.files&&e.target.files[0]; if(!f) return;
     const r=new FileReader();
     r.onload=()=>{ try{
-      let d=JSON.parse(r.result);
-      if(d&&d.__collection&&typeof d.__collection==='object') d=d.__collection;
+      const source=JSON.parse(r.result);
+      let d=source, printings={};
+      if(source&&source.collection&&typeof source.collection==='object'&&!Array.isArray(source.collection)){
+        d=source.collection;
+        if(source.collectionPrintings&&typeof source.collectionPrintings==='object'&&!Array.isArray(source.collectionPrintings)) printings=source.collectionPrintings;
+      } else if(source&&source.__collection&&typeof source.__collection==='object'){
+        d=source.__collection;
+        if(source.__collectionPrintings&&typeof source.__collectionPrintings==='object'&&!Array.isArray(source.__collectionPrintings)) printings=source.__collectionPrintings;
+      }
       if(!d||typeof d!=='object'||Array.isArray(d)){ this.toast('Bad file'); return; }
       const col={};
       Object.keys(d).forEach(key=>{
         const v=d[key]; if(!v||typeof v!=='object') return;
         const name=v.name||key; const k=this.colKey(name);
-        col[k]={...v, name, qty:parseInt(v.qty,10)||0};
+        const qty=Math.max(0,parseInt(v.qty,10)||0);
+        const foilQty=Math.max(0,parseInt(v.foilQty!=null?v.foilQty:v.foil,10)||0);
+        const normalQty=v.normalQty!=null?Math.max(0,parseInt(v.normalQty,10)||0):Math.max(0,qty-foilQty);
+        col[k]=this.withOwnedCounts({...v,name},normalQty,foilQty);
       });
+      this.stampPrintings(); this.persistPrintings(printings);
       this.stampCol(); this.persistCol(col);
       try{ localStorage.setItem(this.CSEED,'user'); }catch(e2){}
-      this.setState({collection:col});
+      this.setState({collection:col,collectionPrintings:printings});
       this.toast('Collection replaced — '+Object.keys(col).length+' cards');
     }catch(x){ this.toast('Bad file'); } };
     r.readAsText(f);
   }
-  parseCsvText(text){
-    const lines=String(text||'').trim().split(/\r?\n/);
-    if(lines.length<2) return null;
-    const split=(l)=>l.split(/,(?=(?:[^"]*"[^"]*")*[^"]*$)/).map(x=>x.trim().replace(/^"|"$/g,''));
-    const hdr=split(lines[0]).map(h=>h.toLowerCase());
-    const ix=(n)=>hdr.findIndex(h=>h.includes(n));
-    const iCount=ix('count'), iName=ix('name'), iVar=ix('variant'), iColor=ix('color'), iRar=ix('rarity'), iSet=ix('set'), iNum=hdr.findIndex(h=>h.includes('card number'));
-    if(iCount<0||iName<0) return null;
-    const col={};
-    for(let i=1;i<lines.length;i++){
-      if(!lines[i].trim()) continue;
-      const c=split(lines[i]);
-      const name=c[iName]; if(!name) continue;
-      const qty=parseInt(c[iCount],10)||0;
-      const k=this.colKey(name);
-      if(!col[k]) col[k]={name, qty:0, foil:0, color:iColor>=0?(c[iColor]||''):'', rarity:iRar>=0?(c[iRar]||''):'', set:iSet>=0?(c[iSet]||''):'', num:iNum>=0?(parseInt(c[iNum],10)||null):null};
-      col[k].qty+=qty;
-      if(iVar>=0&&String(c[iVar]).toLowerCase()==='foil') col[k].foil+=qty;
+  parseCsvRows(text){
+    const src=String(text||'').replace(/^\uFEFF/,''); const rows=[];
+    let row=[],field='',quoted=false;
+    for(let i=0;i<src.length;i++){
+      const ch=src[i];
+      if(quoted){
+        if(ch==='"'){ if(src[i+1]==='"'){field+='"';i++;} else quoted=false; }
+        else field+=ch;
+      } else if(ch==='"') quoted=true;
+      else if(ch===','){ row.push(field); field=''; }
+      else if(ch==='\n'){ row.push(field); rows.push(row); row=[]; field=''; }
+      else if(ch!=='\r') field+=ch;
     }
-    return col;
+    if(quoted) throw new Error('Unclosed quoted CSV field');
+    if(field!==''||row.length){ row.push(field); rows.push(row); }
+    return rows;
+  }
+  parseCsvText(text){
+    const rows=this.parseCsvRows(text);
+    if(rows.length<2) return null;
+    const hdr=rows[0].map(h=>String(h||'').trim().toLowerCase());
+    const ix=(...names)=>hdr.findIndex(h=>names.includes(h));
+    const iCount=ix('count','quantity','qty'), iName=ix('name','card name'), iVar=ix('variant','finish'), iColor=ix('color'), iRar=ix('rarity'), iSet=ix('set number','set'), iNum=ix('card number','number');
+    if(iCount<0||iName<0) return null;
+    const normSet=(v)=>{ const s=String(v||'').trim(); return /^\d+$/.test(s)?String(parseInt(s,10)).padStart(3,'0'):s; };
+    const groups={},printings={}; let total=0,foilCopies=0;
+    for(let i=1;i<rows.length;i++){
+      const c=rows[i]; const name=String(c[iName]||'').trim(); if(!name) continue;
+      const qty=parseInt(c[iCount],10)||0; if(qty<=0) continue;
+      const variant=iVar>=0&&String(c[iVar]||'').toLowerCase()==='foil'?'foil':'normal';
+      const set=iSet>=0?normSet(c[iSet]):'';
+      const num=iNum>=0?(parseInt(c[iNum],10)||null):null;
+      const color=iColor>=0?String(c[iColor]||'').trim():'';
+      const rarity=iRar>=0?String(c[iRar]||'').trim():'';
+      const k=this.colKey(name); const id=['dreamborn',set,num==null?'':num,variant,k].join(':');
+      if(printings[id]) printings[id].count+=qty;
+      else printings[id]={id,source:'dreamborn',variant,count:qty,name,set,num,color,rarity};
+      (groups[k]=groups[k]||[]).push({id,name,set,num,variant,count:qty,color,rarity});
+      total+=qty; if(variant==='foil') foilCopies+=qty;
+    }
+    const collection={};
+    Object.keys(groups).forEach(k=>{
+      const ps=groups[k], previous=(this.state.collection||{})[k];
+      const samePrevious=previous&&ps.find(p=>normSet(p.set)===normSet(previous.set)&&String(p.num)==String(previous.num));
+      const normal=ps.filter(p=>p.variant==='normal');
+      const representative=samePrevious||(normal.length?normal:ps).slice().sort((a,b)=>(parseInt(a.set,10)||9999)-(parseInt(b.set,10)||9999)||(a.num||9999)-(b.num||9999))[0];
+      const normalQty=ps.filter(p=>p.variant==='normal').reduce((sum,p)=>sum+p.count,0);
+      const foilQty=ps.filter(p=>p.variant==='foil').reduce((sum,p)=>sum+p.count,0);
+      const printingCount=new Set(ps.map(p=>p.set+'|'+p.num)).size;
+      collection[k]=this.withOwnedCounts({
+        name:ps[0].name,
+        color:(previous&&previous.color)||representative.color||'',
+        rarity:(previous&&previous.rarity)||representative.rarity||'',
+        set:representative.set,
+        num:representative.num,
+        printingCount,
+        pricingApproximate:printingCount>1||foilQty>0
+      },normalQty,foilQty);
+    });
+    return {collection,printings,stats:{rows:Object.keys(printings).length,names:Object.keys(collection).length,total,foilCopies}};
   }
   onImportCsv(e){
     const f=e.target.files&&e.target.files[0]; if(!f) return;
     const r=new FileReader();
-    r.onload=()=>{
-      const col=this.parseCsvText(r.result);
-      if(!col||!Object.keys(col).length){ this.toast('Could not read that CSV'); return; }
-      this.stampCol(); this.persistCol(col);
+    r.onload=()=>{ try{
+      const result=this.parseCsvText(r.result);
+      if(!result||!Object.keys(result.collection).length){ this.toast('Could not read that CSV'); return; }
+      this.stampPrintings(); this.persistPrintings(result.printings);
+      this.stampCol(); this.persistCol(result.collection);
       try{ localStorage.setItem(this.CSEED,'user'); }catch(e2){}
-      this.setState({collection:col});
-      this.toast('Collection replaced — '+Object.keys(col).length+' cards');
-    };
+      this.setState({collection:result.collection,collectionPrintings:result.printings});
+      this.toast('Collection replaced — '+result.stats.total+' copies ('+result.stats.foilCopies+' foil)');
+    }catch(x){ this.toast('Could not read that CSV'); } };
     r.readAsText(f);
   }
-  load(){ try{ const d=JSON.parse(localStorage.getItem(this.KEY)); return (d&&typeof d==='object'&&Array.isArray(d.dale))?d:null; }catch(e){ return null; } }
+  load(){ try{ const d=JSON.parse(localStorage.getItem(this.KEY)); return (d&&typeof d==='object'&&!Array.isArray(d)&&Object.values(d).every(Array.isArray))?d:null; }catch(e){ return null; } }
   persist(s){ try{ localStorage.setItem(this.KEY, JSON.stringify(s||this.state.store)); }catch(e){} this.queueSync(); }
   toast(t){ this.setState({toast:t, undoFn:null}); clearTimeout(this._tt); this._tt=setTimeout(()=>this.setState({toast:'', undoFn:null}),3000); }
   toastUndo(t, fn){ this._undoFn=fn; this.setState({toast:t, undoFn:fn}); clearTimeout(this._tt); this._tt=setTimeout(()=>this.setState({toast:'', undoFn:null}),6000); }
@@ -2769,7 +2899,7 @@ class Component extends DCLogic {
     this._cardDbLoading=true; this._cardDbError=false;
     const el=document.createElement('script');
     el.src='card-db.js?v='+Date.now();
-    el.onload=()=>{ this._cbList=null; this._cardDbLoading=false; this.forceUpdate(); };
+    el.onload=()=>{ this._cbList=null; this._cardDbRaw=null; this._cardDbNorm=null; this._cardDbLoading=false; this.forceUpdate(); };
     el.onerror=()=>{ this._cardDbLoading=false; this._cardDbError=true; this.forceUpdate(); };
     document.head.appendChild(el);
   }
@@ -3238,7 +3368,7 @@ class Component extends DCLogic {
         rarity:c.rarity||'', foilStr:c.foil?('✦ '+c.foil):'',
         frameBg:I?`linear-gradient(165deg, ${I.bg}, var(--panel2) 70%)`:'var(--panel2)',
         frameBorder:I?I.border:'var(--border-soft)',
-        onMinus:()=>this.bumpCard(k,-1), onPlus:()=>this.bumpCard(k,1), onRemove:()=>this.removeCard(k), onZoom:()=>this.zoomCard(c.name)
+        onMinus:this.requireAdmin(()=>this.bumpCard(k,-1)), onPlus:this.requireAdmin(()=>this.bumpCard(k,1)), onRemove:this.requireAdmin(()=>this.removeCard(k)), onZoom:()=>this.zoomCard(c.name)
       });
       shownCount++;
     });
@@ -3342,11 +3472,11 @@ class Component extends DCLogic {
       sort:s.colSort||'set',
       onSortSet:()=>this.setState({colSort:'set'}), onSortValue:()=>this.setState({colSort:'value'}),
       sortSetStyle:vBtn((s.colSort||'set')==='set'), sortValueStyle:vBtn((s.colSort||'set')==='value'),
-      onImportCsv:(e)=>this.onImportCsv(e),
-      onImportCol:(e)=>this.onImportCol(e),
+      onImportCsv:this.requireAdmin((e)=>this.onImportCsv(e)),
+      onImportCol:this.requireAdmin((e)=>this.onImportCol(e)),
       onBrowseBase:()=>this.setTab('cardbase'),
       pasteText:s.colPasteText||'', onPasteText:(e)=>this.setState({colPasteText:e.target.value}),
-      onPasteImport:()=>this.onImportColText(),
+      onPasteImport:this.requireAdmin(()=>this.onImportColText()),
       hasCards:shownCount>0, empty:allKeys.length===0,
       hasCov:!!reqs, noCov:!reqs,
       covBody:s.covOpen!==false, covChevron:(s.covOpen!==false)?'▾':'▸',
@@ -3441,8 +3571,8 @@ class Component extends DCLogic {
         ownedColor:owned>0?'var(--text)':'var(--text3)',
         ink:this.inkBtn(c.n, c.ik),
         price:this.priceChip(c.n),
-        onPlus:(e)=>{ e.stopPropagation(); this.bumpCollection(c,1); },
-        onMinus:(e)=>{ e.stopPropagation(); this.bumpCollection(c,-1); },
+        onPlus:this.requireAdmin((e)=>{ e.stopPropagation(); this.bumpCollection(c,1); }),
+        onMinus:this.requireAdmin((e)=>{ e.stopPropagation(); this.bumpCollection(c,-1); }),
         canSwap:vfiles.length>1, onSwap:(e)=>{ e.stopPropagation(); this.setState({variantPick:c.n}); } };
     });
     const cbChipStyle=(on)=>`border:1px solid ${on?'#CC785C':'var(--border)'};border-radius:999px;padding:6px 13px;font-family:inherit;font-weight:600;font-size:.78rem;cursor:pointer;background:${on?'#CC785C':'var(--panel2)'};color:${on?'#fff':'var(--text2)'}`;
@@ -3512,7 +3642,7 @@ class Component extends DCLogic {
       open:!!s.syncOpen,
       chip:chipPair[0],
       chipStyle:`border:1px solid ${chipPair[1]}55;background:var(--panel2);color:${chipPair[1]};border-radius:7px;padding:5px 10px;font-family:'Space Mono',monospace;font-size:.58rem;letter-spacing:.14em;text-transform:uppercase;cursor:pointer;white-space:nowrap`,
-      statusLine: sst==='error'?('Error — '+(s.syncErr||'unknown')):sst==='busy'?'Syncing…':sst==='ok'?('Saved'+(s.syncTime?(' · '+new Date(s.syncTime).toLocaleTimeString()):'')):hasUrl?'Idle':'Read-only — showing the shared atlas; add a save server to edit from this device',
+      statusLine: sst==='error'?('Error — '+(s.syncErr||'unknown')):sst==='busy'?'Syncing…':sst==='ok'?('Saved'+(s.syncTime?(' · '+new Date(s.syncTime).toLocaleTimeString()):'')):hasUrl?'Idle':'Offline — no authenticated sync server configured',
       hasUrl,
       url:s.urlDraft!=null?s.urlDraft:this.syncUrl(),
       onUrl:(e)=>this.setState({urlDraft:e.target.value}),
@@ -3549,7 +3679,7 @@ class Component extends DCLogic {
       onAdminClick:()=>this.setState({adminOpen:true, loginErr:''}),
       adminIcon: this.isAdmin()?'\u25cf':'\u25cb',
       adminColor: this.isAdmin()?'#4ADE80':'var(--text2)',
-      adminTitle: this.isAdmin()?'Admin session active':'Admin login',
+      adminTitle: this.isAdmin()?'Editing session active':'Editing login',
       themeIcon: s.theme==='light'?'\u25d1':'\u25cf',
       onToggleTheme:()=>{ const t=s.theme==='light'?'dark':'light'; try{ localStorage.setItem('lorcanaAtlas_theme_v1', t); }catch(e){} this.setState({theme:t}); },
 
@@ -3788,7 +3918,7 @@ class Component extends DCLogic {
       this.toast('Game restored');
     });
   }
-  onExport(){ try{ const b=new Blob([JSON.stringify({...this.state.store, __collection:this.state.collection||{}},null,2)],{type:'application/json'}); const u=URL.createObjectURL(b); const el=document.createElement('a'); el.href=u; el.download='ranger-atlas-games.json'; el.click(); this.toast('Exported all decks'); }catch(e){ this.toast('Export failed'); } }
+  onExport(){ try{ const b=new Blob([JSON.stringify({...this.state.store, __collection:this.state.collection||{}, __collectionPrintings:this.state.collectionPrintings||{}},null,2)],{type:'application/json'}); const u=URL.createObjectURL(b); const el=document.createElement('a'); el.href=u; el.download='ranger-atlas-games.json'; el.click(); this.toast('Exported all decks'); }catch(e){ this.toast('Export failed'); } }
   copyToClipboard(text, msg){
     const done=()=>this.toast(msg||'Copied to clipboard');
     const fallback=()=>{
@@ -3890,9 +4020,13 @@ class Component extends DCLogic {
         const store={...this.state.store};
         Object.keys(d).forEach(k=>{ if(Array.isArray(d[k])) store[k]=d[k]; });
         this.persist(store);
-        let collection=this.state.collection;
-        if(d.__collection&&typeof d.__collection==='object'&&!Array.isArray(d.__collection)){ collection=d.__collection; this.persistCol(collection); }
-        this.setState({store, collection}); this.toast('Imported atlas — all decks');
+        let collection=this.state.collection, collectionPrintings=this.state.collectionPrintings||{};
+        if(d.__collection&&typeof d.__collection==='object'&&!Array.isArray(d.__collection)){
+          collection=d.__collection;
+          collectionPrintings=(d.__collectionPrintings&&typeof d.__collectionPrintings==='object'&&!Array.isArray(d.__collectionPrintings))?d.__collectionPrintings:{};
+          this.stampCol(); this.persistCol(collection); this.stampPrintings(); this.persistPrintings(collectionPrintings);
+        }
+        this.setState({store, collection, collectionPrintings}); this.toast('Imported atlas — all decks');
       } else this.toast('Bad file');
     }catch(x){ this.toast('Bad file'); } };
     r.readAsText(f);
