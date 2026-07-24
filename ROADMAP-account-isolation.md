@@ -57,6 +57,22 @@ account's collection, exact printings, decks, games and preferences.
   - Configure `USERS` or `USERS_KV`, `SESSION_SECRET` and `GH_TOKEN`.
   - Verify two real accounts end to end.
 
+## Printing-aware collection and prices
+
+- [x] Display owned cards by exact printing instead of consolidating the
+  collection screen by name.
+- [x] Keep the per-name collection only as a compatibility view for decks and
+  coverage.
+- [x] Resolve collection value by `ligaId` and normal/foil finish.
+- [x] Link a selected local art file to the matching owned printing.
+- [x] Reject a price row when its set/number belongs to another card.
+- [x] Preserve all exact rows when manual copies are added to the collection.
+- [x] Update the price agent according to `PRICE-AGENT-CONTRACT.md`.
+- [x] Add offline regressions for Anna, Huey, Let It Go and normal/foil prices.
+- [x] Add exact recovery prices for `LOR9-137` and `DLPC1-10-C2`.
+- [ ] Run a fresh agent collection to replace the two search-index recovery
+  rows with complete marketplace bands.
+
 ## Privacy note
 
 Account isolation prevents accidental mixing inside the application. Because the

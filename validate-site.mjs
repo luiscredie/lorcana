@@ -24,6 +24,27 @@ for (const path of [
   'import-collection.mjs',
 ]) syntaxCheck(path);
 
+const pythonEnv = {
+  ...process.env,
+  PYTHONPYCACHEPREFIX: '/tmp/lorcana-price-agent-pycache',
+};
+const pyCompile = spawnSync(
+  'python3',
+  ['-m', 'py_compile', resolve(root, 'price_agent.py'), resolve(root, 'validate-price-agent.py')],
+  { encoding: 'utf8', env: pythonEnv },
+);
+if (pyCompile.status !== 0) {
+  fail(`Python syntax check failed:\n${pyCompile.stderr || pyCompile.stdout}`);
+}
+const priceAgentValidation = spawnSync(
+  'python3',
+  [resolve(root, 'validate-price-agent.py')],
+  { encoding: 'utf8', env: pythonEnv },
+);
+if (priceAgentValidation.status !== 0) {
+  fail(`Price agent regression check failed:\n${priceAgentValidation.stderr || priceAgentValidation.stdout}`);
+}
+
 const indexSource = read('index.html');
 const logicMatch = indexSource.match(
   /<script type="text\/x-dc"[^>]*data-dc-script[^>]*>([\s\S]*?)<\/script>/,
@@ -141,7 +162,7 @@ assert(!simulatorTemplate.includes(
 globalThis.window = {};
 new Function(read('card-db.js'))();
 const app = new Component();
-app.state = { ...(app.state || {}), collection, variants: {} };
+app.state = { ...(app.state || {}), collection, collectionPrintings: printings, variants: {} };
 
 const csvFixture = '\uFEFFCount,Name,Set Number,Card Number,Variant,Color,Rarity\r\n'
   + '2,"Hamish, Hubert & Harris",12,77,Normal,Amber,Rare\r\n'
@@ -197,6 +218,141 @@ for (const entry of Object.values(prices.prices || {})) {
 assert(mismatchesIndexedAsExact === 0,
   `${mismatchesIndexedAsExact} known mismatched price rows entered the exact index`);
 
+assert(indexSource.includes("const hasExactOwned=exactOwned.length>0"),
+  'Collection view does not prefer exact owned printings');
+assert(indexSource.includes("price:printing?this.priceChipForPrinting(printing)"),
+  'Collection rows are not priced by exact printing');
+
+const annaPrintings = Object.values(printings).filter((printing) =>
+  printing.name === 'Anna - True-Hearted');
+assert(annaPrintings.length === 2, 'Anna exact-printing fixture is incomplete');
+assert(new Set(annaPrintings.map((printing) => printing.ligaId)).has('LOR4-138')
+  && new Set(annaPrintings.map((printing) => printing.ligaId)).has('LOR9-137'),
+'Anna set 4 and set 9 printings are not distinct');
+const derived = app.deriveCollectionFromPrintings(printings);
+assert(derived['anna - true-hearted'].qty === 2
+  && derived['anna - true-hearted'].printingCount === 2,
+'Exact Anna rows do not derive the expected legacy compatibility count');
+const withManualAnna = app.withManualCopies(
+  printings,
+  'Anna - True-Hearted',
+  1,
+  collection['anna - true-hearted'],
+);
+assert(Object.keys(withManualAnna).length === Object.keys(printings).length + 1,
+  'A manual addition erased or replaced an existing exact printing');
+assert(Object.keys(printings).length === 528,
+  'A manual addition mutated the exact-printing source object');
+const manualDerived = app.deriveCollectionFromPrintings(withManualAnna);
+assert(manualDerived['anna - true-hearted'].qty === 3,
+  'A manual addition was not included in the derived compatibility collection');
+
+const anna4 = annaPrintings.find((printing) => printing.ligaId === 'LOR4-138');
+const anna9 = annaPrintings.find((printing) => printing.ligaId === 'LOR9-137');
+const challengeLetItGo = Object.values(printings).find((printing) =>
+  printing.ligaId === 'DLPC1-10-C2');
+const anna4Price = app.priceInfoForPrinting(anna4);
+const anna9Price = app.priceInfoForPrinting(anna9);
+const challengePrice = app.priceInfoForPrinting(challengeLetItGo);
+assert(anna4Price.exact && anna4Price.brl === 3.49,
+  'Anna LOR4-138 did not resolve its exact Liga price');
+assert(app.priceInfoForPrinting({
+  name: 'Anna - True-Hearted',
+  set: 'LOR4',
+  num: '138',
+  variant: 'foil',
+}).brl === 5.99,
+'The set/number compatibility fallback merged foil into the normal price');
+assert(anna9Price.exact && anna9Price.brl === 0.99,
+  'Anna LOR9-137 did not resolve its exact Liga price');
+assert(challengePrice.exact && challengePrice.brl === 790,
+  'Let It Go DLPC1-10-C2 did not resolve its exact challenge price');
+assert(!app._priceByLigaId['LOR9-138'],
+  'Name-mismatched Huey LOR9-138 entered the exact ligaId index');
+
+app._fileTreeMulti = {
+  [app.colKey('Anna - True-Hearted')]: [
+    '004 - 138 - Anna - True-Hearted.jpg',
+    '009 - 137 - Anna - True-Hearted.jpg',
+  ],
+  [app.colKey('Let It Go')]: [
+    '001 - 10 - Let it Go.jpg',
+    '001 - 163 - Let It Go.jpg',
+    '001 - 2 - Let It Go.jpg',
+    '011 - 163 - Let It Go.jpg',
+  ],
+};
+app.state.variants = {
+  [app.colKey('Anna - True-Hearted')]: '004 - 138 - Anna - True-Hearted.jpg',
+  [app.colKey('Let It Go')]: '001 - 10 - Let it Go.jpg',
+};
+assert(app.variantPrinting('Anna - True-Hearted')?.ligaId === 'LOR4-138'
+  && app.priceInfo('Anna - True-Hearted').brl === 3.49,
+'Selected Anna art is not linked to its exact owned printing/price');
+assert(app.variantPrinting('Let It Go')?.ligaId === 'DLPC1-10-C2'
+  && app.priceInfo('Let It Go').brl === 790,
+'Selected Let It Go challenge art did not use its own exact price');
+
+const artPriceCases = [
+  ['001 - 10 - Let it Go.jpg', 'DLPC1-10-C2', 790],
+  ['001 - 163 - Let It Go.jpg', 'LOR1-163', 19.90],
+  ['001 - 2 - Let It Go.jpg', 'DLPC1-2-C1', 2999.90],
+  ['011 - 163 - Let It Go.jpg', 'LOR11-163', 12.99],
+];
+for (const [file, ligaId, expectedPrice] of artPriceCases) {
+  app.state.variants[app.colKey('Let It Go')] = file;
+  assert(app.variantPrinting('Let It Go')?.ligaId === ligaId,
+    `${file} did not map to ${ligaId}`);
+  assert(app.priceInfo('Let It Go').brl === expectedPrice,
+    `${file} did not resolve price ${expectedPrice}`);
+}
+app.state.variants[app.colKey('Anna - True-Hearted')] =
+  '009 - 137 - Anna - True-Hearted.jpg';
+assert(app.variantPrinting('Anna - True-Hearted')?.ligaId === 'LOR9-137'
+  && app.priceInfo('Anna - True-Hearted').brl === 0.99,
+'Selected Anna set 9 art did not use the LOR9-137 price');
+
+const v4App = new Component();
+v4App.state = { collection: {}, collectionPrintings: {}, variants: {} };
+v4App._prices = v4App.buildPriceMap({
+  prices_by_liga_id: {
+    'TEST-1': {
+      liga_id: 'TEST-1',
+      name: 'Test Card',
+      edition: 'DLPC1',
+      number: '10-C2',
+      normal: { low: 7.77 },
+      foil: { low: 8.88 },
+      match_status: 'matched',
+    },
+  },
+  prices: {
+    '999-001': {
+      card_db_key: 'test card',
+      base_name: 'Test Card',
+      printings: [{
+        liga_id: 'TEST-1',
+        name: 'Test Card',
+        edition: 'LOR999',
+        number: '1',
+        normal: { low: 1.11 },
+        foil: { low: 2.22 },
+        minimum_price_brl: 1.11,
+        match_status: 'matched',
+      }],
+    },
+  },
+});
+assert(v4App.priceInfoForPrinting({
+  ligaId: 'TEST-1', name: 'Test Card', variant: 'normal',
+}).brl === 7.77
+  && v4App.priceInfoForPrinting({
+    ligaId: 'TEST-1', name: 'Test Card', variant: 'foil',
+  }).brl === 8.88,
+'Schema v4 ligaId index does not preserve separate normal/foil prices');
+assert(v4App._priceByLigaId['TEST-1'].normal === 7.77,
+  'The legacy compatibility map overwrote the authoritative schema v4 ligaId price');
+
 const legacySync = read('functions/sync.js');
 assert(legacySync.includes('status: 410'), 'Legacy unauthenticated sync endpoint is not disabled');
 
@@ -232,6 +388,9 @@ console.log(JSON.stringify({
     missing: missingPrices,
     wrongExact: wrongExactPrices,
     knownMismatchesIndexed: mismatchesIndexedAsExact,
+    annaSet4: anna4Price.brl,
+    annaSet9: anna9Price.brl,
+    letItGoChallenge: challengePrice.brl,
   },
   accountIsolation: {
     collection: true,
